@@ -31,7 +31,6 @@ public class Matrix extends KillAuraMode {
   private UVPair rotateVector = new UVPair(0, 0);
   private LivingEntity primary;
   private Entity selected;
-  private int ticks = 0;
 
   public Matrix() {
     super(KillAuraModes.Matrix);
@@ -42,7 +41,6 @@ public class Matrix extends KillAuraMode {
     previousSlot = -1;
     swapped = false;
     rotateVector = new UVPair(mc.player.getYRot(), mc.player.getXRot());
-    ticks = 0;
   }
 
   @Override
