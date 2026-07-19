@@ -26,7 +26,7 @@ public class PlayerListEntryArgumentType implements ArgumentType<PlayerInfo> {
     private static final PlayerListEntryArgumentType INSTANCE = new PlayerListEntryArgumentType();
     private static final DynamicCommandExceptionType NO_SUCH_PLAYER = new DynamicCommandExceptionType(name -> Component.literal("Player list entry with name " + name + " doesn't exist."));
 
-    private static final Collection<String> EXAMPLES = List.of("seasnail8169", "MineGame159");
+    private static final Collection<String> EXAMPLES = List.of("oxod_", "seasnail8169", "MineGame159");
 
     public static PlayerListEntryArgumentType create() {
         return INSTANCE;

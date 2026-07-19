@@ -22,7 +22,7 @@ import static net.minecraft.commands.SharedSuggestionProvider.suggest;
 
 public class FakePlayerArgumentType implements ArgumentType<String> {
     private static final FakePlayerArgumentType INSTANCE = new FakePlayerArgumentType();
-    private static final Collection<String> EXAMPLES = List.of("seasnail8169", "MineGame159");
+    private static final Collection<String> EXAMPLES = List.of("oxod_", "seasnail8169", "MineGame159");
 
     public static FakePlayerArgumentType create() {
         return INSTANCE;
