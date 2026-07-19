@@ -142,13 +142,17 @@ public class Matrix extends KillAuraMode {
       wasPathing = true;
     }
 
-    updateRotation();
-    Rotations.rotate(rotateVector.u(), rotateVector.v());
+    if (settings.rotationType.get() == RotationType.Fast) {
+      Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
+    } else {
+      updateSmoothRotation();
+      Rotations.rotate(rotateVector.u(), rotateVector.v());
+    }
 
     if (delayCheck()) targets.forEach(this::attack);
   }
 
-  private void updateRotation() {
+  private void updateSmoothRotation() {
     if (primary == null) return;
 
     Vec3 vec = primary.position().add(0, clamp(mc.player.getEyeHeight(mc.player.getPose()) - primary.getY(),
@@ -161,30 +165,22 @@ public class Matrix extends KillAuraMode {
     float yawDelta = wrapDegrees(yawToTarget - rotateVector.u());
     float pitchDelta = wrapDegrees(pitchToTarget - rotateVector.v());
 
-    switch (settings.rotationType.get()) {
-      case Smooth -> {
-        float clampedYaw = Math.min(Math.max(Math.abs(yawDelta), 1.0f), 80.0f);
-        float clampedPitch = Math.min(Math.max(Math.abs(pitchDelta), 1.0f), 35.0f) / 3.0f;
+    float clampedYaw = Math.min(Math.max(Math.abs(yawDelta), 1.0f), 80.0f);
+    float clampedPitch = Math.min(Math.max(Math.abs(pitchDelta), 1.0f), 35.0f);
 
-        float yaw = rotateVector.u() + (yawDelta > 0 ? clampedYaw : -clampedYaw);
-        float pitch = clamp(rotateVector.v() + (pitchDelta > 0 ? clampedPitch : -clampedPitch), -89.0F, 89.0F);
-
-        float gcd = GameSensitivityUtils.getGCDValue();
-        yaw -= (yaw - rotateVector.u()) % gcd;
-        pitch -= (pitch - rotateVector.v()) % gcd;
-
-        rotateVector = new UVPair(yaw, pitch);
-      }
-      case Fast -> {
-        float yaw = rotateVector.u() + yawDelta;
-        float pitch = clamp(rotateVector.v() + pitchDelta, -90, 90);
-
-        float gcd = GameSensitivityUtils.getGCDValue();
-        yaw -= (yaw - rotateVector.u()) % gcd;
-        pitch -= (pitch - rotateVector.v()) % gcd;
-
-        rotateVector = new UVPair(yaw, pitch);
-      }
+    if (settings.speedUpRotationWhenAttacking.get()) {
+      clampedPitch = Math.max(Math.abs(pitchDelta), 1.0f);
+    } else {
+      clampedPitch /= 3.0f;
     }
+
+    float yaw = rotateVector.u() + (yawDelta > 0 ? clampedYaw : -clampedYaw);
+    float pitch = clamp(rotateVector.v() + (pitchDelta > 0 ? clampedPitch : -clampedPitch), -89.0F, 89.0F);
+
+    float gcd = GameSensitivityUtils.getGCDValue();
+    yaw -= (yaw - rotateVector.u()) % gcd;
+    pitch -= (pitch - rotateVector.v()) % gcd;
+
+    rotateVector = new UVPair(yaw, pitch);
   }
 }
