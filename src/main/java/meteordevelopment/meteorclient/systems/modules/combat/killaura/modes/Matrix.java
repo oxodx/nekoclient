@@ -147,7 +147,7 @@ public class Matrix extends KillAuraMode {
       wasPathing = true;
     }
 
-    EntityHitResult result = raycastEntity(settings.range.get(), rotateVector.u(), rotateVector.v(), 0f);
+    EntityHitResult result = raycastEntity(settings.range.get(), rotateVector.u(), rotateVector.v(), 0.3);
 
     if (delayCheck() && result != null && result.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) {
       attack(primary);
