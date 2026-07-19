@@ -29,6 +29,7 @@ Then just drop the jar in your mod folder.
 ## Credits
 
 - [**MeteorDevelopment/meteor-client**](https://github.com/MeteorDevelopment/meteor-client)
+- [**MeteorClientPlus/MeteorPlus**](https://github.com/MeteorClientPlus/MeteorPlus)
 
 ---
 
