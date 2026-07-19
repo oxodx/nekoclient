@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "name": "Meteor Client",
-  "id": "meteor-client",
+  "name": "NekoClient",
+  "id": "nekoclient",
   "version": "${version}",
   "description": "Based utility mod.",
   "authors": [
@@ -10,13 +10,12 @@
     "seasnail"
   ],
   "contact": {
-    "homepage": "https://meteorclient.com",
-    "issues": "https://github.com/MeteorDevelopment/meteor-client/issues",
-    "sources": "https://github.com/MeteorDevelopment/meteor-client",
-    "discord": "https://meteorclient.com/discord"
+    "homepage": "https://github.com/oxodx/nekoclient",
+    "issues": "https://github.com/oxodx/nekoclient/issues",
+    "sources": "https://github.com/oxodx/nekoclient"
   },
   "license": "GPL-3.0",
-  "icon": "assets/meteor-client/icon.png",
+  "icon": "assets/nekoclient/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
@@ -40,9 +39,6 @@
     "meteor-client:color": "145,61,226",
     "meteor-client:commit": "${commit}",
     "modmenu": {
-      "links": {
-        "modmenu.discord": "https://meteorclient.com/discord"
-      }
     },
     "badoptimizations:cache_hooks": {
       "lightmap": "meteordevelopment.meteorclient.modintegration.BadOptimizationsHook"
