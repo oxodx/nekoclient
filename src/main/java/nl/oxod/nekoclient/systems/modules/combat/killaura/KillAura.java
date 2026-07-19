@@ -19,7 +19,7 @@ import java.util.List;
 
 public class KillAura extends Module {
   public KillAura() {
-    super(Categories.Combat, "kill-aura", "Attacks specified entities around you.");
+    super(Categories.NekoClient_Combat, "kill-aura", "Attacks specified entities around you.");
   }
 
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
