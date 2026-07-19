@@ -48,46 +48,7 @@ public class Vannila extends KillAuraMode {
 
   @Override
   public void onTickPre(TickEvent.Pre event) {
-    if (!mc.player.isAlive() || PlayerUtils.getGameMode() == GameType.SPECTATOR) {
-      stopAttacking();
-      return;
-    }
-    if (settings.pauseOnUse.get() && (mc.gameMode.isDestroying() || mc.player.isUsingItem())) {
-      stopAttacking();
-      return;
-    }
-    if (settings.onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
-      stopAttacking();
-      return;
-    }
-    if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && settings.pauseOnLag.get()) {
-      stopAttacking();
-      return;
-    }
-    if (settings.pauseOnCA.get() && Modules.get().get(CrystalAura.class).isActive()
-        && Modules.get().get(CrystalAura.class).kaTimer > 0) {
-      stopAttacking();
-      return;
-    }
-    if (settings.onlyOnLook.get()) {
-      Entity targeted = mc.crosshairPickEntity;
-
-      if (targeted == null || !entityCheck(targeted)) {
-        stopAttacking();
-        return;
-      }
-
-      targets.clear();
-      targets.add(mc.crosshairPickEntity);
-    } else {
-      targets.clear();
-      TargetUtils.getList(targets, this::entityCheck, settings.priority.get(), settings.maxTargets.get());
-    }
-
-    if (targets.isEmpty()) {
-      stopAttacking();
-      return;
-    }
+    isAllowedToAttack();
 
     Entity primary = targets.getFirst();
 
