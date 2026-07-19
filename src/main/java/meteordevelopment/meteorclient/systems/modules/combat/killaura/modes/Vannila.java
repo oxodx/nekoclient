@@ -48,7 +48,6 @@ public class Vannila extends KillAuraMode {
 
   @Override
   public void onTickPre(TickEvent.Pre event, Entity target) {
-    attacking = true;
     if (settings.rotation.get() == RotationMode.Always)
       Rotations.rotate(Rotations.getYaw(target), Rotations.getPitch(target, Target.Body));
     if (settings.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {

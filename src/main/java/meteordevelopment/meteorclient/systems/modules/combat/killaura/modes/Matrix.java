@@ -68,7 +68,6 @@ public class Matrix extends KillAuraMode {
       return;
     }
 
-    attacking = true;
     if (settings.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
       PathManagers.get().pause();
       wasPathing = true;

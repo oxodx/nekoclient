@@ -294,6 +294,8 @@ public class KillAura extends Module {
       return;
     }
 
+    attacking = true;
+
 		currentMode.onTickPre(event, target);
 	}
 
