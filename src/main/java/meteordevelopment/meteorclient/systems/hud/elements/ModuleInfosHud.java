@@ -10,6 +10,7 @@ import meteordevelopment.meteorclient.systems.hud.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.combat.*;
+import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 
 import java.util.List;
