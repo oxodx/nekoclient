@@ -218,7 +218,7 @@ publishing {
   publications {
     create<MavenPublication>("mavenJava") {
       from(components["java"])
-      artifactId = "meteor-client"
+      artifactId = "nekoclient"
 
       version = "${libs.versions.minecraft.get()}-SNAPSHOT"
     }
