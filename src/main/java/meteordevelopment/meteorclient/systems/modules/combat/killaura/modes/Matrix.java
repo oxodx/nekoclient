@@ -171,24 +171,25 @@ public class Matrix extends KillAuraMode {
   private void updateRotation(boolean attack, float rotationYawSpeed, float rotationPitchSpeed) {
     if (primary == null) return;
 
-    Vec3 vec = primary.position().add(0, clamp(mc.player.getEyeHeight(mc.player.getPose()) - primary.getY(),
-        0, primary.getBbHeight() * (mc.player.distanceTo(primary) / settings.range.get())), 0)
-        .subtract(mc.player.getEyePosition());
+    double distance = mc.player.distanceTo(primary);
+    double lookHeight = clamp(distance / settings.range.get(), 0, 1) * primary.getBbHeight();
+    Vec3 vec = primary.position().add(0, lookHeight, 0).subtract(mc.player.getEyePosition());
 
     float yawToTarget = (float) wrapDegrees(Math.toDegrees(Math.atan2(vec.z, vec.x)) - 90);
     float pitchToTarget = (float) (-Math.toDegrees(Math.atan2(vec.y, length(vec.x, vec.z))));
 
     float yawDelta = wrapDegrees(yawToTarget - rotateVector.u());
     float pitchDelta = wrapDegrees(pitchToTarget - rotateVector.v());
-    int roundedYaw = (int) yawDelta;
 
     switch (settings.rotationType.get()) {
       case Smooth -> {
-        float clampedYaw = Math.min(Math.max(Math.abs(yawDelta), 1.0f), rotationYawSpeed);
-        float clampedPitch = Math.min(Math.max(Math.abs(pitchDelta), 1.0f), rotationPitchSpeed);
+        float absYawDelta = Math.abs(yawDelta);
+        float absPitchDelta = Math.abs(pitchDelta);
+        float clampedYaw = Math.min(absYawDelta, rotationYawSpeed);
+        float clampedPitch = Math.min(absPitchDelta, rotationPitchSpeed);
 
         if (attack && selected != primary && settings.speedUpRotationWhenAttacking.get()) {
-          clampedPitch = Math.max(Math.abs(pitchDelta), 1.0f);
+          clampedPitch = absPitchDelta;
         } else {
           clampedPitch /= 3f;
         }
@@ -203,7 +204,7 @@ public class Matrix extends KillAuraMode {
         rotateVector = new UVPair(yaw, pitch);
       }
       case Fast -> {
-        float yaw = rotateVector.u() + roundedYaw;
+        float yaw = rotateVector.u() + yawDelta;
         float pitch = clamp(rotateVector.v() + pitchDelta, -90, 90);
 
         float gcd = GameSensitivityUtils.getGCDValue();
