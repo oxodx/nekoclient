@@ -35,7 +35,6 @@ public class Matrix extends KillAuraMode {
   private UVPair rotateVector = new UVPair(0, 0);
   private LivingEntity primary;
   private Entity selected;
-  private float lastYaw;
   private int ticks = 0;
 
   public Matrix() {
@@ -194,10 +193,6 @@ public class Matrix extends KillAuraMode {
           clampedPitch /= 3f;
         }
 
-        if (Math.abs(clampedYaw - this.lastYaw) <= 3.0f) {
-          clampedYaw = this.lastYaw + 3.1f;
-        }
-
         float yaw = rotateVector.u() + (yawDelta > 0 ? clampedYaw : -clampedYaw);
         float pitch = clamp(rotateVector.v() + (pitchDelta > 0 ? clampedPitch : -clampedPitch), -89.0F, 89.0F);
 
@@ -206,7 +201,6 @@ public class Matrix extends KillAuraMode {
         pitch -= (pitch - rotateVector.v()) % gcd;
 
         rotateVector = new UVPair(yaw, pitch);
-        lastYaw = clampedYaw;
       }
       case Fast -> {
         float yaw = rotateVector.u() + roundedYaw;
