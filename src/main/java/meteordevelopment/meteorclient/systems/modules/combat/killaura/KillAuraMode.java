@@ -15,6 +15,7 @@ import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.S
 import meteordevelopment.meteorclient.utils.entity.Target;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.entity.fakeplayer.FakePlayerEntity;
+import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
@@ -103,6 +104,26 @@ public class KillAuraMode {
     if (targets.isEmpty()) {
       stopAttacking();
       return;
+    }
+  }
+
+  protected void autoSwitch() {
+    if (settings.autoSwitch.get()) {
+      FindItemResult weaponResult = new FindItemResult(mc.player.getInventory().getSelectedSlot(), -1);
+      if (settings.attackWhenHolding.get() == AttackItems.Weapons)
+        weaponResult = InvUtils.find(this::acceptableWeapon, 0, 8);
+
+      if (shouldShieldBreak()) {
+        FindItemResult axeResult = InvUtils.find(itemStack -> itemStack.getItem() instanceof AxeItem, 0, 8);
+        if (axeResult.found()) weaponResult = axeResult;
+      }
+
+      if (!swapped) {
+        previousSlot = mc.player.getInventory().getSelectedSlot();
+        swapped = true;
+      }
+
+      InvUtils.swap(weaponResult.slot(), false);
     }
   }
 

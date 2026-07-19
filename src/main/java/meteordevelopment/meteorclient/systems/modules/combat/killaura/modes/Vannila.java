@@ -52,23 +52,7 @@ public class Vannila extends KillAuraMode {
 
     Entity primary = targets.getFirst();
 
-    if (settings.autoSwitch.get()) {
-      FindItemResult weaponResult = new FindItemResult(mc.player.getInventory().getSelectedSlot(), -1);
-      if (settings.attackWhenHolding.get() == AttackItems.Weapons)
-        weaponResult = InvUtils.find(this::acceptableWeapon, 0, 8);
-
-      if (shouldShieldBreak()) {
-        FindItemResult axeResult = InvUtils.find(itemStack -> itemStack.getItem() instanceof AxeItem, 0, 8);
-        if (axeResult.found()) weaponResult = axeResult;
-      }
-
-      if (!swapped) {
-        previousSlot = mc.player.getInventory().getSelectedSlot();
-        swapped = true;
-      }
-
-      InvUtils.swap(weaponResult.slot(), false);
-    }
+    autoSwitch();
 
     if (!acceptableWeapon(mc.player.getMainHandItem())) {
       stopAttacking();
