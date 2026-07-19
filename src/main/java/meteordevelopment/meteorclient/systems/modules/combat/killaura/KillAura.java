@@ -284,7 +284,8 @@ public class KillAura extends Module {
 	private void onTickPre(TickEvent.Pre event) {
     currentMode.isAllowedToAttack();
 
-    Entity target = currentMode.targets.getFirst();
+    Entity target = getTarget();
+    if (target == null) return;
 
     currentMode.autoSwitch();
 
