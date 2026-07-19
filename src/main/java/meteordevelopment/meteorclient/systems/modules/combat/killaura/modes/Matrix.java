@@ -71,13 +71,15 @@ public class Matrix extends KillAuraMode {
     }
 
     if (targets.isEmpty()) {
+      this.primary = null;
       stopAttacking();
       return;
     }
 
-    Entity primary = targets.getFirst();
+    Entity target = targets.getFirst();
 
-    if (primary != null && primary.isAlive()) {
+    if (target != null && target.isAlive() && target instanceof LivingEntity livingTarget) {
+      this.primary = livingTarget;
       isRotated = false;
 
       EntityHitResult result = raycastEntity(settings.range.get(), rotateVector.u(), rotateVector.v(), 0f);
@@ -85,7 +87,8 @@ public class Matrix extends KillAuraMode {
         ChatUtils.info(result.getType().name());
       }
       if (delayCheck() && result != null && result.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) {
-        attack(primary);
+        attack(target);
+        selected = target;
         ticks = 2;
       }
 
@@ -104,6 +107,7 @@ public class Matrix extends KillAuraMode {
         }
       }
     } else {
+      this.primary = null;
       reset();
     }
   }
@@ -134,7 +138,7 @@ public class Matrix extends KillAuraMode {
         float clampedYaw = Math.min(Math.max(Math.abs(yawDelta), 1.0f), rotationYawSpeed);
         float clampedPitch = Math.min(Math.max(Math.abs(pitchDelta), 1.0f), rotationPitchSpeed);
 
-        if (attack && selected != primary && settings.speedUpRotationWhenAttacking.get()) {
+        if (attack && selected != target && settings.speedUpRotationWhenAttacking.get()) {
           clampedPitch = Math.max(Math.abs(pitchDelta), 1.0f);
         } else {
           clampedPitch /= 3f;
