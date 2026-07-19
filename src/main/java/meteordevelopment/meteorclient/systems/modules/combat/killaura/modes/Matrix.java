@@ -160,8 +160,4 @@ public class Matrix extends KillAuraMode {
       }
     }
   }
-
-  private void reset() {
-    rotateVector = new UVPair(mc.player.getYRot(), mc.player.getXRot());
-  }
 }
