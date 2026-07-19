@@ -3,28 +3,17 @@ package meteordevelopment.meteorclient.systems.modules.combat.killaura.modes;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.pathing.PathManagers;
-import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.AttackItems;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationMode;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraModes;
 import meteordevelopment.meteorclient.utils.entity.Target;
-import meteordevelopment.meteorclient.utils.entity.TargetUtils;
-import meteordevelopment.meteorclient.utils.player.FindItemResult;
-import meteordevelopment.meteorclient.utils.player.InvUtils;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
-import meteordevelopment.meteorclient.utils.world.TickRate;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.level.GameType;
 
 public class Vannila extends KillAuraMode {
   public Vannila() {
-    super(KillAuraModes.Vannila);
+    super();
   }
 
   @Override
@@ -42,15 +31,15 @@ public class Vannila extends KillAuraMode {
   @EventHandler
   public void onSendPacket(PacketEvent.Send event) {
     if (event.packet instanceof ServerboundSetCarriedItemPacket) {
-      switchTimer = settings.switchDelay.get();
+      switchTimer = settings.timing.switchDelay.get();
     }
   }
 
   @Override
   public void onTickPre(TickEvent.Pre event, Entity target) {
-    if (settings.rotation.get() == RotationMode.Always)
+    if (settings.general.rotation.get() == RotationMode.Always)
       Rotations.rotate(Rotations.getYaw(target), Rotations.getPitch(target, Target.Body));
-    if (settings.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
+    if (settings.general.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
       PathManagers.get().pause();
       wasPathing = true;
     }

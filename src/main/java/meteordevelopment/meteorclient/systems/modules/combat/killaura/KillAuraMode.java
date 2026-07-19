@@ -50,7 +50,6 @@ import net.minecraft.world.phys.AABB;
 public class KillAuraMode {
   protected final Minecraft mc;
   protected final KillAura settings;
-  private final KillAuraModes type;
 
   protected final List<Entity> targets = new ArrayList<>();
   protected boolean wasPathing = false;
@@ -58,10 +57,9 @@ public class KillAuraMode {
   protected boolean attacking, swapped;
   protected static int previousSlot;
 
-  public KillAuraMode(KillAuraModes type) {
+  public KillAuraMode() {
     this.settings = Modules.get().get(KillAura.class);
     this.mc = Minecraft.getInstance();
-    this.type = type;
   }
 
   protected void isAllowedToAttack() {
@@ -69,24 +67,24 @@ public class KillAuraMode {
       stopAttacking();
       return;
     }
-    if (settings.pauseOnUse.get() && (mc.gameMode.isDestroying() || mc.player.isUsingItem())) {
+    if (settings.timing.pauseOnUse.get() && (mc.gameMode.isDestroying() || mc.player.isUsingItem())) {
       stopAttacking();
       return;
     }
-    if (settings.onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
+    if (settings.general.onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
       stopAttacking();
       return;
     }
-    if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && settings.pauseOnLag.get()) {
+    if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && settings.timing.pauseOnLag.get()) {
       stopAttacking();
       return;
     }
-    if (settings.pauseOnCA.get() && Modules.get().get(CrystalAura.class).isActive()
+    if (settings.timing.pauseOnCA.get() && Modules.get().get(CrystalAura.class).isActive()
         && Modules.get().get(CrystalAura.class).kaTimer > 0) {
       stopAttacking();
       return;
     }
-    if (settings.onlyOnLook.get()) {
+    if (settings.general.onlyOnLook.get()) {
       Entity targeted = mc.crosshairPickEntity;
 
       if (targeted == null || !entityCheck(targeted)) {
@@ -98,7 +96,8 @@ public class KillAuraMode {
       targets.add(mc.crosshairPickEntity);
     } else {
       targets.clear();
-      TargetUtils.getList(targets, this::entityCheck, settings.priority.get(), settings.maxTargets.get());
+      TargetUtils.getList(targets, this::entityCheck, settings.targeting.priority.get(),
+          settings.targeting.maxTargets.get());
     }
 
     if (targets.isEmpty()) {
@@ -108,9 +107,9 @@ public class KillAuraMode {
   }
 
   protected void autoSwitch() {
-    if (settings.autoSwitch.get()) {
+    if (settings.general.autoSwitch.get()) {
       FindItemResult weaponResult = new FindItemResult(mc.player.getInventory().getSelectedSlot(), -1);
-      if (settings.attackWhenHolding.get() == AttackItems.Weapons)
+      if (settings.general.attackWhenHolding.get() == AttackItems.Weapons)
         weaponResult = InvUtils.find(this::acceptableWeapon, 0, 8);
 
       if (shouldShieldBreak()) {
@@ -128,7 +127,7 @@ public class KillAuraMode {
   }
 
   protected void attack(Entity target) {
-    if (settings.rotation.get() == RotationMode.OnHit)
+    if (settings.general.rotation.get() == RotationMode.OnHit)
       Rotations.rotate(Rotations.getYaw(target), Rotations.getPitch(target, Target.Body));
 
     mc.gameMode.attack(mc.player, target);
@@ -140,7 +139,7 @@ public class KillAuraMode {
   protected boolean shouldShieldBreak() {
     for (Entity target : targets) {
       if (target instanceof Player player) {
-        if (player.isBlocking() && settings.shieldMode.get() == ShieldMode.Break) {
+        if (player.isBlocking() && settings.general.shieldMode.get() == ShieldMode.Break) {
           return true;
         }
       }
@@ -151,16 +150,24 @@ public class KillAuraMode {
 
   protected boolean acceptableWeapon(ItemStack stack) {
     if (shouldShieldBreak()) return stack.getItem() instanceof AxeItem;
-    if (settings.attackWhenHolding.get() == AttackItems.All) return true;
+    if (settings.general.attackWhenHolding.get() == AttackItems.All) return true;
 
-    if (settings.weapons.get().contains(Items.DIAMOND_SWORD) && stack.is(ItemTags.SWORDS)) return true;
-    if (settings.weapons.get().contains(Items.DIAMOND_AXE) && stack.is(ItemTags.AXES)) return true;
-    if (settings.weapons.get().contains(Items.DIAMOND_PICKAXE) && stack.is(ItemTags.PICKAXES)) return true;
-    if (settings.weapons.get().contains(Items.DIAMOND_SHOVEL) && stack.is(ItemTags.SHOVELS)) return true;
-    if (settings.weapons.get().contains(Items.DIAMOND_HOE) && stack.is(ItemTags.HOES)) return true;
-    if (settings.weapons.get().contains(Items.MACE) && stack.getItem() instanceof MaceItem) return true;
-    if (settings.weapons.get().contains(Items.DIAMOND_SPEAR) && stack.is(ItemTags.SPEARS)) return true;
-    return settings.weapons.get().contains(Items.TRIDENT) && stack.getItem() instanceof TridentItem;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_SWORD)
+        && stack.is(ItemTags.SWORDS)) return true;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_AXE)
+        && stack.is(ItemTags.AXES)) return true;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_PICKAXE)
+        && stack.is(ItemTags.PICKAXES)) return true;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_SHOVEL)
+        && stack.is(ItemTags.SHOVELS)) return true;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_HOE)
+        && stack.is(ItemTags.HOES)) return true;
+    if (settings.general.weapons.get().contains(Items.MACE)
+        && stack.getItem() instanceof MaceItem) return true;
+    if (settings.general.weapons.get().contains(Items.DIAMOND_SPEAR)
+        && stack.is(ItemTags.SPEARS)) return true;
+    return settings.general.weapons.get().contains(Items.TRIDENT)
+        && stack.getItem() instanceof TridentItem;
   }
 
   protected void stopAttacking() {
@@ -171,7 +178,7 @@ public class KillAuraMode {
       PathManagers.get().resume();
       wasPathing = false;
     }
-    if (settings.swapBack.get() && swapped) {
+    if (settings.general.swapBack.get() && swapped) {
       InvUtils.swap(previousSlot, false);
       swapped = false;
     }
@@ -183,10 +190,10 @@ public class KillAuraMode {
       return false;
     }
 
-    float delay = (settings.customDelay.get()) ? settings.hitDelay.get() : 0.5f;
-    if (settings.tpsSync.get()) delay /= (TickRate.INSTANCE.getTickRate() / 20);
+    float delay = (settings.timing.customDelay.get()) ? settings.timing.hitDelay.get() : 0.5f;
+    if (settings.timing.tpsSync.get()) delay /= (TickRate.INSTANCE.getTickRate() / 20);
 
-    if (settings.customDelay.get()) {
+    if (settings.timing.customDelay.get()) {
       if (hitTimer < delay) {
         hitTimer++;
         return false;
@@ -204,20 +211,20 @@ public class KillAuraMode {
       Mth.clamp(mc.player.getX(), hitbox.minX, hitbox.maxX),
       Mth.clamp(mc.player.getY(), hitbox.minY, hitbox.maxY),
       Mth.clamp(mc.player.getZ(), hitbox.minZ, hitbox.maxZ),
-      settings.range.get()
+      settings.targeting.range.get()
     )) return false;
 
-    if (!settings.entities.get().contains(entity.getType())) return false;
-    if (settings.ignoreNamed.get() && entity.hasCustomName()) return false;
-    if (!PlayerUtils.canSeeEntity(entity) && !PlayerUtils.isWithin(entity, settings.wallsRange.get()))
+    if (!settings.targeting.entities.get().contains(entity.getType())) return false;
+    if (settings.targeting.ignoreNamed.get() && entity.hasCustomName()) return false;
+    if (!PlayerUtils.canSeeEntity(entity) && !PlayerUtils.isWithin(entity, settings.targeting.wallsRange.get()))
       return false;
-    if (settings.ignoreTamed.get()) {
+    if (settings.targeting.ignoreTamed.get()) {
       if (entity instanceof OwnableEntity tameable
         && tameable.getOwner() != null
         && tameable.getOwner().equals(mc.player)
       ) return false;
     }
-    if (settings.ignorePassive.get()) {
+    if (settings.targeting.ignorePassive.get()) {
       if (entity instanceof EnderMan enderman && !enderman.isCreepy()) return false;
       if ((entity instanceof Piglin || entity instanceof ZombifiedPiglin || entity instanceof Wolf) && !((Mob) entity).isAggressive())
         return false;
@@ -225,14 +232,14 @@ public class KillAuraMode {
     if (entity instanceof Player player) {
       if (player.isCreative()) return false;
       if (!Friends.get().shouldAttack(player)) return false;
-      if (settings.shieldMode.get() == ShieldMode.Ignore && player.isBlocking()) return false;
+      if (settings.general.shieldMode.get() == ShieldMode.Ignore && player.isBlocking()) return false;
       if (player instanceof FakePlayerEntity fakePlayer && fakePlayer.noHit) return false;
     }
     if (entity instanceof LivingEntity livingEntity) {
       // Hostile mobs with baby variants (zombies, piglins, hoglins, zoglins)
       if (entity instanceof Zombie || entity instanceof Piglin
         || entity instanceof Hoglin || entity instanceof Zoglin) {
-        return switch (settings.hostileMobAgeFilter.get()) {
+        return switch (settings.targeting.hostileMobAgeFilter.get()) {
           case Baby -> livingEntity.isBaby();
           case Adult -> !livingEntity.isBaby();
           case Both -> true;
@@ -240,7 +247,7 @@ public class KillAuraMode {
       }
       // Passive mobs with baby variants (animals, villagers)
       if (entity instanceof AgeableMob && (!(entity instanceof Frog || entity instanceof Parrot))) {
-        return switch (settings.passiveMobAgeFilter.get()) {
+        return switch (settings.targeting.passiveMobAgeFilter.get()) {
           case Baby -> livingEntity.isBaby();
           case Adult -> !livingEntity.isBaby();
           case Both -> true;

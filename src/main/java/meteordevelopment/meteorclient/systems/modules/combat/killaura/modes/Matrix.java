@@ -3,27 +3,16 @@ package meteordevelopment.meteorclient.systems.modules.combat.killaura.modes;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.pathing.PathManagers;
-import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.AttackItems;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationType;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraModes;
 import meteordevelopment.meteorclient.utils.GameSensitivityUtils;
 import meteordevelopment.meteorclient.utils.entity.Target;
-import meteordevelopment.meteorclient.utils.entity.TargetUtils;
-import meteordevelopment.meteorclient.utils.player.FindItemResult;
-import meteordevelopment.meteorclient.utils.player.InvUtils;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
-import meteordevelopment.meteorclient.utils.world.TickRate;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import static net.minecraft.util.Mth.*;
 
@@ -33,7 +22,7 @@ public class Matrix extends KillAuraMode {
   private Entity selected;
 
   public Matrix() {
-    super(KillAuraModes.Matrix);
+    super();
   }
 
   @Override
@@ -54,7 +43,7 @@ public class Matrix extends KillAuraMode {
   @EventHandler
   public void onSendPacket(PacketEvent.Send event) {
     if (event.packet instanceof ServerboundSetCarriedItemPacket) {
-      switchTimer = settings.switchDelay.get();
+      switchTimer = settings.timing.switchDelay.get();
     }
   }
 
@@ -68,12 +57,12 @@ public class Matrix extends KillAuraMode {
       return;
     }
 
-    if (settings.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
+    if (settings.general.pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
       PathManagers.get().pause();
       wasPathing = true;
     }
 
-    if (settings.rotationType.get() == RotationType.Fast) {
+    if (settings.general.rotationType.get() == RotationType.Fast) {
       Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
     } else {
       updateRotation(false, 80, 35);
@@ -87,7 +76,7 @@ public class Matrix extends KillAuraMode {
     if (primary == null) return;
 
     double distance = mc.player.distanceTo(primary);
-    double lookHeight = clamp(distance / settings.range.get(), 0, 1) * primary.getBbHeight();
+    double lookHeight = clamp(distance / settings.targeting.range.get(), 0, 1) * primary.getBbHeight();
     Vec3 vec = primary.position().add(0, lookHeight, 0).subtract(mc.player.getEyePosition());
 
     float yawToTarget = (float) wrapDegrees(Math.toDegrees(Math.atan2(vec.z, vec.x)) - 90);
@@ -96,14 +85,14 @@ public class Matrix extends KillAuraMode {
     float yawDelta = wrapDegrees(yawToTarget - rotateVector.u());
     float pitchDelta = wrapDegrees(pitchToTarget - rotateVector.v());
 
-    switch (settings.rotationType.get()) {
+    switch (settings.general.rotationType.get()) {
       case Smooth -> {
         float absYawDelta = Math.abs(yawDelta);
         float absPitchDelta = Math.abs(pitchDelta);
         float clampedYaw = Math.min(absYawDelta, rotationYawSpeed);
         float clampedPitch = Math.min(absPitchDelta, rotationPitchSpeed);
 
-        if (attack && selected != primary && settings.speedUpRotationWhenAttacking.get()) {
+        if (attack && selected != primary && settings.general.speedUpRotationWhenAttacking.get()) {
           clampedPitch = absPitchDelta;
         } else {
           clampedPitch /= 3f;
