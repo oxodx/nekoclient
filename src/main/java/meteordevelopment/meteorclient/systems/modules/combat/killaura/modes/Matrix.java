@@ -75,14 +75,12 @@ public class Matrix extends KillAuraMode {
     }
 
     if (settings.rotationType.get() == RotationType.Fast) {
-      Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body), this::doAttack);
+      Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
     } else {
       updateRotation(false, 80, 35);
-      Rotations.rotate(rotateVector.u(), rotateVector.v(), this::doAttack);
+      Rotations.rotate(rotateVector.u(), rotateVector.v());
     }
-  }
 
-  private void doAttack() {
     if (delayCheck()) targets.forEach(this::attack);
   }
 
