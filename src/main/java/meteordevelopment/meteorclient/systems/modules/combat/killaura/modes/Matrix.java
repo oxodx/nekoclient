@@ -138,7 +138,7 @@ public class Matrix extends KillAuraMode {
         float clampedYaw = Math.min(Math.max(Math.abs(yawDelta), 1.0f), rotationYawSpeed);
         float clampedPitch = Math.min(Math.max(Math.abs(pitchDelta), 1.0f), rotationPitchSpeed);
 
-        if (attack && selected != target && settings.speedUpRotationWhenAttacking.get()) {
+        if (attack && selected != primary && settings.speedUpRotationWhenAttacking.get()) {
           clampedPitch = Math.max(Math.abs(pitchDelta), 1.0f);
         } else {
           clampedPitch /= 3f;
