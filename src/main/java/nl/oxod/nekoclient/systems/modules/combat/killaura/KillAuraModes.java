@@ -1,4 +1,4 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura;
+package nl.oxod.nekoclient.systems.modules.combat.killaura;
 
 public enum KillAuraModes {
   Vannila,

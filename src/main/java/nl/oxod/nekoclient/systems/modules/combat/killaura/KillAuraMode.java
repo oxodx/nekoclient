@@ -1,4 +1,4 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura;
+package nl.oxod.nekoclient.systems.modules.combat.killaura;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,6 @@ import meteordevelopment.meteorclient.pathing.PathManagers;
 import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.AttackItems;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.ShieldMode;
 import meteordevelopment.meteorclient.utils.entity.Target;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.entity.fakeplayer.FakePlayerEntity;
@@ -46,6 +43,9 @@ import net.minecraft.world.item.MaceItem;
 import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.AttackItems;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationMode;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.ShieldMode;
 
 public class KillAuraMode {
   protected final Minecraft mc;

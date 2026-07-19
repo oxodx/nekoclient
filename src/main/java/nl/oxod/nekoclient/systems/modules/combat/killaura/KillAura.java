@@ -1,18 +1,18 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura;
+package nl.oxod.nekoclient.systems.modules.combat.killaura;
 
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.modes.Matrix;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.modes.Vannila;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.settings.General;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.settings.Targeting;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.settings.Timing;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.*;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.modes.Matrix;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.modes.Vannila;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.settings.General;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.settings.Targeting;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.settings.Timing;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura.settings;
+package nl.oxod.nekoclient.systems.modules.combat.killaura.settings;
 
 import java.util.Set;
 
@@ -9,10 +9,10 @@ import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.EntityAge;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import net.minecraft.world.entity.EntityType;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.EntityAge;
 
 public class Targeting {
   private SettingGroup sg;

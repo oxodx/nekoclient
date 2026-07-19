@@ -1,15 +1,15 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura.modes;
+package nl.oxod.nekoclient.systems.modules.combat.killaura.modes;
 
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.pathing.PathManagers;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraMode;
 import meteordevelopment.meteorclient.utils.entity.Target;
 import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.entity.Entity;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAuraMode;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationMode;
 
 public class Vannila extends KillAuraMode {
   public Vannila() {

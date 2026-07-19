@@ -1,10 +1,8 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura.modes;
+package nl.oxod.nekoclient.systems.modules.combat.killaura.modes;
 
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.pathing.PathManagers;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationType;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraMode;
 import meteordevelopment.meteorclient.utils.GameSensitivityUtils;
 import meteordevelopment.meteorclient.utils.entity.Target;
 import meteordevelopment.meteorclient.utils.player.Rotations;
@@ -14,6 +12,9 @@ import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAuraMode;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationType;
+
 import static net.minecraft.util.Mth.*;
 
 public class Matrix extends KillAuraMode {

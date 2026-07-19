@@ -1,4 +1,6 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura.settings;
+package nl.oxod.nekoclient.systems.modules.combat.killaura.settings;
+
+import static nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.FILTER;
 
 import java.util.List;
 
@@ -7,16 +9,14 @@ import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.ItemListSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.AttackItems;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationType;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.ShieldMode;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraModes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-
-import static meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.FILTER;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAuraModes;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.AttackItems;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationMode;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationType;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.ShieldMode;
 
 public class General {
   private SettingGroup sg;

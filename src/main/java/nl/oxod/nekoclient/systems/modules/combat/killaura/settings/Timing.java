@@ -1,10 +1,10 @@
-package meteordevelopment.meteorclient.systems.modules.combat.killaura.settings;
+package nl.oxod.nekoclient.systems.modules.combat.killaura.settings;
 
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
 
 public class Timing {
   private SettingGroup sg;
