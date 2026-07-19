@@ -14,9 +14,15 @@
 
 ---
 
-## Building
-- Clone this repository
-- Run `./gradlew build`
+## Quick Start
+
+```bash
+https://github.com/oxodx/nekoclient.git
+cd nekoclient
+./gradlew build
+```
+
+Then just drop the jar in your mod folder.
 
 ---
 
