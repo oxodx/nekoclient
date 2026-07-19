@@ -48,8 +48,8 @@ public class KillAura extends Module {
     return null;
   }
 
-  @EventHandler
-	private void onTickPre(TickEvent.Pre event) {
+	@EventHandler
+	public void onTickPre(TickEvent.Pre event) {
     currentMode.isAllowedToAttack();
 
     Entity target = getTarget();
@@ -68,12 +68,12 @@ public class KillAura extends Module {
 	}
 
 	@EventHandler
-	private void onTickPost(TickEvent.Post event) {
+	public void onTickPost(TickEvent.Post event) {
 		currentMode.onTickPost(event);
 	}
 
 	@EventHandler
-	private void onSendPacket(PacketEvent.Send event) {
+	public void onSendPacket(PacketEvent.Send event) {
 		currentMode.onSendPacket(event);
 	}
 
