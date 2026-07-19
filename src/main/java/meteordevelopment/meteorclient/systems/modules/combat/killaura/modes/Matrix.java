@@ -6,7 +6,6 @@ import meteordevelopment.meteorclient.pathing.PathManagers;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.AttackItems;
-import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationMode;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAura.RotationType;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraMode;
 import meteordevelopment.meteorclient.systems.modules.combat.killaura.KillAuraModes;
@@ -25,10 +24,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-
-import static meteordevelopment.meteorclient.utils.RaycastUtils.raycastEntity;
 import static net.minecraft.util.Mth.*;
 
 public class Matrix extends KillAuraMode {
@@ -146,26 +142,16 @@ public class Matrix extends KillAuraMode {
       wasPathing = true;
     }
 
-    EntityHitResult result = raycastEntity(settings.range.get(), rotateVector.u(), rotateVector.v(), 0.3);
-
-    if (delayCheck() && result != null && result.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) {
-      attack(primary);
-      selected = primary;
-      ticks = 2;
-    }
-
     if (settings.rotationType.get() == RotationType.Fast) {
-      if (ticks > 0) {
-        updateRotation(true, 180, 90);
-        Rotations.rotate(rotateVector.u(), rotateVector.v());
-        ticks--;
-      } else {
-        reset();
-      }
+      Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body), this::doAttack);
     } else {
       updateRotation(false, 80, 35);
-      Rotations.rotate(rotateVector.u(), rotateVector.v());
+      Rotations.rotate(rotateVector.u(), rotateVector.v(), this::doAttack);
     }
+  }
+
+  private void doAttack() {
+    if (delayCheck()) targets.forEach(this::attack);
   }
 
   private void updateRotation(boolean attack, float rotationYawSpeed, float rotationPitchSpeed) {
