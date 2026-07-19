@@ -35,9 +35,9 @@
   ],
   "accessWidener": "meteor-client.classtweaker",
   "custom": {
-    "meteor-client:build_number": "${build_number}",
-    "meteor-client:color": "145,61,226",
-    "meteor-client:commit": "${commit}",
+    "nekoclient:build_number": "${build_number}",
+    "nekoclient:color": "145,61,226",
+    "nekoclient:commit": "${commit}",
     "modmenu": {
     },
     "badoptimizations:cache_hooks": {
