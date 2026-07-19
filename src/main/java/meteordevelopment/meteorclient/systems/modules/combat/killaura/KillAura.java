@@ -282,7 +282,18 @@ public class KillAura extends Module {
 
   @EventHandler
 	private void onTickPre(TickEvent.Pre event) {
-		currentMode.onTickPre(event);
+    currentMode.isAllowedToAttack();
+
+    Entity target = currentMode.targets.getFirst();
+
+    currentMode.autoSwitch();
+
+    if (!currentMode.acceptableWeapon(mc.player.getMainHandItem())) {
+      currentMode.stopAttacking();
+      return;
+    }
+
+		currentMode.onTickPre(event, target);
 	}
 
 	@EventHandler

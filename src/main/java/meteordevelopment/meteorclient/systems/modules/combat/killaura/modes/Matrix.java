@@ -59,18 +59,7 @@ public class Matrix extends KillAuraMode {
   }
 
   @Override
-  public void onTickPre(TickEvent.Pre event) {
-    isAllowedToAttack();
-
-    Entity target = targets.getFirst();
-
-    autoSwitch();
-
-    if (!acceptableWeapon(mc.player.getMainHandItem())) {
-      stopAttacking();
-      return;
-    }
-
+  public void onTickPre(TickEvent.Pre event, Entity target) {
     if (target instanceof LivingEntity livingTarget) {
       this.primary = livingTarget;
     } else {

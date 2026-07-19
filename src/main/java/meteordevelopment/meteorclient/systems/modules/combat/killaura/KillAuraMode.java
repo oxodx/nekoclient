@@ -256,7 +256,7 @@ public class KillAuraMode {
 	public void onDeactivate() {
 	}
 
-	public void onTickPre(TickEvent.Pre event) {
+	public void onTickPre(TickEvent.Pre event, Entity target) {
 	}
 
 	public void onTickPost(TickEvent.Post event) {
