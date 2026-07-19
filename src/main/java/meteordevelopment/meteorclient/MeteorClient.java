@@ -114,6 +114,9 @@ public class MeteorClient implements ClientModInitializer {
             }
         });
 
+        // Register NekoClient lambda factory for orbit event bus
+        EVENT_BUS.registerLambdaFactory("nl.oxod.nekoclient", (lookupInMethod, klass) -> (MethodHandles.Lookup) lookupInMethod.invoke(null, klass, MethodHandles.lookup()));
+
         // Register init classes
         ReflectInit.registerPackages();
 
