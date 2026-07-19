@@ -51,8 +51,27 @@ public class Fonts {
 
         MeteorClient.LOG.info("Found {} font families.", FONT_FAMILIES.size());
 
-        DEFAULT_FONT_FAMILY = FontUtils.getBuiltinFontInfo(BUILTIN_FONTS[1]).family();
-        DEFAULT_FONT = getFamily(DEFAULT_FONT_FAMILY).get(FontInfo.Type.Regular);
+        FontInfo defaultInfo = FontUtils.getBuiltinFontInfo(BUILTIN_FONTS[1]);
+        if (defaultInfo == null) {
+            for (String builtinFont : BUILTIN_FONTS) {
+                defaultInfo = FontUtils.getBuiltinFontInfo(builtinFont);
+                if (defaultInfo != null) break;
+            }
+        }
+
+        if (defaultInfo != null) {
+            DEFAULT_FONT_FAMILY = defaultInfo.family();
+            FontFamily family = getFamily(DEFAULT_FONT_FAMILY);
+            if (family != null) DEFAULT_FONT = family.get(defaultInfo.type());
+        }
+
+        if (DEFAULT_FONT == null) {
+            MeteorClient.LOG.error("No built-in fonts could be loaded. Falling back to first available font family.");
+            if (!FONT_FAMILIES.isEmpty()) {
+                DEFAULT_FONT_FAMILY = FONT_FAMILIES.get(0).getName();
+                DEFAULT_FONT = FONT_FAMILIES.get(0).get(FontInfo.Type.Regular);
+            }
+        }
 
         Config config = Config.get();
         load(config != null ? config.font.get() : DEFAULT_FONT);
