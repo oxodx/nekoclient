@@ -16,11 +16,8 @@ import nl.oxod.nekoclient.systems.modules.movement.flight.settings.AntiKick;
 import nl.oxod.nekoclient.systems.modules.movement.flight.settings.General;
 
 public class Flight extends Module {
-  private final SettingGroup sgGeneral = settings.getDefaultGroup();
-  private final SettingGroup sgAntiKick = settings.createGroup("Anti Kick");
-
-  public final General general = new General(sgGeneral, this);
-  public final AntiKick antiKick = new AntiKick(sgAntiKick, this);
+  public final General general = new General(settings.getDefaultGroup(), this);
+  public final AntiKick antiKick = new AntiKick(settings.createGroup("Anti Kick"), this);
 
   private int delayLeft = antiKick.delay.get();
   private int offLeft = antiKick.offTime.get();

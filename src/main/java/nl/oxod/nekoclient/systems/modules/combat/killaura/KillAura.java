@@ -53,15 +53,19 @@ public class KillAura extends Module {
     super(Categories.Neko_Combat, "kill-aura", "Attacks specified entities around you.");
   }
 
-  private final SettingGroup sgGeneral = settings.getDefaultGroup();
-  private final SettingGroup sgTargeting = settings.createGroup("Targeting");
-  private final SettingGroup sgTiming = settings.createGroup("Timing");
+  public final General general = new General(settings.getDefaultGroup(), this);
+  public final Targeting targeting = new Targeting(settings.createGroup("Targeting"), this);
+  public final Timing timing = new Timing(settings.createGroup("Timing"), this);
 
-  public final General general = new General(sgGeneral, this);
-  public final Targeting targeting = new Targeting(sgTargeting, this);
-  public final Timing timing = new Timing(sgTiming, this);
-
-  public final static ArrayList<Item> FILTER = new ArrayList<>(List.of(Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE, Items.MACE, Items.DIAMOND_SPEAR, Items.TRIDENT));
+  public final static ArrayList<Item> FILTER = new ArrayList<>(List.of(
+      Items.DIAMOND_SWORD,
+      Items.DIAMOND_AXE,
+      Items.DIAMOND_PICKAXE,
+      Items.DIAMOND_SHOVEL,
+      Items.DIAMOND_HOE,
+      Items.MACE,
+      Items.DIAMOND_SPEAR,
+      Items.TRIDENT));
 
   protected final List<Entity> targets = new ArrayList<>();
   protected boolean wasPathing = false;
@@ -93,7 +97,8 @@ public class KillAura extends Module {
     isAllowedToAttack();
 
     Entity target = getTarget();
-    if (target == null) return;
+    if (target == null)
+      return;
 
     autoSwitch();
 
@@ -126,11 +131,13 @@ public class KillAura extends Module {
       }
     }
 
-    if (delayCheck()) targets.forEach(this::attack);
+    if (delayCheck())
+      targets.forEach(this::attack);
   }
 
   @EventHandler
-  public void onTickPost(TickEvent.Post event) {}
+  public void onTickPost(TickEvent.Post event) {
+  }
 
   @EventHandler
   public void onSendPacket(PacketEvent.Send event) {
@@ -145,7 +152,8 @@ public class KillAura extends Module {
   }
 
   public Entity getTarget() {
-    if (!targets.isEmpty()) return targets.getFirst();
+    if (!targets.isEmpty())
+      return targets.getFirst();
     return null;
   }
 
@@ -201,7 +209,8 @@ public class KillAura extends Module {
 
       if (shouldShieldBreak()) {
         FindItemResult axeResult = InvUtils.find(itemStack -> itemStack.getItem() instanceof AxeItem, 0, 8);
-        if (axeResult.found()) weaponResult = axeResult;
+        if (axeResult.found())
+          weaponResult = axeResult;
       }
 
       if (!swapped) {
@@ -236,29 +245,39 @@ public class KillAura extends Module {
   }
 
   private boolean acceptableWeapon(ItemStack stack) {
-    if (shouldShieldBreak()) return stack.getItem() instanceof AxeItem;
-    if (general.attackWhenHolding.get() == AttackItems.All) return true;
+    if (shouldShieldBreak())
+      return stack.getItem() instanceof AxeItem;
+    if (general.attackWhenHolding.get() == AttackItems.All)
+      return true;
 
     if (general.weapons.get().contains(Items.DIAMOND_SWORD)
-        && stack.is(ItemTags.SWORDS)) return true;
+        && stack.is(ItemTags.SWORDS))
+      return true;
     if (general.weapons.get().contains(Items.DIAMOND_AXE)
-        && stack.is(ItemTags.AXES)) return true;
+        && stack.is(ItemTags.AXES))
+      return true;
     if (general.weapons.get().contains(Items.DIAMOND_PICKAXE)
-        && stack.is(ItemTags.PICKAXES)) return true;
+        && stack.is(ItemTags.PICKAXES))
+      return true;
     if (general.weapons.get().contains(Items.DIAMOND_SHOVEL)
-        && stack.is(ItemTags.SHOVELS)) return true;
+        && stack.is(ItemTags.SHOVELS))
+      return true;
     if (general.weapons.get().contains(Items.DIAMOND_HOE)
-        && stack.is(ItemTags.HOES)) return true;
+        && stack.is(ItemTags.HOES))
+      return true;
     if (general.weapons.get().contains(Items.MACE)
-        && stack.getItem() instanceof MaceItem) return true;
+        && stack.getItem() instanceof MaceItem)
+      return true;
     if (general.weapons.get().contains(Items.DIAMOND_SPEAR)
-        && stack.is(ItemTags.SPEARS)) return true;
+        && stack.is(ItemTags.SPEARS))
+      return true;
     return general.weapons.get().contains(Items.TRIDENT)
         && stack.getItem() instanceof TridentItem;
   }
 
   private void stopAttacking() {
-    if (!attacking) return;
+    if (!attacking)
+      return;
 
     attacking = false;
     if (wasPathing) {
@@ -278,53 +297,65 @@ public class KillAura extends Module {
     }
 
     float delay = (timing.customDelay.get()) ? timing.hitDelay.get() : 0.5f;
-    if (timing.tpsSync.get()) delay /= (TickRate.INSTANCE.getTickRate() / 20);
+    if (timing.tpsSync.get())
+      delay /= (TickRate.INSTANCE.getTickRate() / 20);
 
     if (timing.customDelay.get()) {
       if (hitTimer < delay) {
         hitTimer++;
         return false;
-      } else return true;
-    } else return mc.player.getAttackStrengthScale(delay) >= 1;
+      } else
+        return true;
+    } else
+      return mc.player.getAttackStrengthScale(delay) >= 1;
   }
 
   private boolean entityCheck(Entity entity) {
-    if (entity.equals(mc.player) || entity.equals(mc.getCameraEntity())) return false;
+    if (entity.equals(mc.player) || entity.equals(mc.getCameraEntity()))
+      return false;
     if ((entity instanceof LivingEntity livingEntity && livingEntity.isDeadOrDying()) || !entity.isAlive())
       return false;
 
     AABB hitbox = entity.getBoundingBox();
     if (!PlayerUtils.isWithin(
-      Mth.clamp(mc.player.getX(), hitbox.minX, hitbox.maxX),
-      Mth.clamp(mc.player.getY(), hitbox.minY, hitbox.maxY),
-      Mth.clamp(mc.player.getZ(), hitbox.minZ, hitbox.maxZ),
-      targeting.range.get()
-    )) return false;
+        Mth.clamp(mc.player.getX(), hitbox.minX, hitbox.maxX),
+        Mth.clamp(mc.player.getY(), hitbox.minY, hitbox.maxY),
+        Mth.clamp(mc.player.getZ(), hitbox.minZ, hitbox.maxZ),
+        targeting.range.get()))
+      return false;
 
-    if (!targeting.entities.get().contains(entity.getType())) return false;
-    if (targeting.ignoreNamed.get() && entity.hasCustomName()) return false;
+    if (!targeting.entities.get().contains(entity.getType()))
+      return false;
+    if (targeting.ignoreNamed.get() && entity.hasCustomName())
+      return false;
     if (!PlayerUtils.canSeeEntity(entity) && !PlayerUtils.isWithin(entity, targeting.wallsRange.get()))
       return false;
     if (targeting.ignoreTamed.get()) {
       if (entity instanceof OwnableEntity tameable
-        && tameable.getOwner() != null
-        && tameable.getOwner().equals(mc.player)
-      ) return false;
+          && tameable.getOwner() != null
+          && tameable.getOwner().equals(mc.player))
+        return false;
     }
     if (targeting.ignorePassive.get()) {
-      if (entity instanceof EnderMan enderman && !enderman.isCreepy()) return false;
-      if ((entity instanceof Piglin || entity instanceof ZombifiedPiglin || entity instanceof Wolf) && !((Mob) entity).isAggressive())
+      if (entity instanceof EnderMan enderman && !enderman.isCreepy())
+        return false;
+      if ((entity instanceof Piglin || entity instanceof ZombifiedPiglin || entity instanceof Wolf)
+          && !((Mob) entity).isAggressive())
         return false;
     }
     if (entity instanceof Player player) {
-      if (player.isCreative()) return false;
-      if (!Friends.get().shouldAttack(player)) return false;
-      if (general.shieldMode.get() == ShieldMode.Ignore && player.isBlocking()) return false;
-      if (player instanceof FakePlayerEntity fakePlayer && fakePlayer.noHit) return false;
+      if (player.isCreative())
+        return false;
+      if (!Friends.get().shouldAttack(player))
+        return false;
+      if (general.shieldMode.get() == ShieldMode.Ignore && player.isBlocking())
+        return false;
+      if (player instanceof FakePlayerEntity fakePlayer && fakePlayer.noHit)
+        return false;
     }
     if (entity instanceof LivingEntity livingEntity) {
       if (entity instanceof Zombie || entity instanceof Piglin
-        || entity instanceof Hoglin || entity instanceof Zoglin) {
+          || entity instanceof Hoglin || entity instanceof Zoglin) {
         return switch (targeting.hostileMobAgeFilter.get()) {
           case Baby -> livingEntity.isBaby();
           case Adult -> !livingEntity.isBaby();
@@ -343,7 +374,8 @@ public class KillAura extends Module {
   }
 
   private void updateRotation(boolean attack, float rotationYawSpeed, float rotationPitchSpeed) {
-    if (primary == null) return;
+    if (primary == null)
+      return;
 
     double distance = mc.player.distanceTo(primary);
     double lookHeight = clamp(distance / targeting.range.get(), 0, 1) * primary.getBbHeight();
