@@ -1,14 +1,22 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin
+import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin.Companion.shadow
+import com.github.jengelman.gradle.plugins.shadow.tasks.InheritManifest
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.PreserveFirstFoundResourceTransformer
+import net.fabricmc.loom.task.prod.ClientProductionRunTask
+import kotlin.collections.listOf
+
 plugins {
   alias(libs.plugins.fabric.loom)
   id("maven-publish")
 }
 
+apply<ShadowBasePlugin>()
+
 base {
   archivesName = properties["archives_base_name"] as String
   group = properties["maven_group"] as String
-
-  val suffix = providers.gradleProperty("build_number").getOrElse("local")
-  version = "${libs.versions.minecraft.get()}-$suffix"
+  version = libs.version.fabric.api.get()
 }
 
 repositories {
@@ -69,9 +77,13 @@ dependencies {
   minecraft(libs.minecraft)
   implementation(libs.fabric.loader)
 
+  // Fabric API
   val fapiVersion = libs.versions.fabric.api.get()
-  modInclude(fabricApi.module("fabric-api-base", fapiVersion))
-  modInclude(fabricApi.module("fabric-resource-loader-v1", fapiVersion))
+  implementation("net.fabricmc.fabric-api:fabric-api:$fapiVersion")
+  "shadow"(fabricApi.module("fabric-api-base", fapiVersion) as ModuleDependency) {
+    isTransitive = false
+  }
+  productionRuntimeMods("maven.modrinth:fabric-api:$fapiVersion")
 
   // Compat fixes
   compileOnly(fabricApi.module("fabric-renderer-indigo", fapiVersion))
@@ -95,11 +107,8 @@ dependencies {
 }
 
 sourceSets {
-  val launcher by creating {
-    java {
-      srcDir("src/launcher/java")
-    }
-  }
+  modInclude(libs.libjf.base)
+  localRuntime(libs.libjf.devutil)
 }
 
 java {
@@ -107,10 +116,8 @@ java {
     languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get().toInt()))
   }
 
-  if (System.getenv("CI")?.toBoolean() == true) {
-    withSourcesJar()
-    withJavadocJar()
-  }
+  withSourcesJar()
+  withJavadocJar()
 }
 
 // Handle transitive dependencies for jar-in-jar
@@ -148,15 +155,14 @@ fun toMinecraftCompat(version: String): String {
   return "~$year.$drop"
 }
 
+val prodClient by tasks.registering(ClientProductionRunTask::class)
+
+lateinit var tp: TaskProvider<ShadowJar>
+
 tasks {
   processResources {
-    val buildNumber = providers.gradleProperty("build_number").getOrElse("")
-    val commit = providers.gradleProperty("commit").getOrElse("")
-
     val propertyMap = mapOf(
       "version" to project.version,
-      "build_number" to buildNumber,
-      "commit" to commit,
       "jdk_version" to libs.versions.jdk.get(),
       "minecraft_version" to toMinecraftCompat(libs.versions.minecraft.get()),
       "loader_version" to libs.versions.fabric.loader.get()
@@ -168,25 +174,13 @@ tasks {
     }
   }
 
-  // Compile launcher with Java 8 for backwards compatibility
-  named<JavaCompile>("compileLauncherJava").configure {
-    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-    targetCompatibility = JavaVersion.VERSION_1_8.toString()
-    options.compilerArgs.add("-Xlint:-options")
-  }
-
   jar {
+    destinationDirectory = layout.buildDirectory.dir("devlibs")
+    archiveClassifier = "unshaded"
     inputs.property("archivesName", project.base.archivesName.get())
 
     from("LICENSE") {
       rename { "${it}_${inputs.properties["archivesName"]}" }
-    }
-
-    // Include launcher classes
-    from(sourceSets["launcher"].output)
-
-    manifest {
-      attributes["Main-Class"] = "meteordevelopment.meteorclient.Main"
     }
   }
 
@@ -199,6 +193,39 @@ tasks {
     )
   }
 
+  val shadowJar by registering(ShadowJar::class) {
+    dependsOn(jar)
+    configurations = listOf(project.configurations.shadow.get())
+    from(zipTree(jar.get().archiveFile))
+
+    inputs.property("archivesName", project.base.archivesName.get())
+
+    from("LICENSE") {
+      rename { "${it}-${inputs.properties["archivesName"]}" }
+    }
+
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    filesMatching("fabric.mod.json") {
+      duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+    transform<PreserveFirstFoundResourceTransformer> {
+      resources.add("fabric.mod.json")
+    }
+
+    val baseManifest = jar.get().manifest
+    manifest = object : InheritManifest, Manifest by baseManifest {
+      override fun inheritFrom(
+        vararg inheritPaths: Any,
+        action: Action<ManifestMergeSpec>,
+      ) {
+        inheritPaths.forEach { from(it, action) }
+      }
+    }
+  }
+  tp = shadowJar
+
   javadoc {
     with(options as StandardJavadocDocletOptions) {
       addStringOption("Xdoclint:none", "-quiet")
@@ -208,9 +235,8 @@ tasks {
   }
 
   build {
-    if (System.getenv("CI")?.toBoolean() == true) {
-      dependsOn("javadocJar")
-    }
+    dependsOn(shadowJar)
+    dependsOn("javadocJar")
   }
 }
 
@@ -218,24 +244,10 @@ publishing {
   publications {
     create<MavenPublication>("mavenJava") {
       from(components["java"])
+      setArtifacts(listOf(mapOf("source" to tp, "classifier" to null), tasks.named("sourcesJar")))
       artifactId = "nekoclient"
 
       version = "${libs.versions.minecraft.get()}-SNAPSHOT"
-    }
-  }
-
-  repositories {
-    maven("https://maven.meteordev.org/snapshots") {
-      name = "meteor-maven"
-
-      credentials {
-        username = System.getenv("MAVEN_METEOR_ALIAS")
-        password = System.getenv("MAVEN_METEOR_TOKEN")
-      }
-
-      authentication {
-        create<BasicAuthentication>("basic")
-      }
     }
   }
 }

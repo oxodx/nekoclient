@@ -9,6 +9,9 @@ fabric-api = "0.146.1+26.1.2"
 # Loom (https://github.com/FabricMC/fabric-loom)
 loom = "1.16-SNAPSHOT"
 
+# Shadow (https://github.com/GradleUp/shadow/releases)
+shadow = "9.4.1" # also in settings.gradle.kts
+
 # Mods
 # Baritone (https://github.com/MeteorDevelopment/baritone)
 baritone = "26.1-SNAPSHOT"
@@ -34,6 +37,8 @@ netty = "4.2.7.Final"
 viafabricplus = "4.5.2"
 # WaybackAuthLib (https://github.com/florianreuth/WaybackAuthLib)
 waybackauthlib = "1.1.0"
+# LibJF (https://modrinth.com/mod/libjf)
+libjf = "26.1.2"
 
 [libraries]
 # Fabric base
@@ -58,5 +63,10 @@ netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "
 netty-codec-socks = { module = "io.netty:netty-codec-socks", version.ref = "netty" }
 waybackauthlib = { module = "de.florianreuth:waybackauthlib", version.ref = "waybackauthlib" }
 
+libjf-base = { module = "dev.jfronny.libjf:libjf-base", version.ref = "libjf" }
+libjf-unsafe-v0 = { module = "dev.jfronny.libjf:libjf-unsafe-v0", version.ref = "libjf" }
+libjf-devutil = { module = "dev.jfronny.libjf:libjf-devutil", version.ref = "libjf" }
+
 [plugins]
 fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

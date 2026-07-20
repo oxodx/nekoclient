@@ -9,8 +9,14 @@ pluginManagement {
   }
 }
 
-plugins {
-  id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+buildscript {
+  repositories {
+    gradlePluginPortal()
+  }
+  dependencies {
+    classpath("com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:9.4.1")
+  }
 }
+
 
 rootProject.name = "nekoclient"
