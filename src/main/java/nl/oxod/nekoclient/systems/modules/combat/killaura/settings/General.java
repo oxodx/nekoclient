@@ -12,7 +12,6 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
-import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAuraModes;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.AttackItems;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationMode;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.RotationType;
@@ -33,7 +32,6 @@ public class General {
   public final Setting<Boolean> onlyOnClick;
   public final Setting<Boolean> onlyOnLook;
   public final Setting<Boolean> pauseOnCombat;
-  public final Setting<KillAuraModes> mode;
 
   public General(SettingGroup sg, KillAura parent) {
     this.sg = sg;
@@ -110,14 +108,6 @@ public class General {
         .name("pause-baritone")
         .description("Freezes Baritone temporarily until you are finished attacking the entity.")
         .defaultValue(true)
-        .build());
-
-    mode = sg.add(new EnumSetting.Builder<KillAuraModes>()
-        .name("mode")
-        .description("Kill Aura mode.")
-        .defaultValue(KillAuraModes.Vannila)
-        .onModuleActivated(modeSetting -> parent.onModeChanged(modeSetting.get()))
-        .onChanged(parent::onModeChanged)
         .build());
   }
 }
