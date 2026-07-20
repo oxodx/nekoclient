@@ -14,6 +14,7 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.orbit.EventHandler;
+import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
 public class AntiVoid extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();

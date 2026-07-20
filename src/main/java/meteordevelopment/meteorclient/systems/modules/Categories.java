@@ -17,8 +17,11 @@ public class Categories {
     public static final Category Render = new Category("Render", () -> DisplayItemUtils.toStack(Items.GLASS));
     public static final Category World = new Category("World", () -> DisplayItemUtils.toStack(Items.GRASS_BLOCK));
     public static final Category Misc = new Category("Misc", () -> DisplayItemUtils.toStack(Items.LAVA_BUCKET));
+
     public static final Category Neko_Combat = new Category("Neko Combat",
         () -> DisplayItemUtils.toStack(Items.GOLDEN_SWORD));
+    public static final Category Neko_Movement = new Category("Neko Movement",
+        () -> DisplayItemUtils.toStack(Items.DIAMOND_BOOTS));
 
     public static boolean REGISTERING;
 
@@ -35,6 +38,7 @@ public class Categories {
 
         // NekoClient
         Modules.registerCategory(Neko_Combat);
+        Modules.registerCategory(Neko_Movement);
 
         // Addons
         AddonManager.ADDONS.forEach(MeteorAddon::onRegisterCategories);

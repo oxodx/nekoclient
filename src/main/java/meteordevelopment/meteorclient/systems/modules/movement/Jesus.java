@@ -36,6 +36,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.Shapes;
+import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
+
 import org.joml.Vector2d;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
