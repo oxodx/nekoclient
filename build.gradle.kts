@@ -106,11 +106,6 @@ dependencies {
   jij(libs.waybackauthlib)
 }
 
-sourceSets {
-  modInclude(libs.libjf.base)
-  localRuntime(libs.libjf.devutil)
-}
-
 java {
   toolchain {
     languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get().toInt()))
