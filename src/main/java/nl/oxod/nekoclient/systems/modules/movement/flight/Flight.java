@@ -1,16 +1,25 @@
 package nl.oxod.nekoclient.systems.modules.movement.flight;
 
+import meteordevelopment.meteorclient.events.entity.player.CanWalkOnFluidEvent;
+import meteordevelopment.meteorclient.events.entity.player.PlayerMoveEvent;
+import meteordevelopment.meteorclient.events.entity.player.SendMovementPacketsEvent;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
+import meteordevelopment.meteorclient.events.world.CollisionShapeEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.gui.GuiTheme;
+import meteordevelopment.meteorclient.gui.widgets.WWidget;
 import meteordevelopment.meteorclient.mixin.LocalPlayerAccessor;
 import meteordevelopment.meteorclient.mixin.ServerboundMovePlayerPacketAccessor;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.systems.modules.movement.flight.modes.Abilities;
+import nl.oxod.nekoclient.systems.modules.movement.flight.modes.MatrixExploit;
+import nl.oxod.nekoclient.systems.modules.movement.flight.modes.MatrixExploit2;
+import nl.oxod.nekoclient.systems.modules.movement.flight.modes.Velocity;
+import nl.oxod.nekoclient.systems.modules.movement.flight.modes.VulcanClip;
 import nl.oxod.nekoclient.systems.modules.movement.flight.settings.AntiKick;
 import nl.oxod.nekoclient.systems.modules.movement.flight.settings.General;
 
@@ -24,25 +33,30 @@ public class Flight extends Module {
   private float lastYaw;
   private double lastPacketY = Double.MAX_VALUE;
 
+  private FlyMode currentMode;
+
   public Flight() {
     super(Categories.Neko_Movement, "flight", "FLYYYY! No Fall is recommended with this module.");
+    onFlyModeChanged(general.flyMode.get());
+  }
+
+  @Override
+  public WWidget getWidget(GuiTheme theme) {
+    WWidget widget = super.getWidget(theme);
+    if (general.flyMode.get() == FlyModes.Vulcan_Clip) {
+      return theme.label("This mode works only on 1.8.9 servers");
+    }
+    return widget;
   }
 
   @Override
   public void onActivate() {
-    if (general.mode.get() == Mode.Abilities && !mc.player.isSpectator()) {
-      mc.player.getAbilities().flying = true;
-      if (mc.player.getAbilities().instabuild)
-        return;
-      mc.player.getAbilities().mayfly = true;
-    }
+    currentMode.onActivate();
   }
 
   @Override
   public void onDeactivate() {
-    if (general.mode.get() == Mode.Abilities && !mc.player.isSpectator()) {
-      abilitiesOff();
-    }
+    currentMode.onDeactivate();
   }
 
   @EventHandler
@@ -53,6 +67,8 @@ public class Flight extends Module {
       flip = !flip;
     }
     lastYaw = currentYaw;
+
+    currentMode.onTickEventPre(event);
   }
 
   @EventHandler
@@ -65,19 +81,17 @@ public class Flight extends Module {
       offLeft = antiKick.offTime.get();
 
       if (antiKick.antiKickMode.get() == AntiKickMode.Packet) {
-        // Resend movement packets
         ((LocalPlayerAccessor) mc.player).meteor$setPositionReminder(20);
       }
     } else if (delayLeft <= 0) {
       boolean shouldReturn = false;
 
       if (antiKick.antiKickMode.get() == AntiKickMode.Normal) {
-        if (general.mode.get() == Mode.Abilities) {
+        if (general.flyMode.get() == FlyModes.Abilities) {
           abilitiesOff();
           shouldReturn = true;
         }
       } else if (antiKick.antiKickMode.get() == AntiKickMode.Packet && offLeft == antiKick.offTime.get()) {
-        // Resend movement packets
         ((LocalPlayerAccessor) mc.player).meteor$setPositionReminder(20);
       }
 
@@ -90,53 +104,22 @@ public class Flight extends Module {
     if (mc.player.getYRot() != lastYaw)
       mc.player.setYRot(lastYaw);
 
-    switch (general.mode.get()) {
-      case Velocity -> {
-        mc.player.getAbilities().flying = false;
-        mc.player.setDeltaMovement(0, 0, 0);
-        Vec3 playerVelocity = mc.player.getDeltaMovement();
-        if (mc.options.keyJump.isDown())
-          playerVelocity = playerVelocity.add(0, general.speed.get() * (general.verticalSpeedMatch.get()
-              ? 10f
-              : 5f), 0);
-        if (mc.options.keyShift.isDown())
-          playerVelocity = playerVelocity.subtract(0, general.speed.get() * (general.verticalSpeedMatch.get()
-              ? 10f
-              : 5f), 0);
-        mc.player.setDeltaMovement(playerVelocity);
-        if (general.noSneak.get()) {
-          mc.player.setOnGround(false);
-        }
-      }
-      case Abilities -> {
-        if (mc.player.isSpectator())
-          return;
-        mc.player.getAbilities().setFlyingSpeed(general.speed.get().floatValue());
-        mc.player.getAbilities().flying = true;
-        if (mc.player.getAbilities().instabuild)
-          return;
-        mc.player.getAbilities().mayfly = true;
-      }
-    }
+    currentMode.onTickEventPost(event);
   }
 
   private void antiKickPacket(ServerboundMovePlayerPacket packet, double currentY) {
-    // maximum time we can be "floating" is 80 ticks, so 4 seconds max
     if (this.delayLeft <= 0 && this.lastPacketY != Double.MAX_VALUE &&
         shouldFlyDown(currentY, this.lastPacketY) && EntityUtils.isOnAir(mc.player)) {
-      // actual check is for >= -0.03125D, but we have to do a bit more than that
-      // due to the fact that it's a bigger or *equal* to, and not just a bigger than
       ((ServerboundMovePlayerPacketAccessor) packet).meteor$setY(lastPacketY - 0.03130D);
     } else {
       lastPacketY = currentY;
     }
   }
 
-  /**
-   * @see net.minecraft.network.protocol.game.ServerGamePacketListener#handleMovePlayer(ServerboundMovePlayerPacket)
-   */
   @EventHandler
   private void onSendPacket(PacketEvent.Send event) {
+    currentMode.onSendPacket(event);
+
     if (!(event.packet instanceof ServerboundMovePlayerPacket packet)
         || antiKick.antiKickMode.get() != AntiKickMode.Packet)
       return;
@@ -145,8 +128,6 @@ public class Flight extends Module {
     if (currentY != Double.MAX_VALUE) {
       antiKickPacket(packet, currentY);
     } else {
-      // if the packet is a Rot packet or an StatusOnly packet then we need to
-      // make it a PosRot packet or a Pos packet respectively, so it has a Y value
       ServerboundMovePlayerPacket fullPacket;
       if (packet.hasRotation()) {
         fullPacket = new ServerboundMovePlayerPacket.PosRot(
@@ -172,14 +153,48 @@ public class Flight extends Module {
   }
 
   @EventHandler
-  private void onReceivePacket(PacketEvent.Receive event) {
-    if (!(event.packet instanceof ClientboundPlayerAbilitiesPacket packet) || general.mode.get() != Mode.Abilities)
-      return;
-    event.cancel(); // Cancel packet, so fly won't be toggled
+  public void onSentPacket(PacketEvent.Sent event) {
+    currentMode.onSentPacket(event);
+  }
 
-    mc.player.getAbilities().invulnerable = packet.isInvulnerable();
-    mc.player.getAbilities().instabuild = packet.canInstabuild();
-    mc.player.getAbilities().setWalkingSpeed(packet.getWalkingSpeed());
+  @EventHandler
+  private void onReceivePacket(PacketEvent.Receive event) {
+    currentMode.onReceivePacket(event);
+  }
+
+  @EventHandler
+  public void onCanWalkOnFluid(CanWalkOnFluidEvent event) {
+    currentMode.onCanWalkOnFluid(event);
+  }
+
+  @EventHandler
+  public void onCollisionShape(CollisionShapeEvent event) {
+    currentMode.onCollisionShape(event);
+  }
+
+  @EventHandler
+  private void onPlayerMoveEvent(PlayerMoveEvent event) {
+    currentMode.onPlayerMoveEvent(event);
+  }
+
+  @EventHandler
+  private void onPlayerMoveSendPre(SendMovementPacketsEvent.Pre event) {
+    currentMode.onPlayerMoveSendPre(event);
+  }
+
+  public void onFlyModeChanged(FlyModes mode) {
+    switch (mode) {
+      case Abilities -> currentMode = new Abilities(this);
+      case Velocity -> currentMode = new Velocity(this);
+      case Matrix_Exploit -> currentMode = new MatrixExploit(this);
+      case Matrix_Exploit_2 -> currentMode = new MatrixExploit2(this);
+      case Vulcan_Clip -> {
+        if (general.showInfo.get()) {
+          info("Vulcan fly works on 1.8.9 servers");
+        }
+        currentMode = new VulcanClip(this);
+      }
+    }
   }
 
   private boolean shouldFlyDown(double currentY, double lastY) {
@@ -198,21 +213,13 @@ public class Flight extends Module {
   }
 
   public float getFlyingSpeed() {
-    // All the multiplication below is to get the speed to roughly match the speed
-    // you get when using vanilla fly
-
-    if (!isActive() || general.mode.get() != Mode.Velocity)
+    if (!isActive() || general.flyMode.get() != FlyModes.Velocity)
       return -1;
     return general.speed.get().floatValue() * (mc.player.isSprinting() ? 15f : 10f);
   }
 
   public boolean noSneak() {
-    return isActive() && general.mode.get() == Mode.Velocity && general.noSneak.get();
-  }
-
-  public enum Mode {
-    Abilities,
-    Velocity
+    return isActive() && general.flyMode.get() == FlyModes.Velocity && general.noSneak.get();
   }
 
   public enum AntiKickMode {
