@@ -16,7 +16,7 @@ apply<ShadowBasePlugin>()
 base {
   archivesName = properties["archives_base_name"] as String
   group = properties["maven_group"] as String
-  version = libs.version.fabric.api.get()
+  version = libs.versions.fabric.api.get()
 }
 
 repositories {
