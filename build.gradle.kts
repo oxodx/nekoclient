@@ -160,7 +160,9 @@ tasks {
       "version" to project.version,
       "jdk_version" to libs.versions.jdk.get(),
       "minecraft_version" to toMinecraftCompat(libs.versions.minecraft.get()),
-      "loader_version" to libs.versions.fabric.loader.get()
+      "loader_version" to libs.versions.fabric.loader.get(),
+      "build_number" to (System.getenv("BUILD_NUMBER") ?: "local"),
+      "commit" to (System.getenv("GITHUB_SHA") ?: "unknown")
     )
 
     inputs.properties(propertyMap)
