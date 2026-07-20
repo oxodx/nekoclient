@@ -60,11 +60,13 @@ public class General {
 
     rotationType = sg.add(new EnumSetting.Builder<RotationType>()
         .name("rotation-type")
+        .description("How rotations are applied to the target: Smooth uses gradual interpolation with GCD, Fast snaps directly.")
         .defaultValue(RotationType.Smooth)
         .build());
 
     speedUpRotationWhenAttacking = sg.add(new BoolSetting.Builder()
         .name("speed-up-the-rotation-when-attacking")
+        .description("Uses full pitch speed instead of reduced speed when switching to a new target.")
         .defaultValue(false)
         .build());
 
