@@ -37,6 +37,8 @@ netty = "4.2.7.Final"
 viafabricplus = "4.5.2"
 # WaybackAuthLib (https://github.com/florianreuth/WaybackAuthLib)
 waybackauthlib = "1.1.0"
+# MinecraftAuth (https://github.com/RaphiMC/MinecraftAuth)
+minecraftauth = "5.0.2"
 # LibJF (https://modrinth.com/mod/libjf)
 libjf = "26.1.2"
 
@@ -62,6 +64,7 @@ reflections = { module = "org.reflections:reflections", version.ref = "reflectio
 netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "netty" }
 netty-codec-socks = { module = "io.netty:netty-codec-socks", version.ref = "netty" }
 waybackauthlib = { module = "de.florianreuth:waybackauthlib", version.ref = "waybackauthlib" }
+minecraft-auth = { module = "net.raphimc:MinecraftAuth", version.ref = "minecraftauth" }
 
 libjf-base = { module = "dev.jfronny.libjf:libjf-base", version.ref = "libjf" }
 libjf-unsafe-v0 = { module = "dev.jfronny.libjf:libjf-unsafe-v0", version.ref = "libjf" }

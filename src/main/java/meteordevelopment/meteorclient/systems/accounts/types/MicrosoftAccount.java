@@ -15,42 +15,42 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class MicrosoftAccount extends Account<MicrosoftAccount> {
-    private @Nullable String token;
+  private @Nullable String token;
 
-    public MicrosoftAccount(String refreshToken) {
-        super(AccountType.Microsoft, refreshToken);
-    }
+  public MicrosoftAccount(String refreshToken) {
+    super(AccountType.Microsoft, refreshToken);
+  }
 
-    @Override
-    public boolean fetchInfo() {
-        token = auth();
-        return token != null;
-    }
+  @Override
+  public boolean fetchInfo() {
+    token = auth();
+    return token != null;
+  }
 
-    @Override
-    public boolean login() {
-        if (token == null) return false;
+  @Override
+  public boolean login() {
+    if (token == null) return false;
 
-        super.login();
+    super.login();
 
-        setSession(new User(cache.username, UndashedUuid.fromStringLenient(cache.uuid), token, Optional.empty(), Optional.empty()));
-        return true;
-    }
+    setSession(new User(cache.username, UndashedUuid.fromStringLenient(cache.uuid), token, Optional.empty(), Optional.empty()));
+    return true;
+  }
 
-    private @Nullable String auth() {
-        MicrosoftLogin.LoginData data = MicrosoftLogin.login(name);
-        if (!data.isGood()) return null;
+  private @Nullable String auth() {
+    MicrosoftLogin.LoginData data = MicrosoftLogin.login(name);
+    if (data == null || data.newRefreshToken() == null) return null;
 
-        name = data.newRefreshToken;
-        cache.username = data.username;
-        cache.uuid = data.uuid;
+    name = data.newRefreshToken();
+    cache.username = data.username();
+    cache.uuid = data.uuid();
 
-        return data.mcToken;
-    }
+    return data.mcToken();
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof MicrosoftAccount account)) return false;
-        return account.name.equals(this.name);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof MicrosoftAccount account)) return false;
+    return account.name.equals(this.name);
+  }
 }
