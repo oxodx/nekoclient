@@ -5,6 +5,9 @@
 
 package meteordevelopment.meteorclient.systems.modules;
 
+import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.game.GameJoinedEvent;
@@ -42,7 +45,6 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.util.Tuple;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
@@ -153,8 +155,8 @@ public class Modules extends System<Modules> {
         return active;
     }
 
-    public List<Tuple<Module, String>> searchTitles(String text) {
-        Map<Tuple<Module, String>, Integer> modules = new HashMap<>();
+    public List<Pair<Module, String>> searchTitles(String text) {
+        Object2IntMap<Pair<Module, String>> modules = new Object2IntOpenHashMap<>();
 
         for (Module module : this.moduleInstances.values()) {
             String title = module.title;
@@ -170,11 +172,11 @@ public class Modules extends System<Modules> {
                 }
             }
 
-            modules.put(new Tuple<>(module, title), score);
+            modules.put(Pair.of(module, title), score);
         }
 
-        List<Tuple<Module, String>> l = new ArrayList<>(modules.keySet());
-        l.sort(Comparator.comparingInt(modules::get));
+        List<Pair<Module, String>> l = new ArrayList<>(modules.keySet());
+        l.sort(Comparator.comparingInt(modules::getInt));
 
         return l;
     }
@@ -278,7 +280,7 @@ public class Modules extends System<Modules> {
     }
 
     private void onAction(boolean isKey, int value, int modifiers, boolean isPress) {
-        if (mc.screen != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return;
+        if (mc.gui.screen() != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return;
 
         for (Module module : moduleInstances.values()) {
             if (module.keybind.matches(isKey, value, modifiers) && (isPress || (module.toggleOnBindRelease && module.isActive()))) {

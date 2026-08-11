@@ -11,6 +11,7 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura.EntityAge;
 
@@ -37,7 +38,7 @@ public class Targeting {
         .name("entities")
         .description("Entities to attack.")
         .onlyAttackable()
-        .defaultValue(EntityType.PLAYER)
+        .defaultValue(EntityTypes.PLAYER)
         .build());
 
     priority = sg.add(new EnumSetting.Builder<SortPriority>()

@@ -5,6 +5,7 @@
 
 package meteordevelopment.meteorclient.systems.modules.movement;
 
+import it.unimi.dsi.fastutil.floats.FloatPredicate;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.mixin.ServerboundMovePlayerPacketAccessor;
@@ -40,8 +41,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
-
-import java.util.function.Predicate;
 
 public class NoFall extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -256,14 +255,14 @@ public class NoFall extends Module {
         BeforeDamage(height -> height > 2),
         BeforeDeath(height -> height > Math.max(PlayerUtils.getTotalHealth(), 2));
 
-        private final Predicate<Float> fallHeight;
+        private final FloatPredicate fallHeight;
 
-        PlaceMode(Predicate<Float> fallHeight) {
+        PlaceMode(FloatPredicate fallHeight) {
             this.fallHeight = fallHeight;
         }
 
-        public boolean test(float fallheight) {
-            return fallHeight.test(fallheight);
+        public boolean test(float fallHeight) {
+            return this.fallHeight.test(fallHeight);
         }
     }
 }
