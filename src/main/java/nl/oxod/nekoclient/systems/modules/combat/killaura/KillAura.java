@@ -3,11 +3,14 @@ package nl.oxod.nekoclient.systems.modules.combat.killaura;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.BoolSetting;
+import meteordevelopment.meteorclient.settings.ColorSetting;
+import meteordevelopment.meteorclient.settings.DoubleSetting;
 import meteordevelopment.meteorclient.settings.EntityTypeListSetting;
 import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
+import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -89,15 +92,9 @@ public class KillAura extends Module {
   static final double SCAN_ADDITION_MIN = 2.0D;
   static final double SCAN_ADDITION_MAX = 3.0D;
 
-  static final double THROUGH_WALLS_RANGE = 0.0D;
-
-  static final int CPS_MIN = 5;
-  static final int CPS_MAX = 8;
   static final int CLICK_CYCLE = 20;
   static final int CLICK_ITERATIONS = 2;
   static final long ENFORCED_CLICK_INTERVAL_MS = 1_000L;
-
-  static final int AUTO_SWORD_SWITCH_BACK_TICKS = 20;
 
   static final int POST_USE_SUPPRESS_TICKS = 3;
 
@@ -176,9 +173,61 @@ public class KillAura extends Module {
     .defaultValue(false)
     .build()
   );
+  private final Setting<Double> range = sgGeneral.add(new DoubleSetting.Builder()
+    .name("range")
+    .description("Maximum attack range in blocks.")
+    .defaultValue(3.0)
+    .min(1.0)
+    .max(6.0)
+    .sliderMax(6.0)
+    .build()
+  );
+  private final Setting<Boolean> throughWalls = sgGeneral.add(new BoolSetting.Builder()
+    .name("through-walls")
+    .description("Attack targets even when they are behind walls.")
+    .defaultValue(false)
+    .build()
+  );
+  private final Setting<Integer> cpsMin = sgGeneral.add(new IntSetting.Builder()
+    .name("cps-min")
+    .description("Minimum clicks per second.")
+    .defaultValue(5)
+    .min(1)
+    .max(20)
+    .sliderMax(20)
+    .build()
+  );
+  private final Setting<Integer> cpsMax = sgGeneral.add(new IntSetting.Builder()
+    .name("cps-max")
+    .description("Maximum clicks per second.")
+    .defaultValue(8)
+    .min(1)
+    .max(20)
+    .sliderMax(20)
+    .build()
+  );
+  private final Setting<Double> turnSpeed = sgGeneral.add(new DoubleSetting.Builder()
+    .name("rotation-speed")
+    .description("Silent aim rotation speed in degrees per tick.")
+    .defaultValue(180)
+    .min(5)
+    .max(360)
+    .sliderMax(360)
+    .build()
+  );
+  private final Setting<Integer> switchBackDelay = sgGeneral.add(new IntSetting.Builder()
+    .name("switch-back-delay")
+    .description("Ticks before switching back to the previous hotbar slot.")
+    .defaultValue(20)
+    .min(1)
+    .max(100)
+    .sliderMax(100)
+    .visible(() -> autoSword.get() && switchBack.get())
+    .build()
+  );
   private final Setting<Boolean> render = sgGeneral.add(new BoolSetting.Builder()
     .name("render")
-    .description("Render a hit marker when a target is hit.")
+    .description("Render the target box and hit marker.")
     .defaultValue(true)
     .build()
   );
@@ -186,6 +235,39 @@ public class KillAura extends Module {
     .name("hitsound")
     .description("Play a sound when a target is hit.")
     .defaultValue(true)
+    .build()
+  );
+
+  private final SettingGroup sgRender = settings.createGroup("Render");
+
+  private final Setting<SettingColor> renderColor = sgRender.add(new ColorSetting.Builder()
+    .name("color")
+    .description("Accent color for the target box and hit marker.")
+    .defaultValue(new SettingColor(255, 59, 59))
+    .build()
+  );
+  private final Setting<Boolean> renderTarget = sgRender.add(new BoolSetting.Builder()
+    .name("target-box")
+    .description("Draw an ESP box around the current target.")
+    .defaultValue(true)
+    .visible(() -> render.get())
+    .build()
+  );
+  private final Setting<Boolean> renderHitmarker = sgRender.add(new BoolSetting.Builder()
+    .name("hit-marker")
+    .description("Draw a box flash where the target is hit.")
+    .defaultValue(true)
+    .visible(() -> render.get())
+    .build()
+  );
+  private final Setting<Integer> renderHitmarkerDuration = sgRender.add(new IntSetting.Builder()
+    .name("hit-marker-duration")
+    .description("How long the hit marker is visible in milliseconds.")
+    .defaultValue(500)
+    .min(50)
+    .max(3000)
+    .sliderMax(3000)
+    .visible(() -> render.get() && renderHitmarker.get())
     .build()
   );
 
@@ -241,7 +323,7 @@ public class KillAura extends Module {
       attacking = false;
       clicker.tick();
       confirmHitFeedback();
-      KillAuraRotation.update(mc.player);
+      KillAuraRotation.update(mc.player, rotationSpeed());
       return;
     }
 
@@ -255,7 +337,7 @@ public class KillAura extends Module {
       currentTarget = null;
     }
 
-    KillAuraRotation.update(mc.player);
+    KillAuraRotation.update(mc.player, rotationSpeed());
 
     attacking = canRun() && currentTarget != null;
     if (attacking) {
@@ -265,7 +347,13 @@ public class KillAura extends Module {
 
   @EventHandler
   private void onRender(Render3DEvent event) {
-    if (render.get()) KillAuraRenderer.render(event, currentTarget);
+    if (render.get()) KillAuraRenderer.render(event, currentTarget, renderSettings());
+  }
+
+  private KillAuraRenderer.RenderSettings renderSettings() {
+    return new KillAuraRenderer.RenderSettings(
+      renderColor.get(), renderTarget.get(), renderHitmarker.get(),
+      renderHitmarkerDuration.get());
   }
 
   private boolean isBreakingBlock() {
@@ -521,7 +609,7 @@ public class KillAura extends Module {
     preferredPoint = nearestPointOnBox(preferredPoint, box);
 
     RotationUtil.Rotation preference = RotationUtil.lookingAt(preferredPoint, eyes);
-    return raytraceBox(eyes, box, range, THROUGH_WALLS_RANGE, preference, preferredPoint);
+    return raytraceBox(eyes, box, range, wallsRange(), preference, preferredPoint);
   }
 
   private RotationUtil.Rotation raytraceBox(Vec3 eyes, AABB box, double range, double wallsRange,
@@ -756,7 +844,7 @@ public class KillAura extends Module {
 
   private void attackTarget(Entity target, RotationUtil.Rotation rotation) {
     EntityHitResult attackHit =
-      isLookingAtEntity(target, rotation, interactionRange(), THROUGH_WALLS_RANGE);
+      isLookingAtEntity(target, rotation, interactionRange(), wallsRange());
 
     boolean isInRange = attackHit != null
       && attackRangeIsInRange(mc.player.getMainHandItem(), attackHit.getLocation());
@@ -773,7 +861,7 @@ public class KillAura extends Module {
       attackEntity(target);
 
       if (autoSword.get() && switchBack.get() && previousSlot >= 0) {
-        switchBackTicks = AUTO_SWORD_SWITCH_BACK_TICKS;
+        switchBackTicks = switchBackDelay.get();
       }
       scanAddition = nextScanAddition();
       return true;
@@ -790,7 +878,7 @@ public class KillAura extends Module {
 
     if (switchBack.get()) {
       if (previousSlot < 0) previousSlot = selected;
-      switchBackTicks = AUTO_SWORD_SWITCH_BACK_TICKS;
+      switchBackTicks = switchBackDelay.get();
     }
 
     InventoryHelper.selectHotbarSlot(mc, slot);
@@ -942,8 +1030,8 @@ public class KillAura extends Module {
   }
 
   private void showHitMarker(Entity target) {
-    if (!render.get()) return;
-    KillAuraRenderer.show(target.getBoundingBox().inflate(target.getPickRadius()));
+    if (!render.get() || !renderHitmarker.get()) return;
+    KillAuraRenderer.show(target.getBoundingBox().inflate(target.getPickRadius()), renderSettings());
   }
 
   private void playHitsound() {
@@ -979,11 +1067,19 @@ public class KillAura extends Module {
   }
 
   private double interactionRange() {
-    return mc.player.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE);
+    return Math.max(mc.player.getAttributeValue(Attributes.ENTITY_INTERACTION_RANGE), range.get());
+  }
+
+  private float rotationSpeed() {
+    return turnSpeed.get().floatValue();
   }
 
   private double scanRange() {
-    return Math.max(interactionRange(), THROUGH_WALLS_RANGE) + scanAddition;
+    return interactionRange() + scanAddition;
+  }
+
+  private double wallsRange() {
+    return throughWalls.get() ? scanRange() : 0.0D;
   }
 
   private boolean attackRangeIsInRange(ItemStack stack, Vec3 pos) {
@@ -1106,8 +1202,9 @@ public class KillAura extends Module {
     }
   }
 
-  static void stabilizedFill(int[] cycle, Random random) {
-    int clicks = CPS_MIN + random.nextInt(CPS_MAX - CPS_MIN + 1);
+  private void stabilizedFill(int[] cycle) {
+    int spread = Math.max(cpsMax.get() - cpsMin.get(), 0);
+    int clicks = cpsMin.get() + random.nextInt(spread + 1);
     int interval = clicks > 0 ? cycle.length / clicks : 0;
     int remainder = clicks > 0 ? cycle.length % clicks : 0;
     int index = 0;
@@ -1133,7 +1230,7 @@ public class KillAura extends Module {
       ticksSinceLastClick++;
       if (clickArray.advance(1)) {
         int[] cycle = new int[CLICK_CYCLE];
-        stabilizedFill(cycle, random);
+        stabilizedFill(cycle);
         clickArray.push(cycle);
       }
     }
@@ -1143,7 +1240,7 @@ public class KillAura extends Module {
       int[] cycle = new int[CLICK_CYCLE];
       for (int i = 0; i < clickArray.iterations; i++) {
         Arrays.fill(cycle, 0);
-        stabilizedFill(cycle, random);
+        stabilizedFill(cycle);
         clickArray.push(cycle);
         clickArray.advance(CLICK_CYCLE);
       }

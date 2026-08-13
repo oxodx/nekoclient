@@ -35,6 +35,10 @@ public final class KillAuraRotation {
   }
 
   public static void update(LocalPlayer player) {
+    update(player, LINEAR_TURN_SPEED);
+  }
+
+  public static void update(LocalPlayer player, float turnSpeed) {
     if (player == null) {
       reset();
       return;
@@ -47,7 +51,7 @@ public final class KillAuraRotation {
         return;
       }
 
-      RotationUtil.Rotation next = step(currentRotation, playerRotation);
+      RotationUtil.Rotation next = step(currentRotation, playerRotation, turnSpeed);
       next = RotationUtil.normalizeToSensitivity(next, currentRotation);
 
       if (RotationUtil.rotationAngleTo(next, playerRotation) <= RESET_THRESHOLD) {
@@ -64,14 +68,15 @@ public final class KillAuraRotation {
     }
 
     RotationUtil.Rotation from = currentRotation != null ? currentRotation : playerRotation;
-    RotationUtil.Rotation next = step(from, targetRotation);
+    RotationUtil.Rotation next = step(from, targetRotation, turnSpeed);
     next = RotationUtil.normalizeToSensitivity(next, from);
     currentRotation = next;
 
     resetTicks--;
   }
 
-  private static RotationUtil.Rotation step(RotationUtil.Rotation from, RotationUtil.Rotation to) {
-    return RotationUtil.towardsLinear(from, to, LINEAR_TURN_SPEED, LINEAR_TURN_SPEED);
+  private static RotationUtil.Rotation step(RotationUtil.Rotation from, RotationUtil.Rotation to,
+                                            float turnSpeed) {
+    return RotationUtil.towardsLinear(from, to, turnSpeed, turnSpeed);
   }
 }
