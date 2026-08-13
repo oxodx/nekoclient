@@ -15,6 +15,7 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.entity.fakeplayer.FakePlayerEntity;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Holder;
@@ -44,6 +45,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -285,12 +287,50 @@ public class KillAura extends Module {
     return aura != null && aura.isActive() ? aura : null;
   }
 
-  public static float outgoingMovementYaw(LocalPlayer player, float vanillaYaw) {
+  public static Input modifyMovementInput(ClientInput source, Input input) {
     Minecraft mc = Minecraft.getInstance();
-    if (player == null || mc == null || player != mc.player) return vanillaYaw;
+    if (input == null || mc == null || mc.player == null || mc.player.input != source) return input;
+    KillAura aura = activeInstance();
+    if (aura == null) return input;
+    RotationUtil.Rotation rotation = KillAuraRotation.getCurrentRotation();
+    if (rotation != null && aura.canRun()) {
+      return transformSilentMovementInput(input, mc.player.getYRot(), rotation.yaw());
+    }
+    return input;
+  }
+
+  private static Input transformSilentMovementInput(Input input, float vanillaYaw, float silentYaw) {
+    if (!input.forward() && !input.backward() && !input.left() && !input.right()) return input;
+
+    float delta = RotationUtil.angleDifference(vanillaYaw, silentYaw);
+    if (Math.abs(delta) < 1.0E-4F) return input;
+
+    float x = (input.left() ? 1.0F : 0.0F) - (input.right() ? 1.0F : 0.0F);
+    float z = (input.forward() ? 1.0F : 0.0F) - (input.backward() ? 1.0F : 0.0F);
+
+    double rad = delta * Mth.DEG_TO_RAD;
+    float cos = (float) Math.cos(rad);
+    float sin = (float) Math.sin(rad);
+    float rotatedX = x * cos - z * sin;
+    float rotatedZ = x * sin + z * cos;
+
+    return new Input(
+      rotatedZ > 0.0F, rotatedZ < 0.0F,
+      rotatedX > 0.0F, rotatedX < 0.0F,
+      input.jump(), input.shift(), input.sprint());
+  }
+
+  public static float correctedMovementYaw(Entity entity, float vanillaYaw) {
+    Minecraft mc = Minecraft.getInstance();
+    if (entity == null || mc == null || entity != mc.player) return vanillaYaw;
     KillAura aura = activeInstance();
     RotationUtil.Rotation rotation = KillAuraRotation.getCurrentRotation();
     return aura == null || rotation == null || !aura.canRun() ? vanillaYaw : rotation.yaw();
+  }
+
+  public static float outgoingMovementYaw(LocalPlayer player, float vanillaYaw) {
+    if (player == null) return vanillaYaw;
+    return correctedMovementYaw(player, vanillaYaw);
   }
 
   public static float outgoingMovementPitch(LocalPlayer player, float vanillaPitch) {
@@ -299,6 +339,41 @@ public class KillAura extends Module {
     KillAura aura = activeInstance();
     RotationUtil.Rotation rotation = KillAuraRotation.getCurrentRotation();
     return aura == null || rotation == null || !aura.canRun() ? vanillaPitch : rotation.pitch();
+  }
+
+  public static Vec3 silentViewVector(LocalPlayer player, Vec3 vanillaVector) {
+    Minecraft mc = Minecraft.getInstance();
+    if (player == null || mc == null || player != mc.player) return vanillaVector;
+    KillAura aura = activeInstance();
+    RotationUtil.Rotation rotation = KillAuraRotation.getCurrentRotation();
+    return aura == null || rotation == null || !aura.canRun()
+      ? vanillaVector : Vec3.directionFromRotation(rotation.pitch(), rotation.yaw());
+  }
+
+  public static Vec3 correctedJumpImpulse(LivingEntity entity, Vec3 vanillaImpulse) {
+    RotationUtil.Rotation rotation = activeMovementRotation(entity);
+    if (rotation == null) return vanillaImpulse;
+    float yaw = rotation.yaw() * Mth.DEG_TO_RAD;
+    return new Vec3(-Mth.sin(yaw) * 0.2F, vanillaImpulse.y, Mth.cos(yaw) * 0.2F);
+  }
+
+  public static float correctedFallFlyingPitch(LivingEntity entity, float vanillaPitch) {
+    RotationUtil.Rotation rotation = activeMovementRotation(entity);
+    return rotation == null ? vanillaPitch : rotation.pitch();
+  }
+
+  public static Vec3 correctedFallFlyingLook(LivingEntity entity, Vec3 vanillaLook) {
+    RotationUtil.Rotation rotation = activeMovementRotation(entity);
+    return rotation == null ? vanillaLook
+      : Vec3.directionFromRotation(rotation.pitch(), rotation.yaw());
+  }
+
+  private static RotationUtil.Rotation activeMovementRotation(Entity entity) {
+    Minecraft mc = Minecraft.getInstance();
+    if (entity == null || mc == null || entity != mc.player) return null;
+    KillAura aura = activeInstance();
+    RotationUtil.Rotation rotation = KillAuraRotation.getCurrentRotation();
+    return aura == null || rotation == null || !aura.canRun() ? null : rotation;
   }
 
   public static boolean blocksSprintForCrit() {
