@@ -47,6 +47,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
 import org.jetbrains.annotations.Nullable;

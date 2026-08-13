@@ -30,6 +30,7 @@ import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
 import org.objectweb.asm.Opcodes;
@@ -69,7 +70,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
 
     @Inject(method = "isShiftKeyDown", at = @At("HEAD"), cancellable = true)
     private void onIsShiftKeyDown(CallbackInfoReturnable<Boolean> cir) {
-        if (Modules.get().get(Scaffold.class).scaffolding()) cir.setReturnValue(false);
+        var scaffold = Modules.get().get(Scaffold.class);
+        if (scaffold != null && scaffold.isActive()) cir.setReturnValue(false);
         if (Modules.get().get(Flight.class).noSneak()) cir.setReturnValue(false);
     }
 

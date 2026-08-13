@@ -36,7 +36,15 @@
     "KillAuraLocalPlayerMixin",
     "KillAuraMinecraftAccessor",
     "KillAuraMultiPlayerGameModeAccessor",
-    "KillAuraPlayerAccessor"
+    "KillAuraPlayerAccessor",
+    "KeyMappingMixin",
+    "ScaffoldInputMixin",
+    "ScaffoldLocalPlayerMixin",
+    "ScaffoldLivingEntityMovementMixin",
+    "ScaffoldMinecraftMixin",
+    "ScaffoldVelocityMixin",
+    "accessor.KeyboardHandlerAccessor",
+    "accessor.MouseHandlerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

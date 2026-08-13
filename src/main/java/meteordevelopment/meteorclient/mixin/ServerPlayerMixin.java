@@ -7,7 +7,6 @@ package meteordevelopment.meteorclient.mixin;
 
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.movement.Anchor;
-import meteordevelopment.meteorclient.systems.modules.movement.Scaffold;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,6 +28,5 @@ public abstract class ServerPlayerMixin extends LivingEntity {
 
         Anchor module = Modules.get().get(Anchor.class);
         if (module.isActive() && module.cancelJump) ci.cancel();
-        else if (Modules.get().get(Scaffold.class).towering()) ci.cancel();
     }
 }
