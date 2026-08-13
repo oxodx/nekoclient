@@ -28,7 +28,15 @@
     "ProtectorResourcePackMixin",
     "ProtectorServerPackManagerMixin",
     "ProtectorTranslatableContentsMixin",
-    "ProtectorYggdrasilMixin"
+    "ProtectorYggdrasilMixin",
+    "KillAuraEntityMovementMixin",
+    "KillAuraInputMixin",
+    "KillAuraLivingEntityAccessor",
+    "KillAuraLivingEntityMovementMixin",
+    "KillAuraLocalPlayerMixin",
+    "KillAuraMinecraftAccessor",
+    "KillAuraMultiPlayerGameModeAccessor",
+    "KillAuraPlayerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
