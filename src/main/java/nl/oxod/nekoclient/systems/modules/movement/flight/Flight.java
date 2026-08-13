@@ -36,7 +36,7 @@ public class Flight extends Module {
   private FlyMode currentMode;
 
   public Flight() {
-    super(Categories.Neko_Movement, "flight", "FLYYYY! No Fall is recommended with this module.");
+    super(Categories.Movement, "flight", "FLYYYY! No Fall is recommended with this module.");
     onFlyModeChanged(general.flyMode.get());
   }
 
