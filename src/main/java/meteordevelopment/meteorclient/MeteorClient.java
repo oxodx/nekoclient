@@ -143,6 +143,12 @@ public class MeteorClient implements ClientModInitializer {
         // Post init
         ReflectInit.init(PostInit.class);
 
+        // Protector bootstrap
+        nl.oxod.nekoclient.security.ProtectorTracker.bootstrap();
+        if (!nl.oxod.nekoclient.security.Protector.isOverlapExternalProtectorPresent()) {
+            nl.oxod.nekoclient.security.ProtectorVanillaKeys.primeAsync();
+        }
+
         // Save on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             OnlinePlayers.leave();
@@ -153,9 +159,18 @@ public class MeteorClient implements ClientModInitializer {
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
+        nl.oxod.nekoclient.security.ProtectorPackResponseScheduler.tick();
         if (mc.gui.screen() == null && mc.gui.overlay() == null && KeyBinds.OPEN_COMMANDS.consumeClick()) {
             mc.gui.setScreen(new ChatScreen(Config.get().prefix.get(), true));
         }
+    }
+
+    @EventHandler
+    private void onGameLeft(meteordevelopment.meteorclient.events.game.GameLeftEvent event) {
+        nl.oxod.nekoclient.security.ProtectorPackResponseScheduler.clearAll();
+        nl.oxod.nekoclient.security.ProtectorServerPackFailureGuard.clear();
+        nl.oxod.nekoclient.security.ProtectorPackStrip.clearAll();
+        nl.oxod.nekoclient.security.ResourcePackTruthGuard.clearAll();
     }
 
     @EventHandler

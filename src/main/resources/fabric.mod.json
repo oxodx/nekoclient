@@ -28,6 +28,7 @@
   },
   "mixins": [
     "meteor-client.mixins.json",
+    "nekoclient.mixins.json",
     "meteor-client-baritone.mixins.json",
     "meteor-client-indigo.mixins.json",
     "meteor-client-sodium.mixins.json",

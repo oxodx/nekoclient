@@ -31,6 +31,7 @@ import meteordevelopment.meteorclient.systems.modules.movement.elytrafly.ElytraF
 import meteordevelopment.meteorclient.systems.modules.movement.speed.Speed;
 import meteordevelopment.meteorclient.systems.modules.player.*;
 import meteordevelopment.meteorclient.systems.modules.render.*;
+import nl.oxod.nekoclient.systems.modules.misc.ProtectorModule;
 import meteordevelopment.meteorclient.systems.modules.render.blockesp.BlockESP;
 import meteordevelopment.meteorclient.systems.modules.render.marker.Marker;
 import meteordevelopment.meteorclient.systems.modules.world.*;
@@ -579,6 +580,7 @@ public class Modules extends System<Modules> {
         add(new Notifier());
         add(new PacketCanceller());
         add(new PacketLogger());
+        add(new ProtectorModule());
         add(new ServerSpoof());
         add(new SoundBlocker());
         add(new Spam());

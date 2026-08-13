@@ -1,0 +1,36 @@
+{
+  "required": true,
+  "package": "nl.oxod.nekoclient.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ProtectorChatSigningMixin",
+    "ProtectorClientBrandRetrieverMixin",
+    "ProtectorClientCommonNetworkHandlerMixin",
+    "ProtectorClientLanguageMixin",
+    "ProtectorComponentSerializationMixin",
+    "ProtectorConnectionMixin",
+    "ProtectorConnectionTrackingMixin",
+    "ProtectorDataComponentInitializerMixin",
+    "ProtectorDeprecatedTranslationsInfoMixin",
+    "ProtectorDownloadedPackSourceMixin",
+    "ProtectorDownloadQueueMixin",
+    "ProtectorHttpUtilMixin",
+    "ProtectorItemPropertiesMixin",
+    "ProtectorKeybindContentsMixin",
+    "ProtectorKeyMappingRegistryImplMixin",
+    "ProtectorOptionsMixin",
+    "ProtectorPacketDecoderMixin",
+    "ProtectorPacketProcessorMixin",
+    "ProtectorPacketSanityMixin",
+    "ProtectorPayloadTypeRegistryImplMixin",
+    "ProtectorRegistryDataCollectorMixin",
+    "ProtectorResourceLoaderImplMixin",
+    "ProtectorResourcePackMixin",
+    "ProtectorServerPackManagerMixin",
+    "ProtectorTranslatableContentsMixin",
+    "ProtectorYggdrasilMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
