@@ -109,7 +109,7 @@ public class Flight extends Module {
 
   private void antiKickPacket(ServerboundMovePlayerPacket packet, double currentY) {
     if (this.delayLeft <= 0 && this.lastPacketY != Double.MAX_VALUE &&
-        shouldFlyDown(currentY, this.lastPacketY) && EntityUtils.isOnAir(mc.player)) {
+      shouldFlyDown(currentY, this.lastPacketY) && EntityUtils.isOnAir(mc.player)) {
       ((ServerboundMovePlayerPacketAccessor) packet).meteor$setY(lastPacketY - 0.03130D);
     } else {
       lastPacketY = currentY;
@@ -121,7 +121,7 @@ public class Flight extends Module {
     currentMode.onSendPacket(event);
 
     if (!(event.packet instanceof ServerboundMovePlayerPacket packet)
-        || antiKick.antiKickMode.get() != AntiKickMode.Packet)
+      || antiKick.antiKickMode.get() != AntiKickMode.Packet)
       return;
 
     double currentY = packet.getY(Double.MAX_VALUE);
@@ -131,20 +131,20 @@ public class Flight extends Module {
       ServerboundMovePlayerPacket fullPacket;
       if (packet.hasRotation()) {
         fullPacket = new ServerboundMovePlayerPacket.PosRot(
-            mc.player.getX(),
-            mc.player.getY(),
-            mc.player.getZ(),
-            packet.getYRot(0),
-            packet.getXRot(0),
-            packet.isOnGround(),
-            mc.player.horizontalCollision);
+          mc.player.getX(),
+          mc.player.getY(),
+          mc.player.getZ(),
+          packet.getYRot(0),
+          packet.getXRot(0),
+          packet.isOnGround(),
+          mc.player.horizontalCollision);
       } else {
         fullPacket = new ServerboundMovePlayerPacket.Pos(
-            mc.player.getX(),
-            mc.player.getY(),
-            mc.player.getZ(),
-            packet.isOnGround(),
-            mc.player.horizontalCollision);
+          mc.player.getX(),
+          mc.player.getY(),
+          mc.player.getZ(),
+          packet.isOnGround(),
+          mc.player.horizontalCollision);
       }
       event.cancel();
       antiKickPacket(fullPacket, mc.player.getY());

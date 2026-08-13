@@ -10,7 +10,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 public final class ProtectorPackResponseScheduler {
-
   private static final long ACCEPT_BASE_MS = 250L;
   private static final long ACCEPT_SPREAD_MS = 650L;
 

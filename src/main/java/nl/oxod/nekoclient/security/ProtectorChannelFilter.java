@@ -13,123 +13,122 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ProtectorChannelFilter {
+  private static final boolean DEBUG = Boolean.getBoolean("nekoclient.protector.debug");
+  private static final Verdict PASS = new Verdict(Verdict.Kind.PASS, null);
+  private static final Verdict DROP = new Verdict(Verdict.Kind.DROP, null);
 
-    private static final boolean DEBUG = Boolean.getBoolean("nekoclient.protector.debug");
-    private static final Verdict PASS = new Verdict(Verdict.Kind.PASS, null);
-    private static final Verdict DROP = new Verdict(Verdict.Kind.DROP, null);
+  private static final String MINECRAFT = "minecraft";
+  private static final String REGISTER = "register";
+  private static final String UNREGISTER = "unregister";
+  private static final String MCO = "mco";
 
-    private static final String MINECRAFT = "minecraft";
-    private static final String REGISTER = "register";
-    private static final String UNREGISTER = "unregister";
-    private static final String MCO = "mco";
+  private ProtectorChannelFilter() {
+  }
 
-    private ProtectorChannelFilter() {
+  public static Verdict pass() {
+    return PASS;
+  }
+
+  public static Verdict drop() {
+    return DROP;
+  }
+
+  public static Verdict filter(Packet<?> packet) {
+    if (packet == null) return PASS;
+    if (!(packet instanceof ServerboundCustomPayloadPacket customPayload)) return PASS;
+    if (!Protector.shouldFilterChannels()) return PASS;
+
+    if (Protector.isUserBypass(packet)) return PASS;
+    CustomPacketPayload payload = customPayload.payload();
+    if (payload == null) return PASS;
+
+    if (payload instanceof BrandPayload) return PASS;
+
+    Identifier id = payloadId(payload);
+    if (id == null) return PASS;
+
+    if (Protector.isVanillaMode()) {
+      return DROP;
     }
 
-    public static Verdict pass() {
-        return PASS;
+    String namespace = id.getNamespace();
+    String path = id.getPath();
+
+    if (MINECRAFT.equals(namespace) && (REGISTER.equals(path) || UNREGISTER.equals(path))) {
+      if (payload instanceof RegistrationPayload registrationPayload) {
+        return rebuildRegister(registrationPayload);
+      }
+      return DROP;
     }
 
-    public static Verdict drop() {
-        return DROP;
+    if (MINECRAFT.equals(namespace) && MCO.equals(path)) return DROP;
+
+    if (ProtectorTracker.isWhitelistedChannel(id)) return PASS;
+
+    return DROP;
+  }
+
+  private static Identifier payloadId(CustomPacketPayload payload) {
+    try {
+      CustomPacketPayload.Type<?> type = payload.type();
+      if (type != null) return type.id();
+    } catch (Throwable ignored) {
     }
+    return null;
+  }
 
-    public static Verdict filter(Packet<?> packet) {
-        if (packet == null) return PASS;
-        if (!(packet instanceof ServerboundCustomPayloadPacket customPayload)) return PASS;
-        if (!Protector.shouldFilterChannels()) return PASS;
-
-        if (Protector.isUserBypass(packet)) return PASS;
-        CustomPacketPayload payload = customPayload.payload();
-        if (payload == null) return PASS;
-
-        if (payload instanceof BrandPayload) return PASS;
-
-        Identifier id = payloadId(payload);
-        if (id == null) return PASS;
-
-        if (Protector.isVanillaMode()) {
-            return DROP;
+  private static Verdict rebuildRegister(RegistrationPayload original) {
+    List<Identifier> kept = new ArrayList<>();
+    try {
+      for (Identifier channel : original.channels()) {
+        if (ProtectorTracker.isWhitelistedChannel(channel)) {
+          kept.add(channel);
         }
-
-        String namespace = id.getNamespace();
-        String path = id.getPath();
-
-        if (MINECRAFT.equals(namespace) && (REGISTER.equals(path) || UNREGISTER.equals(path))) {
-            if (payload instanceof RegistrationPayload registrationPayload) {
-                return rebuildRegister(registrationPayload);
-            }
-            return DROP;
-        }
-
-        if (MINECRAFT.equals(namespace) && MCO.equals(path)) return DROP;
-
-        if (ProtectorTracker.isWhitelistedChannel(id)) return PASS;
-
-        return DROP;
+      }
+    } catch (Throwable t) {
+      if (DEBUG) {
+        MeteorClient.LOG.debug("[Protector] register payload inspection failed: {}", t.getMessage());
+      }
+      return DROP;
     }
 
-    private static Identifier payloadId(CustomPacketPayload payload) {
+    if (kept.isEmpty()) return DROP;
+
+    RegistrationPayload rebuilt = newRegistrationPayload(original, kept);
+    if (rebuilt == null) return DROP;
+    return new Verdict(Verdict.Kind.REPLACE, new ServerboundCustomPayloadPacket(rebuilt));
+  }
+
+  private static RegistrationPayload newRegistrationPayload(RegistrationPayload original, List<Identifier> channels) {
+    for (Constructor<?> ctor : RegistrationPayload.class.getDeclaredConstructors()) {
+      if (ctor.getParameterCount() != 2) continue;
+      try {
+        ctor.setAccessible(true);
+      } catch (Throwable ignored) {
+        continue;
+      }
+      try {
+        return (RegistrationPayload) ctor.newInstance(original.type(), channels);
+      } catch (Throwable ignored) {
         try {
-            CustomPacketPayload.Type<?> type = payload.type();
-            if (type != null) return type.id();
-        } catch (Throwable ignored) {
+          return (RegistrationPayload) ctor.newInstance(channels, original.type());
+        } catch (Throwable ignored2) {
         }
-        return null;
+      }
     }
+    MeteorClient.LOG.warn("[Protector] No compatible RegistrationPayload constructor; dropping packet.");
+    return null;
+  }
 
-    private static Verdict rebuildRegister(RegistrationPayload original) {
-        List<Identifier> kept = new ArrayList<>();
-        try {
-            for (Identifier channel : original.channels()) {
-                if (ProtectorTracker.isWhitelistedChannel(channel)) {
-                    kept.add(channel);
-                }
-            }
-        } catch (Throwable t) {
-            if (DEBUG) {
-                MeteorClient.LOG.debug("[Protector] register payload inspection failed: {}", t.getMessage());
-            }
-            return DROP;
-        }
+  public static final class Verdict {
+    public enum Kind {PASS, DROP, REPLACE}
 
-        if (kept.isEmpty()) return DROP;
+    public final Kind kind;
+    public final Packet<?> replacement;
 
-        RegistrationPayload rebuilt = newRegistrationPayload(original, kept);
-        if (rebuilt == null) return DROP;
-        return new Verdict(Verdict.Kind.REPLACE, new ServerboundCustomPayloadPacket(rebuilt));
+    private Verdict(Kind kind, Packet<?> replacement) {
+      this.kind = kind;
+      this.replacement = replacement;
     }
-
-    private static RegistrationPayload newRegistrationPayload(RegistrationPayload original, List<Identifier> channels) {
-        for (Constructor<?> ctor : RegistrationPayload.class.getDeclaredConstructors()) {
-            if (ctor.getParameterCount() != 2) continue;
-            try {
-                ctor.setAccessible(true);
-            } catch (Throwable ignored) {
-                continue;
-            }
-            try {
-                return (RegistrationPayload) ctor.newInstance(original.type(), channels);
-            } catch (Throwable ignored) {
-                try {
-                    return (RegistrationPayload) ctor.newInstance(channels, original.type());
-                } catch (Throwable ignored2) {
-                }
-            }
-        }
-        MeteorClient.LOG.warn("[Protector] No compatible RegistrationPayload constructor; dropping packet.");
-        return null;
-    }
-
-    public static final class Verdict {
-        public enum Kind { PASS, DROP, REPLACE }
-
-        public final Kind kind;
-        public final Packet<?> replacement;
-
-        private Verdict(Kind kind, Packet<?> replacement) {
-            this.kind = kind;
-            this.replacement = replacement;
-        }
-    }
+  }
 }

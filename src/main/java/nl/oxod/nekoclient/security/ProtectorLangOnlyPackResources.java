@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public final class ProtectorLangOnlyPackResources implements PackResources {
-
   private final PackResources delegate;
 
   public ProtectorLangOnlyPackResources(PackResources delegate) {
