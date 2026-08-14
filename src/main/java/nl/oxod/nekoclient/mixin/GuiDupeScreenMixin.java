@@ -75,9 +75,11 @@ public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extend
       guiDupeChatField.setValue(neko$chatText);
 
       guiDupePanel = new GuiDupePanel((AbstractContainerScreen<?>) (Object) this, guiDupeChatField);
-      addRenderableWidget(guiDupePanel);
-      addRenderableWidget(guiDupeChatField);
     }
+    // init() clears all renderables every time it runs (including when a GUI is
+    // restored via setScreen()), so the panel must be re-added on every init.
+    addRenderableWidget(guiDupePanel);
+    addRenderableWidget(guiDupeChatField);
   }
 
   @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
