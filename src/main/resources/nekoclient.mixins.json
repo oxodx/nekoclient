@@ -39,6 +39,7 @@
     "KillAuraPlayerAccessor",
     "KeyMappingMixin",
     "GuiDupeScreenMixin",
+    "AbstractContainerScreenAccessor",
     "ScaffoldInputMixin",
     "ScaffoldLocalPlayerMixin",
     "ScaffoldLivingEntityMovementMixin",
