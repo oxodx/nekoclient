@@ -292,7 +292,7 @@ public final class DupeRadar {
           RadarMatch match = new RadarMatch(snapshot.displayName(), provider,
             exact ? "Exact" : "Fuzzy", exact ? MatchSource.PLUGIN : MatchSource.PLUGIN_FUZZY,
             exact ? 1.0D : 0.9D, snapshot.displayName(),
-            BASE_URL + "/plugins/" + urlPath(provider), PROVIDER_LABEL, findings, newestTimestamp(findings));
+            BASE_URL + "/?plugin=" + url(provider), PROVIDER_LABEL, findings, newestTimestamp(findings));
           addDedupedHits(dedupedHits, match);
         } catch (Exception ignored) {
         }
@@ -625,7 +625,10 @@ public final class DupeRadar {
         }
         if (path.startsWith("/plugin/") || path.startsWith("/plugins/")) {
           String id = path.substring(path.lastIndexOf('/') + 1);
-          return BASE_URL + "/plugins/" + urlPath(id);
+          return BASE_URL + "/?plugin=" + url(id);
+        }
+        if (uri.getRawQuery() != null && uri.getRawQuery().contains("plugin=")) {
+          return BASE_URL + "/?" + uri.getRawQuery();
         }
         return BASE_URL + "/?q=" + url(fallbackText.isBlank() ? clean : fallbackText);
       } catch (Exception ignored) {

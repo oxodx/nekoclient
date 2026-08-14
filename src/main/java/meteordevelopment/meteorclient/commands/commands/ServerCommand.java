@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class ServerCommand extends Command {
     private static final Set<String> ANTICHEAT_LIST = Set.of("nocheatplus", "negativity", "warden", "horizon", "illegalstack", "coreprotect", "exploitsx", "vulcan", "abc", "spartan", "kauri", "anticheatreloaded", "witherac", "godseye", "matrix", "wraith", "antixrayheuristics", "grimac", "themis", "foxaddition", "guardianac", "ggintegrity", "lightanticheat", "anarchyexploitfixes", "polar");
@@ -51,6 +52,7 @@ public class ServerCommand extends Command {
     private final List<String> plugins = new ArrayList<>();
     private final List<String> commandTreePlugins = new ArrayList<>();
     private static final Random RANDOM = new Random();
+    private Consumer<List<String>> pluginsCallback;
 
 
     public ServerCommand() {
@@ -174,18 +176,47 @@ public class ServerCommand extends Command {
     // plugin scanning
 
     private void printPlugins() {
-        plugins.sort(String.CASE_INSENSITIVE_ORDER);
-        plugins.replaceAll(this::formatName);
-
-        if (!plugins.isEmpty()) {
-            info("Plugins (%d): %s ", plugins.size(), String.join(", ", plugins));
+        Consumer<List<String>> callback = pluginsCallback;
+        pluginsCallback = null;
+        if (callback != null) {
+            callback.accept(List.copyOf(plugins));
         } else {
-            error("No plugins found.");
+            plugins.sort(String.CASE_INSENSITIVE_ORDER);
+            plugins.replaceAll(this::formatName);
+
+            if (!plugins.isEmpty()) {
+                info("Plugins (%d): %s ", plugins.size(), String.join(", ", plugins));
+            } else {
+                error("No plugins found.");
+            }
         }
 
         tick = false;
         ticks = 0;
         plugins.clear();
+    }
+
+    /**
+     * Runs the exact same detection as the ".server plugins" command and hands the
+     * detected plugin names to the callback. Used by DupeRadar so its plugin
+     * detection matches Meteor's.
+     */
+    public void findPlugins(Consumer<List<String>> callback) {
+        if (mc.getConnection() == null) {
+            if (callback != null) callback.accept(List.of());
+            return;
+        }
+
+        pluginsCallback = callback;
+        plugins.clear();
+        plugins.addAll(commandTreePlugins);
+
+        if (alias != null) {
+            mc.getConnection().send(new ServerboundCommandSuggestionPacket(RANDOM.nextInt(200), alias + " "));
+            tick = true;
+        } else {
+            printPlugins();
+        }
     }
 
     @EventHandler
