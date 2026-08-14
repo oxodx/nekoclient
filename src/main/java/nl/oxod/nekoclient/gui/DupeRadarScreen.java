@@ -27,6 +27,7 @@ public class DupeRadarScreen extends WindowScreen {
   private WTable matchesTable;
   private WTextBox pluginBox;
   private WButton authButton;
+  private List<DupeRadar.RadarMatch> lastMatches;
 
   public DupeRadarScreen(GuiTheme theme, DupeRadarModule module) {
     super(theme, "DupeDB Radar");
@@ -79,8 +80,9 @@ public class DupeRadarScreen extends WindowScreen {
 
     add(theme.horizontalSeparator("MATCHES")).expandX();
 
-    matchesView = add(theme.view()).expandX().expandWidgetY().widget();
-    matchesView.height = 120;
+    matchesView = add(theme.view()).expandX().widget();
+    matchesView.minWidth = 400;
+    matchesView.maxHeight = theme.scale(130);
     matchesTable = matchesView.add(theme.table()).expandX().widget();
   }
 
@@ -120,7 +122,8 @@ public class DupeRadarScreen extends WindowScreen {
 
   private void refreshMatches(DupeRadar.RadarState state) {
     List<DupeRadar.RadarMatch> matches = state.matches();
-    if (matchesTable == null) return;
+    if (matchesTable == null || matches == lastMatches) return;
+    lastMatches = matches;
     matchesTable.clear();
     if (matches.isEmpty()) {
       matchesTable.add(theme.label("No matches.")).expandX();
@@ -129,25 +132,28 @@ public class DupeRadarScreen extends WindowScreen {
     int shown = Math.min(matches.size(), 30);
     for (int i = 0; i < shown; i++) {
       DupeRadar.RadarMatch match = matches.get(i);
-      WTable row = matchesTable.add(theme.table()).expandX().widget();
-
       String status = DupeRadar.highestStatusLabel(match.findings());
-      WLabel statusLabel = row.add(theme.label(status)).widget();
+      WLabel statusLabel = matchesTable.add(theme.label(status)).widget();
       statusLabel.color = statusColor(status);
-      row.add(theme.label(match.displayLabel())).expandCellX().widget();
-      row.add(theme.label(match.matchConfidence() + " " + match.matchSource().label())).widget();
-      row.add(theme.label("x" + match.findings().size())).widget();
+      matchesTable.add(theme.label(shortLabel(match.displayLabel()))).expandCellX().widget();
+      matchesTable.add(theme.label(match.matchConfidence() + " " + match.matchSource().label())).widget();
+      matchesTable.add(theme.label("x" + match.findings().size())).widget();
 
-      WButton openButton = row.add(theme.button("Open")).widget();
+      WButton openButton = matchesTable.add(theme.button("Open")).widget();
       String url = match.sourceUrl();
       openButton.action = () -> DupeRadar.open(url);
 
       matchesTable.row();
     }
     if (matches.size() > shown) {
-      matchesTable.row();
       matchesTable.add(theme.label("+" + (matches.size() - shown) + " more")).expandX();
     }
+  }
+
+  private static String shortLabel(String text) {
+    if (text == null) return "";
+    if (text.length() <= 26) return text;
+    return text.substring(0, 26) + "...";
   }
 
   private Color statusColor(String status) {

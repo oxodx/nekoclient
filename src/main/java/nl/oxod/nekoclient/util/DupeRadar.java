@@ -623,6 +623,10 @@ public final class DupeRadar {
           String id = path.substring(path.lastIndexOf('/') + 1);
           return BASE_URL + "/exploit/" + urlPath(id);
         }
+        if (path.startsWith("/plugin/") || path.startsWith("/plugins/")) {
+          String id = path.substring(path.lastIndexOf('/') + 1);
+          return BASE_URL + "/plugins/" + urlPath(id);
+        }
         return BASE_URL + "/?q=" + url(fallbackText.isBlank() ? clean : fallbackText);
       } catch (Exception ignored) {
         return looksLikeExploitId(fallbackText) ? BASE_URL + "/exploit/" + urlPath(fallbackText) : BASE_URL + "/?q=" + url(fallbackText);
