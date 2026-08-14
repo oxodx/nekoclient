@@ -38,6 +38,7 @@
     "KillAuraMultiPlayerGameModeAccessor",
     "KillAuraPlayerAccessor",
     "KeyMappingMixin",
+    "GuiDupeScreenMixin",
     "ScaffoldInputMixin",
     "ScaffoldLocalPlayerMixin",
     "ScaffoldLivingEntityMovementMixin",

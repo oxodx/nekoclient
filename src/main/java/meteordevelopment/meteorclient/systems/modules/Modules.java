@@ -47,6 +47,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.misc.DupeRadarModule;
+import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
@@ -582,6 +584,8 @@ public class Modules extends System<Modules> {
     add(new PacketCanceller());
     add(new PacketLogger());
     add(new ProtectorModule());
+    add(new DupeRadarModule());
+    add(new GuiDupe());
     add(new ServerSpoof());
     add(new SoundBlocker());
     add(new Spam());
