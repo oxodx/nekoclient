@@ -66,7 +66,7 @@ public class GuiDupePanel extends AbstractWidget {
     this.chatField = chatField;
   }
 
-  private static boolean neko$isActive() {
+  public static boolean active() {
     return Modules.get().get(GuiDupe.class).isActive();
   }
 
@@ -122,11 +122,11 @@ public class GuiDupePanel extends AbstractWidget {
     return themeInt(theme -> theme.outlineColor.get().getPacked(), FALLBACK_BORDER);
   }
 
-  private static int textColor() {
+  public static int textColor() {
     return themeInt(theme -> theme.textColor.get().getPacked(), FALLBACK_TEXT);
   }
 
-  private static int mutedColor() {
+  public static int mutedColor() {
     return themeInt(theme -> theme.textSecondaryColor.get().getPacked(), FALLBACK_MUTED);
   }
 
@@ -144,7 +144,7 @@ public class GuiDupePanel extends AbstractWidget {
 
   @Override
   protected void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-    if (!neko$isActive()) {
+    if (!active()) {
       if (chatField != null) {
         chatField.visible = false;
         chatField.setX(-1000);
@@ -229,7 +229,7 @@ public class GuiDupePanel extends AbstractWidget {
 
   @Override
   public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
-    if (!neko$isActive()) return false;
+    if (!active()) return false;
     int mx = (int) Math.round(event.x());
     int my = (int) Math.round(event.y());
 

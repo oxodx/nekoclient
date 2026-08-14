@@ -74,13 +74,7 @@ public class ServerCommand extends Command {
         }));
 
         builder.then(literal("plugins").executes(_ -> {
-            plugins.addAll(commandTreePlugins);
-
-            if (alias != null) {
-                mc.getConnection().send(new ServerboundCommandSuggestionPacket(RANDOM.nextInt(200), alias + " "));
-                tick = true;
-            } else printPlugins();
-
+            findPlugins(null);
             return SINGLE_SUCCESS;
         }));
 

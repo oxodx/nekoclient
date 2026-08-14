@@ -144,6 +144,10 @@ public final class DupeRadar {
     CompletableFuture.runAsync(() -> runCheck(generation, snapshots, serverSnapshot, forceRefresh), EXECUTOR);
   }
 
+  public static RadarPluginSnapshot pluginSnapshot(String name) {
+    return new RadarPluginSnapshot(name, null, "Exact", 0, List.of(), List.of(), false);
+  }
+
   public static void clearServerResults() {
     GENERATION.incrementAndGet();
     state = state.withMatches(List.of(), 0, false).withBusy(false, false, "No server checked.", null);
@@ -708,27 +712,27 @@ public final class DupeRadar {
     }
   }
 
-  private static String httpGet(String url, String token) throws IOException {
+  private static HttpURLConnection newConnection(String url, String method) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
-    connection.setRequestMethod("GET");
+    connection.setRequestMethod(method);
     connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
     connection.setReadTimeout(READ_TIMEOUT_MS);
     connection.setRequestProperty("Accept", "application/json");
     connection.setRequestProperty("User-Agent", "NekoClient-Radar");
+    return connection;
+  }
+
+  private static String httpGet(String url, String token) throws IOException {
+    HttpURLConnection connection = newConnection(url, "GET");
     if (token != null && !token.isBlank()) connection.setRequestProperty("Authorization", "Bearer " + token);
     return readResponse(connection);
   }
 
   private static String httpPost(String url, String body) throws IOException {
     byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-    HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
-    connection.setRequestMethod("POST");
-    connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-    connection.setReadTimeout(READ_TIMEOUT_MS);
+    HttpURLConnection connection = newConnection(url, "POST");
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-    connection.setRequestProperty("Accept", "application/json");
-    connection.setRequestProperty("User-Agent", "NekoClient-Radar");
     connection.setRequestProperty("Content-Length", String.valueOf(bytes.length));
     try (OutputStream out = connection.getOutputStream()) {
       out.write(bytes);
@@ -936,6 +940,15 @@ public final class DupeRadar {
     return 3;
   }
 
+  public static int statusColor(String status) {
+    return switch (statusRank(status)) {
+      case 0 -> 0x59E85C;
+      case 1 -> 0x59C8E8;
+      case 2 -> 0xE8D859;
+      default -> 0xB0B0B0;
+    };
+  }
+
   public static int highestStatusRank(List<RadarFinding> findings) {
     int best = 3;
     if (findings != null) {
@@ -962,10 +975,11 @@ public final class DupeRadar {
     int verified = 0;
     if (findings != null) {
       for (RadarFinding finding : findings) {
-        String lower = finding.status() == null ? "" : finding.status().toLowerCase(Locale.ROOT);
-        if (lower.contains("work")) working++;
-        else if (lower.contains("patch")) patched++;
-        else if (lower.contains("verif")) verified++;
+        switch (statusRank(finding.status())) {
+          case 0 -> working++;
+          case 1 -> verified++;
+          case 2 -> patched++;
+        }
       }
     }
     return new StatusCounts(working, patched, verified);

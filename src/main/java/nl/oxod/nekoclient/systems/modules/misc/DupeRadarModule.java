@@ -120,7 +120,7 @@ public class DupeRadarModule extends Module {
       List<DupeRadar.RadarPluginSnapshot> snapshots = plugins.stream()
         .filter(name -> name != null && !name.isBlank())
         .distinct()
-        .map(name -> new DupeRadar.RadarPluginSnapshot(name, null, "Exact", 0, List.of(), List.of(), false))
+        .map(DupeRadar::pluginSnapshot)
         .toList();
       if (snapshots.isEmpty()) {
         info("Dupe radar auto-check started (no server plugins detected).");

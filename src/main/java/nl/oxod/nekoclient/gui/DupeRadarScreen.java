@@ -115,8 +115,7 @@ public class DupeRadarScreen extends WindowScreen {
       DupeRadar.checkServer(List.of(), false);
       return;
     }
-    DupeRadar.RadarPluginSnapshot snapshot = new DupeRadar.RadarPluginSnapshot(
-      plugin, plugin, "Exact", 0, List.of(), List.of(), false);
+    DupeRadar.RadarPluginSnapshot snapshot = DupeRadar.pluginSnapshot(plugin);
     DupeRadar.checkServer(List.of(snapshot), false);
   }
 
@@ -134,7 +133,7 @@ public class DupeRadarScreen extends WindowScreen {
       DupeRadar.RadarMatch match = matches.get(i);
       String status = DupeRadar.highestStatusLabel(match.findings());
       WLabel statusLabel = matchesTable.add(theme.label(status)).widget();
-      statusLabel.color = statusColor(status);
+      statusLabel.color = new Color(DupeRadar.statusColor(status));
       matchesTable.add(theme.label(shortLabel(match.displayLabel()))).expandCellX().widget();
       matchesTable.add(theme.label(match.matchConfidence() + " " + match.matchSource().label())).widget();
       matchesTable.add(theme.label("x" + match.findings().size())).widget();
@@ -154,13 +153,5 @@ public class DupeRadarScreen extends WindowScreen {
     if (text == null) return "";
     if (text.length() <= 26) return text;
     return text.substring(0, 26) + "...";
-  }
-
-  private Color statusColor(String status) {
-    String lower = status == null ? "" : status.toLowerCase();
-    if (lower.contains("work")) return new Color(0x59E85C);
-    if (lower.contains("verif")) return new Color(0x59C8E8);
-    if (lower.contains("patch")) return new Color(0xE8D859);
-    return new Color(0xB0B0B0);
   }
 }

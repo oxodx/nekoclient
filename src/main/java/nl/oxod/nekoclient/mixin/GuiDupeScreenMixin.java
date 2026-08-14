@@ -1,9 +1,5 @@
 package nl.oxod.nekoclient.mixin;
 
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.GuiThemes;
-import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.utils.render.color.Color;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -11,7 +7,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import nl.oxod.nekoclient.gui.GuiDupeChatField;
 import nl.oxod.nekoclient.gui.GuiDupePanel;
-import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,26 +22,6 @@ public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extend
   private static final int CHAT_H = 16;
 
   @Unique
-  private static int themeTextColor() {
-    GuiTheme theme = GuiThemes.get();
-    if (theme != null) {
-      Color text = theme.textColor();
-      if (text != null) return text.getPacked();
-    }
-    return 0xFFFFFFFF;
-  }
-
-  @Unique
-  private static int themeMutedColor() {
-    GuiTheme theme = GuiThemes.get();
-    if (theme != null) {
-      Color muted = theme.textSecondaryColor();
-      if (muted != null) return muted.getPacked();
-    }
-    return 0xFF969696;
-  }
-
-  @Unique
   private static String neko$chatText = "";
 
   @Unique
@@ -58,10 +33,6 @@ public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extend
     super(title);
   }
 
-  private static boolean isActive() {
-    return Modules.get().get(GuiDupe.class).isActive();
-  }
-
   @Inject(method = "init", at = @At("TAIL"))
   private void neko$guiDupeInit(CallbackInfo ci) {
     if (guiDupePanel == null) {
@@ -69,8 +40,8 @@ public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extend
         this::submitChat, () -> guiDupeChatField.setFocused(false));
       guiDupeChatField.setMaxLength(256);
       guiDupeChatField.setBordered(false);
-      guiDupeChatField.setTextColor(themeTextColor());
-      guiDupeChatField.setHint(Component.literal("Type message or /command...").copy().withColor(themeMutedColor()));
+      guiDupeChatField.setTextColor(GuiDupePanel.textColor());
+      guiDupeChatField.setHint(Component.literal("Type message or /command...").copy().withColor(GuiDupePanel.mutedColor()));
       guiDupeChatField.setResponder(text -> neko$chatText = text);
       guiDupeChatField.setValue(neko$chatText);
 
@@ -84,7 +55,7 @@ public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extend
 
   @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
   private void neko$guiDupeKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-    if (!isActive()) return;
+    if (!GuiDupePanel.active()) return;
     if (guiDupeChatField != null && guiDupeChatField.isFocused()) {
       guiDupeChatField.keyPressed(input);
       cir.setReturnValue(true);
