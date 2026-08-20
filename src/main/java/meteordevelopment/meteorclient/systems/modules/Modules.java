@@ -68,7 +68,7 @@ public class Modules extends System<Modules> {
   private final Map<Class<? extends Module>, Module> moduleInstances = new Reference2ReferenceOpenHashMap<>();
   private final Map<Category, List<Module>> groups = new Reference2ReferenceOpenHashMap<>();
 
-  private final Set<Module> active = new ReferenceOpenHashSet<>();
+private final Set<Module> active = new ReferenceOpenHashSet<>();
   private @Nullable Module moduleToBind;
   private boolean awaitingKeyRelease = false;
 
@@ -570,7 +570,7 @@ public class Modules extends System<Modules> {
     }
   }
 
-  private void initMisc() {
+private void initMisc() {
     add(new AntiPacketKick());
     add(new AutoReconnect());
     add(new BetterBeacons());
