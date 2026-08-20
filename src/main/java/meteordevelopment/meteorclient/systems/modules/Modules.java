@@ -9,6 +9,7 @@ import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.game.GameJoinedEvent;
 import meteordevelopment.meteorclient.events.game.GameLeftEvent;
@@ -52,8 +53,8 @@ import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 
-import org.jetbrains.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
+import org.jspecify.annotations.Nullable;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.io.File;
 import java.util.*;
@@ -67,8 +68,8 @@ public class Modules extends System<Modules> {
   private final Map<Class<? extends Module>, Module> moduleInstances = new Reference2ReferenceOpenHashMap<>();
   private final Map<Category, List<Module>> groups = new Reference2ReferenceOpenHashMap<>();
 
-  private final List<Module> active = new ArrayList<>();
-  private Module moduleToBind;
+  private final Set<Module> active = new ReferenceOpenHashSet<>();
+  private @Nullable Module moduleToBind;
   private boolean awaitingKeyRelease = false;
 
   public Modules() {
@@ -155,7 +156,7 @@ public class Modules extends System<Modules> {
     return moduleInstances.size();
   }
 
-  public List<Module> getActive() {
+  public Collection<Module> getActive() {
     return active;
   }
 
@@ -204,8 +205,7 @@ public class Modules extends System<Modules> {
 
   void addActive(Module module) {
     synchronized (active) {
-      if (!active.contains(module)) {
-        active.add(module);
+      if (active.add(module)) {
         MeteorClient.EVENT_BUS.post(ActiveModulesChangedEvent.get());
       }
     }
@@ -221,7 +221,7 @@ public class Modules extends System<Modules> {
 
   // Binding
 
-  public void setModuleToBind(Module moduleToBind) {
+  public void setModuleToBind(@Nullable Module moduleToBind) {
     this.moduleToBind = moduleToBind;
   }
 
@@ -251,7 +251,7 @@ public class Modules extends System<Modules> {
     if (!isBinding()) return false;
 
     if (awaitingKeyRelease) {
-      if (!isKey || (value != GLFW.GLFW_KEY_ENTER && value != GLFW.GLFW_KEY_KP_ENTER)) return false;
+      if (!isKey || (value != InputConstants.KEY_RETURN && value != InputConstants.KEY_NUMPADENTER)) return false;
 
       awaitingKeyRelease = false;
       return false;
@@ -260,7 +260,7 @@ public class Modules extends System<Modules> {
     if (moduleToBind.keybind.canBindTo(isKey, value, modifiers)) {
       moduleToBind.keybind.set(isKey, value, modifiers);
       moduleToBind.info("Bound to (highlight)%s(default).", moduleToBind.keybind);
-    } else if (value == GLFW.GLFW_KEY_ESCAPE) {
+    } else if (value == InputConstants.KEY_ESCAPE) {
       moduleToBind.keybind.set(Keybind.none());
       moduleToBind.info("Removed bind.");
     } else return false;
@@ -284,7 +284,7 @@ public class Modules extends System<Modules> {
   }
 
   private void onAction(boolean isKey, int value, int modifiers, boolean isPress) {
-    if (mc.gui.screen() != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return;
+    if (mc.gui.screen() != null || Input.isKeyPressed(InputConstants.KEY_F3)) return;
 
     for (Module module : moduleInstances.values()) {
       if (module.keybind.matches(isKey, value, modifiers) && (isPress || (module.toggleOnBindRelease && module.isActive()))) {
