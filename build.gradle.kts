@@ -99,7 +99,7 @@ dependencies {
   compileOnly(libs.baritone)
   compileOnly(libs.modmenu)
 
-  // Libraries (JAR-in-JAR)
+// Libraries (JAR-in-JAR)
   jij(libs.orbit)
   jij(libs.starscript)
   jij(libs.discord.ipc)
