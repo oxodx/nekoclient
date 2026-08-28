@@ -13,6 +13,7 @@ plugins {
   alias(libs.plugins.shadow)
   alias(libs.plugins.errorprone)
 }
+}
 
 apply<ShadowBasePlugin>()
 
@@ -260,8 +261,6 @@ tasks {
         // Event handlers are discovered reflectively by Orbit.
         option("UnusedMethod:ExcludedAnnotations", "meteordevelopment.orbit.EventHandler")
       }
-    }
-  }
     }
   }
 
