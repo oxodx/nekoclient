@@ -5,13 +5,20 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.github.jengelman.gradle.plugins.shadow.transformers.PreserveFirstFoundResourceTransformer
 import net.fabricmc.loom.task.prod.ClientProductionRunTask
 import kotlin.collections.listOf
+import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
   alias(libs.plugins.fabric.loom)
   id("maven-publish")
+  alias(libs.plugins.shadow)
+  alias(libs.plugins.errorprone)
 }
 
 apply<ShadowBasePlugin>()
+
+val archivesBaseName = providers.gradleProperty("archives_base_name").get()
+val mavenGroup = providers.gradleProperty("maven_group").get()
+val runErrorProne = providers.gradleProperty("errorprone").isPresent
 
 base {
   archivesName = properties["archives_base_name"] as String
@@ -104,6 +111,10 @@ dependencies {
     exclude("com.google.code.gson")
     exclude("com.google.errorprone")
   }
+
+  // Error Prone
+  errorprone(libs.errorprone.core)
+  errorprone(libs.nullaway)
 }
 
 java {
@@ -228,6 +239,29 @@ tasks {
       addStringOption("Xdoclint:none", "-quiet")
       addStringOption("encoding", "UTF-8")
       addStringOption("charSet", "UTF-8")
+    }
+  }
+
+  withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(
+      listOf(
+        "-Xlint:deprecation",
+        "-Xlint:unchecked"
+      )
+    )
+
+    options.errorprone.enabled.set(runErrorProne)
+
+    if (runErrorProne) {
+      options.errorprone {
+        check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "meteordevelopment.meteorclient")
+        option("NullAway:JSpecifyMode", "true")
+        // Event handlers are discovered reflectively by Orbit.
+        option("UnusedMethod:ExcludedAnnotations", "meteordevelopment.orbit.EventHandler")
+      }
+    }
+  }
     }
   }
 

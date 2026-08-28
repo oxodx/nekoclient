@@ -8,6 +8,8 @@ fabric-api = "0.154.2+26.2"
 # Plugins
 # Loom (https://github.com/FabricMC/fabric-loom)
 loom = "1.17-SNAPSHOT"
+# Error Prone Plugin (https://github.com/tbroyer/gradle-errorprone-plugin)
+errorprone-plugin = "5.1.1"
 
 # Shadow (https://github.com/GradleUp/shadow/releases)
 shadow = "9.4.1" # also in settings.gradle.kts
@@ -42,6 +44,12 @@ minecraftauth = "5.0.2"
 # LibJF (https://modrinth.com/mod/libjf)
 libjf = "26.1.2"
 
+# Libraries
+# Error Prone (https://github.com/google/error-prone)
+errorprone = "2.50.0"
+# NullAway (https://github.com/uber/NullAway)
+nullaway = "0.14.0"
+
 [libraries]
 # Fabric base
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -65,6 +73,8 @@ netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "
 netty-codec-socks = { module = "io.netty:netty-codec-socks", version.ref = "netty" }
 waybackauthlib = { module = "de.florianreuth:waybackauthlib", version.ref = "waybackauthlib" }
 minecraft-auth = { module = "net.raphimc:MinecraftAuth", version.ref = "minecraftauth" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 
 libjf-base = { module = "dev.jfronny.libjf:libjf-base", version.ref = "libjf" }
 libjf-unsafe-v0 = { module = "dev.jfronny.libjf:libjf-unsafe-v0", version.ref = "libjf" }
@@ -73,3 +83,4 @@ libjf-devutil = { module = "dev.jfronny.libjf:libjf-devutil", version.ref = "lib
 [plugins]
 fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
