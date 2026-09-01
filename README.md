@@ -30,7 +30,7 @@ Then just drop the jar in your mod folder.
 
 - [**MeteorDevelopment/meteor-client**](https://github.com/MeteorDevelopment/meteor-client)
 - [**MeteorClientPlus/MeteorPlus**](https://github.com/MeteorClientPlus/MeteorPlus)
-- [**[AutismDevelopment/Autism-Client]**](https://github.com/AutismDevelopment/Autism-Client)
+- [**AutismDevelopment/Autism-Client**](https://github.com/AutismDevelopment/Autism-Client)
 
 ---
 
