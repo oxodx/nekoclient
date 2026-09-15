@@ -11,7 +11,7 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.combat.*;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
-import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.KillAura;
 
 import java.util.List;
 

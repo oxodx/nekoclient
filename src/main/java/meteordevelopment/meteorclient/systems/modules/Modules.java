@@ -47,7 +47,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.KillAura;
 import nl.oxod.nekoclient.systems.modules.misc.DupeRadarModule;
 import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;

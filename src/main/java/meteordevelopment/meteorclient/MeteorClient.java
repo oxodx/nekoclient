@@ -53,6 +53,7 @@ public class MeteorClient implements ClientModInitializer {
   public static final String NAME;
   public static final Version VERSION;
   public static final String BUILD_NUMBER = "";
+  public static final boolean DEBUG = false;
 
   public static MeteorClient INSTANCE;
   public static MeteorAddon ADDON;

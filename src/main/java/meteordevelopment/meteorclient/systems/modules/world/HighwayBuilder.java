@@ -66,7 +66,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import nl.oxod.nekoclient.systems.modules.combat.killaura.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.KillAura;
 
 import org.jetbrains.annotations.Range;
 import org.joml.Vector3d;
