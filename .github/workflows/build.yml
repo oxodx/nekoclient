@@ -1,4 +1,4 @@
-name: Build
+name: Dev Build
 
 concurrency:
   group: "build"
@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: gradle build -Pcommit=${{ github.sha }}
 
-      - name: Upload build results
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: Release Build
