@@ -13,7 +13,7 @@ public enum CatppuccinFlavor {
         234, 118, 203, // Pink
         136, 57, 239, // Mauve
         210, 15, 57, // Red
-        230, 49, 121, // Maroon
+        230, 69, 83, // Maroon
         254, 100, 11, // Peach
         223, 142, 29, // Yellow
         64, 160, 43, // Green
