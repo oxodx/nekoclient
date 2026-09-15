@@ -29,5 +29,6 @@ public abstract class PhaseMode {
 	public void onCollisionShape(CollisionShapeEvent event) {}
 	public void onPlayerMoveEvent(PlayerMoveEvent event) {}
 	public void onPlayerMoveSendPre(SendMovementPacketsEvent.Pre event) {}
+	public void onTeleportPacket() {}
 	public String info() { return ""; }
 }

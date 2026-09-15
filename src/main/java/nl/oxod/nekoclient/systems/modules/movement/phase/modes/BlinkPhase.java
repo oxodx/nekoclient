@@ -3,12 +3,6 @@ package nl.oxod.nekoclient.systems.modules.movement.phase.modes;
 import meteordevelopment.meteorclient.events.world.CollisionShapeEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ClientboundBlockEventPacket;
-import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.protocol.game.ClientboundChunkBatchFinishedPacket;
-import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
-import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
-import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -40,7 +34,7 @@ public class BlinkPhase extends PhaseMode {
 
 	private volatile State state = State.WAITING;
 	private volatile boolean inCollisionCheck;
-	private volatile boolean standDown;
+	private volatile String standDown;
 	private volatile boolean recycleRequested;
 
 	private final List<ServerboundMovePlayerPacket> packets = new ArrayList<>();
@@ -57,7 +51,7 @@ public class BlinkPhase extends PhaseMode {
 	public void onActivate() {
 		state = State.WAITING;
 		currentTicks = 0;
-		standDown = false;
+		standDown = null;
 		recycleRequested = false;
 		reachedWalking = false;
 		fruitlessCycles = 0;
@@ -74,13 +68,18 @@ public class BlinkPhase extends PhaseMode {
 		LocalPlayer player = mc.player;
 		if (player == null) return;
 
-		if (state == State.WAITING) {
-			if (doesCollideAt(player, player.position())) state = State.PHASING;
-		} else if (state == State.PHASING) {
-			if (!doesCollideAt(player, player.position())) {
-				state = State.WALKING;
-				reachedWalking = true;
+		inCollisionCheck = true;
+		try {
+			if (state == State.WAITING) {
+				if (doesCollideAt(player, player.position())) state = State.PHASING;
+			} else if (state == State.PHASING) {
+				if (!doesCollideAt(player, player.position())) {
+					state = State.WALKING;
+					reachedWalking = true;
+				}
 			}
+		} finally {
+			inCollisionCheck = false;
 		}
 
 		if (state == State.PHASING || state == State.WALKING) {
@@ -93,10 +92,11 @@ public class BlinkPhase extends PhaseMode {
 
 	@Override
 	public void onTickEventPost(TickEvent.Post event) {
-		if (standDown) {
-			standDown = false;
+		String reason = standDown;
+		if (reason != null) {
+			standDown = null;
 			settings.disable();
-			settings.info("Phase disabled: block did not clear.");
+			settings.info(reason);
 			return;
 		}
 		if (recycleRequested) {
@@ -146,18 +146,6 @@ public class BlinkPhase extends PhaseMode {
 	}
 
 	@Override
-	public void onReceivePacket(meteordevelopment.meteorclient.events.packets.PacketEvent.Receive event) {
-		if (event.packet instanceof ClientboundBlockUpdatePacket
-			|| event.packet instanceof ClientboundBlockEventPacket
-			|| event.packet instanceof ClientboundSectionBlocksUpdatePacket
-			|| event.packet instanceof ClientboundLevelChunkWithLightPacket
-			|| event.packet instanceof ClientboundChunkBatchFinishedPacket
-			|| event.packet instanceof ClientboundSetTitleTextPacket) {
-			return;
-		}
-	}
-
-	@Override
 	public void onCollisionShape(CollisionShapeEvent event) {
 		if (inCollisionCheck || state.boxCollisions) return;
 
@@ -166,10 +154,8 @@ public class BlinkPhase extends PhaseMode {
 
 		if (event.pos.getY() >= player.position().y
 			|| (player.isShiftKeyDown() && player.onGround())) {
-			return;
+			event.shape = Shapes.empty();
 		}
-
-		event.shape = Shapes.empty();
 	}
 
 	@Override
@@ -178,10 +164,15 @@ public class BlinkPhase extends PhaseMode {
 		return current == State.WAITING ? "" : current.name().toLowerCase(Locale.ROOT);
 	}
 
+	@Override
+	public void onTeleportPacket() {
+		standDown = "Phase disabled: server set you back.";
+	}
+
 	private void recycle() {
 		reset();
 		if (reachedWalking) fruitlessCycles = 0;
-		else if (++fruitlessCycles >= MAX_FRUITLESS_CYCLES) standDown = true;
+		else if (++fruitlessCycles >= MAX_FRUITLESS_CYCLES) standDown = "Phase disabled: block did not clear.";
 		reachedWalking = false;
 	}
 
@@ -190,7 +181,7 @@ public class BlinkPhase extends PhaseMode {
 		flushPackets(true);
 		state = State.WAITING;
 		currentTicks = 0;
-		standDown = false;
+		standDown = null;
 		recycleRequested = false;
 		reachedWalking = false;
 		fruitlessCycles = 0;

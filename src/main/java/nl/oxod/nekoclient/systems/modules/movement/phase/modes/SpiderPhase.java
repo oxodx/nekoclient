@@ -87,7 +87,7 @@ public class SpiderPhase extends PhaseMode {
 		LocalPlayer player = mc.player;
 		if (player == null) return;
 
-		event.shape = event.pos.getY() >= player.getY() ? Shapes.empty() : Shapes.block();
+		if (event.pos.getY() >= player.getY()) event.shape = Shapes.empty();
 	}
 
 	private static void setDeltaY(LocalPlayer player, double y) {

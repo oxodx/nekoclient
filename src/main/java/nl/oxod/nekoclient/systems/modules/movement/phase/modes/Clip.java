@@ -22,9 +22,9 @@ public class Clip extends PhaseMode {
 		LocalPlayer player = mc.player;
 		Vec3 center = Vec3.atCenterOf(player.blockPosition());
 
-		mc.getConnection().send(new ServerboundMovePlayerPacket.Pos(
+		mc.getConnection().send(new ServerboundMovePlayerPacket.PosRot(
 			center.x, player.getY() - GRAVITY, center.z,
-			player.onGround(), player.horizontalCollision));
+			player.getYRot(), player.getXRot(), false, false));
 
 		settings.disable();
 		settings.info("Phase: clip packet sent.");

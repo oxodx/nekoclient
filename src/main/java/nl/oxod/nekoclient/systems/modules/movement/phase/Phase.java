@@ -14,6 +14,7 @@ import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import nl.oxod.nekoclient.systems.modules.movement.phase.modes.BlinkPhase;
 import nl.oxod.nekoclient.systems.modules.movement.phase.modes.Clip;
 import nl.oxod.nekoclient.systems.modules.movement.phase.modes.Intave;
@@ -87,6 +88,7 @@ public class Phase extends Module {
 
 	@EventHandler
 	private void onReceivePacket(PacketEvent.Receive event) {
+		if (event.packet instanceof ClientboundPlayerPositionPacket) currentMode.onTeleportPacket();
 		currentMode.onReceivePacket(event);
 	}
 
