@@ -10,10 +10,7 @@ import net.ltgt.gradle.errorprone.errorprone
 plugins {
   alias(libs.plugins.fabric.loom)
   id("maven-publish")
-  alias(libs.plugins.shadow)
   alias(libs.plugins.errorprone)
-}
-}
 }
 
 apply<ShadowBasePlugin>()
