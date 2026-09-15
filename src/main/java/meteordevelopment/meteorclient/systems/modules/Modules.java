@@ -376,7 +376,7 @@ private final Set<Module> active = new ReferenceOpenHashSet<>();
       throw new RuntimeException("Modules.addModule - Module's category was not registered.");
     }
 
-    // Remove the previous module with the same name
+// Remove the previous module with the same name
     AtomicReference<Module> removedModule = new AtomicReference<>();
     if (moduleInstances.values().removeIf(module1 -> {
       if (module1.name.equals(module.name)) {

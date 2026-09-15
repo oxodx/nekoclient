@@ -50,6 +50,12 @@ errorprone = "2.50.0"
 # NullAway (https://github.com/uber/NullAway)
 nullaway = "0.14.0"
 
+# Libraries
+# Error Prone (https://github.com/google/error-prone)
+errorprone = "2.50.0"
+# NullAway (https://github.com/uber/NullAway)
+nullaway = "0.14.0"
+
 [libraries]
 # Fabric base
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
