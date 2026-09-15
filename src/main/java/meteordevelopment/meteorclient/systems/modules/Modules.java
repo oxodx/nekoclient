@@ -52,6 +52,7 @@ import nl.oxod.nekoclient.systems.modules.misc.DupeRadarModule;
 import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
+import nl.oxod.nekoclient.systems.modules.movement.phase.Phase;
 
 import org.jspecify.annotations.Nullable;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -486,6 +487,7 @@ private final Set<Module> active = new ReferenceOpenHashSet<>();
     add(new NoFall());
     add(new NoSlow());
     add(new Parkour());
+    add(new Phase());
     add(new ReverseStep());
     add(new SafeWalk());
     add(new Scaffold());
