@@ -19,7 +19,7 @@
 ```bash
 https://github.com/oxodx/nekoclient.git
 cd nekoclient
-./gradlew build
+gradle build
 ```
 
 Then just drop the jar in your mod folder.

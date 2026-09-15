@@ -1,6 +1,6 @@
 [versions]
 # Fabric (https://fabricmc.net/develop)
-jdk = "26"
+jdk = "25"
 minecraft = "26.2"
 fabric-loader = "0.19.3"
 fabric-api = "0.154.2+26.2"
