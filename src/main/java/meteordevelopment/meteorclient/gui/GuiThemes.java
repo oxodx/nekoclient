@@ -11,6 +11,7 @@ import meteordevelopment.meteorclient.utils.PostInit;
 import meteordevelopment.meteorclient.utils.PreInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class GuiThemes {
     @PreInit
     public static void init() {
         add(new MeteorGuiTheme());
+        add(new CatppuccinGuiTheme());
     }
 
     @PostInit
