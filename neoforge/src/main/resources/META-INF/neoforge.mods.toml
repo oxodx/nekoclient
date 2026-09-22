@@ -1,0 +1,18 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+license = "GPL-3.0"
+issueTrackerURL = "https://github.com/oxodx/nekoclient/issues"
+
+[[mods]]
+modId = "nekoclient"
+version = "26.2.0.84"
+displayName = "NekoClient"
+authors = "oxod_"
+description = "Based utility mod."
+
+[[dependencies.nekoclient]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "CLIENT"
