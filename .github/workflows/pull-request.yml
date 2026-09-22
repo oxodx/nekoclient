@@ -30,6 +30,8 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Release Build
-          path: ${{ github.workspace }}/build/libs/
+          path: |
+            fabric/build/libs/
+            neoforge/build/libs/
           if-no-files-found: error
           retention-days: 14
