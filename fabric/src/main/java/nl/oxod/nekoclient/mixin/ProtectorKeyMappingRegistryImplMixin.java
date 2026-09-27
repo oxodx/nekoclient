@@ -12,9 +12,9 @@ import java.util.LinkedHashSet;
 
 @Mixin(targets = "net.fabricmc.fabric.impl.client.keymapping.KeyMappingRegistryImpl")
 public class ProtectorKeyMappingRegistryImplMixin {
-    @Inject(method = "registerKeyMapping", at = @At("RETURN"))
-    private static void protector$trackModKeyMapping(KeyMapping keyMapping, CallbackInfoReturnable<KeyMapping> cir) {
-        LinkedHashSet<String> mods = ProtectorModResolver.modsFromStacktrace();
-        if (!mods.isEmpty()) ProtectorTracker.addModKeybind(keyMapping.getName(), mods.getLast());
-    }
+  @Inject(method = "registerKeyMapping", at = @At("RETURN"))
+  private static void protector$trackModKeyMapping(KeyMapping keyMapping, CallbackInfoReturnable<KeyMapping> cir) {
+    LinkedHashSet<String> mods = ProtectorModResolver.modsFromStacktrace();
+    if (!mods.isEmpty()) ProtectorTracker.addModKeybind(keyMapping.getName(), mods.getLast());
+  }
 }

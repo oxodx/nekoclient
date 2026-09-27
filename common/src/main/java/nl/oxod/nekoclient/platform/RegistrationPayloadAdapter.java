@@ -14,26 +14,26 @@ import java.util.Optional;
  * payload use {@link #UNSUPPORTED}, which makes the caller drop the packet instead of crashing.
  */
 public interface RegistrationPayloadAdapter {
-    RegistrationPayloadAdapter UNSUPPORTED = new RegistrationPayloadAdapter() {
-        @Override
-        public boolean isRegistrationPayload(CustomPacketPayload payload) {
-            return false;
-        }
+  RegistrationPayloadAdapter UNSUPPORTED = new RegistrationPayloadAdapter() {
+    @Override
+    public boolean isRegistrationPayload(CustomPacketPayload payload) {
+      return false;
+    }
 
-        @Override
-        public List<Identifier> channelsOf(CustomPacketPayload payload) {
-            return List.of();
-        }
+    @Override
+    public List<Identifier> channelsOf(CustomPacketPayload payload) {
+      return List.of();
+    }
 
-        @Override
-        public Optional<CustomPacketPayload> rebuild(CustomPacketPayload original, List<Identifier> kept) {
-            return Optional.empty();
-        }
-    };
+    @Override
+    public Optional<CustomPacketPayload> rebuild(CustomPacketPayload original, List<Identifier> kept) {
+      return Optional.empty();
+    }
+  };
 
-    boolean isRegistrationPayload(CustomPacketPayload payload);
+  boolean isRegistrationPayload(CustomPacketPayload payload);
 
-    List<Identifier> channelsOf(CustomPacketPayload payload);
+  List<Identifier> channelsOf(CustomPacketPayload payload);
 
-    Optional<CustomPacketPayload> rebuild(CustomPacketPayload original, List<Identifier> kept);
+  Optional<CustomPacketPayload> rebuild(CustomPacketPayload original, List<Identifier> kept);
 }

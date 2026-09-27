@@ -2,7 +2,7 @@ package nl.oxod.nekoclient.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.client.multiplayer.RegistryDataCollector;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -58,7 +58,7 @@ public abstract class ProtectorRegistryDataCollectorMixin {
             )
         );
         if (PROTECTOR$REPORTED_WORLD_CLOCK_FIXES.add("vanilla-world-clocks")) {
-            MeteorClient.LOG.warn(
+            NekoClient.LOG.warn(
                 "[NekoClientProtector] Server registry payload was missing vanilla world clocks; added minecraft:overworld/minecraft:the_end so configuration can continue."
             );
         }

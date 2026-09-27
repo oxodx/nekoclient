@@ -4,26 +4,26 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin;
 
-import meteordevelopment.meteorclient.gui.DefaultSettingsWidgetFactory;
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.WidgetScreen;
-import meteordevelopment.meteorclient.gui.utils.AlignmentX;
-import meteordevelopment.meteorclient.gui.widgets.*;
-import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
-import meteordevelopment.meteorclient.gui.widgets.containers.WView;
-import meteordevelopment.meteorclient.gui.widgets.containers.WWindow;
-import meteordevelopment.meteorclient.gui.widgets.input.WDropdown;
-import meteordevelopment.meteorclient.gui.widgets.input.WSlider;
-import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
-import meteordevelopment.meteorclient.gui.widgets.pressable.*;
-import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
-import meteordevelopment.meteorclient.gui.utils.CharFilter;
-import meteordevelopment.meteorclient.renderer.text.TextRenderer;
-import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.accounts.Account;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.render.color.Color;
-import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import nl.oxod.nekoclient.gui.DefaultSettingsWidgetFactory;
+import nl.oxod.nekoclient.gui.GuiTheme;
+import nl.oxod.nekoclient.gui.WidgetScreen;
+import nl.oxod.nekoclient.gui.utils.AlignmentX;
+import nl.oxod.nekoclient.gui.widgets.*;
+import nl.oxod.nekoclient.gui.widgets.containers.WSection;
+import nl.oxod.nekoclient.gui.widgets.containers.WView;
+import nl.oxod.nekoclient.gui.widgets.containers.WWindow;
+import nl.oxod.nekoclient.gui.widgets.input.WDropdown;
+import nl.oxod.nekoclient.gui.widgets.input.WSlider;
+import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
+import nl.oxod.nekoclient.gui.widgets.pressable.*;
+import nl.oxod.nekoclient.gui.renderer.packer.GuiTexture;
+import nl.oxod.nekoclient.gui.utils.CharFilter;
+import nl.oxod.nekoclient.renderer.text.TextRenderer;
+import nl.oxod.nekoclient.settings.*;
+import nl.oxod.nekoclient.systems.accounts.Account;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.render.color.Color;
+import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.gui.themes.catppuccin.widgets.*;
 import nl.oxod.nekoclient.gui.themes.catppuccin.widgets.input.WCatppuccinDropdown;
 import nl.oxod.nekoclient.gui.themes.catppuccin.widgets.input.WCatppuccinSlider;
@@ -32,7 +32,7 @@ import nl.oxod.nekoclient.gui.themes.catppuccin.widgets.pressable.*;
 
 import java.util.function.Supplier;
 
-import static meteordevelopment.meteorclient.MeteorClient.mc;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class CatppuccinGuiTheme extends GuiTheme {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();

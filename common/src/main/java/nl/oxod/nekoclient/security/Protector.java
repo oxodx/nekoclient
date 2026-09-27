@@ -1,6 +1,6 @@
 package nl.oxod.nekoclient.security;
 
-import meteordevelopment.meteorclient.systems.modules.Modules;
+import nl.oxod.nekoclient.systems.modules.Modules;
 import net.minecraft.network.protocol.Packet;
 import nl.oxod.nekoclient.platform.LoaderDetection;
 import nl.oxod.nekoclient.systems.modules.misc.ProtectorModule;

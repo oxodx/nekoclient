@@ -1,7 +1,7 @@
 package nl.oxod.nekoclient.systems.modules.movement.flight.modes;
 
-import meteordevelopment.meteorclient.events.packets.PacketEvent;
-import meteordevelopment.meteorclient.events.world.TickEvent;
+import nl.oxod.nekoclient.events.packets.PacketEvent;
+import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.systems.modules.movement.flight.FlyMode;
 import nl.oxod.nekoclient.systems.modules.movement.flight.FlyModes;
 import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;

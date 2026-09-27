@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
@@ -115,7 +115,7 @@ public abstract class ProtectorConnectionMixin {
                 protector$spoofPipelineInstalled = true;
             }
         } catch (Throwable t) {
-            MeteorClient.LOG.debug("[NekoClientProtector] Failed to install client spoof payload filter", t);
+            NekoClient.LOG.debug("[NekoClientProtector] Failed to install client spoof payload filter", t);
         }
     }
 }

@@ -1,0 +1,23 @@
+{
+  "required": false,
+  "package": "nl.oxod.nekoclient.mixin.sodium",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "nl.oxod.nekoclient.MixinPlugin",
+  "client": [
+    "MeshVertexConsumerMixin",
+    "AbstractBlockRenderContextMixin",
+    "SodiumBlockRendererMixin",
+    "SodiumChunkBuilderMeshingTaskMixin",
+    "SodiumDefaultFluidRendererMixin",
+    "SodiumFluidRendererImplDefaultRenderContextMixin",
+    "SodiumFluidRendererImplMixin",
+    "SodiumLightDataAccessMixin",
+    "SodiumWorldRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  }
+}

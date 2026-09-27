@@ -4,8 +4,8 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets;
 
-import meteordevelopment.meteorclient.gui.widgets.WTopBar;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import nl.oxod.nekoclient.gui.widgets.WTopBar;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinTopBar extends WTopBar implements CatppuccinWidget {

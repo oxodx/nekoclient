@@ -41,7 +41,7 @@ public final class ProtectorRegistryComponentCompat {
     if (valueKey == null) return;
     String id = valueKey.identifier().toString();
     if (!REPORTED_MISSING_TRIM_MATERIALS.add(id)) return;
-    meteordevelopment.meteorclient.MeteorClient.LOG.warn(
+    nl.oxod.nekoclient.NekoClient.LOG.warn(
       "[NekoClient] Server registry is missing trim material '{}'; omitted that item component so configuration can continue.",
       id
     );
@@ -60,7 +60,7 @@ public final class ProtectorRegistryComponentCompat {
   public static void reportSkippedMissingComponent(Throwable error) {
     String message = error == null || error.getMessage() == null ? "unknown" : error.getMessage();
     if (!REPORTED_MISSING_COMPONENTS.add(message)) return;
-    meteordevelopment.meteorclient.MeteorClient.LOG.warn(
+    nl.oxod.nekoclient.NekoClient.LOG.warn(
       "[NekoClient] Server registry is missing data for a delayed item component ({}); omitted that component so configuration can continue.",
       message
     );

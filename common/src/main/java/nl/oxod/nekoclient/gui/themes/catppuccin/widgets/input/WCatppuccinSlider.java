@@ -4,8 +4,8 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets.input;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.widgets.input.WSlider;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.widgets.input.WSlider;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 

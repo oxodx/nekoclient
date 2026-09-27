@@ -4,10 +4,10 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.utils.BaseWidget;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.utils.BaseWidget;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
+import nl.oxod.nekoclient.utils.render.color.Color;
 
 public interface CatppuccinWidget extends BaseWidget {
     default CatppuccinGuiTheme theme() {

@@ -1,6 +1,6 @@
 package nl.oxod.nekoclient.security;
 
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.BrandPayload;
@@ -88,7 +88,7 @@ public final class ProtectorChannelFilter {
       }
     } catch (Throwable t) {
       if (DEBUG) {
-        MeteorClient.LOG.debug("[Protector] register payload inspection failed: {}", t.getMessage());
+        NekoClient.LOG.debug("[Protector] register payload inspection failed: {}", t.getMessage());
       }
       return DROP;
     }

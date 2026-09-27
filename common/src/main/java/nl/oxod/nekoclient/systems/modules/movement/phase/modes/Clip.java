@@ -9,24 +9,24 @@ import nl.oxod.nekoclient.systems.modules.movement.phase.PhaseMode;
 import nl.oxod.nekoclient.systems.modules.movement.phase.PhaseModes;
 
 public class Clip extends PhaseMode {
-	private static final double GRAVITY = 0.07840000152;
+  private static final double GRAVITY = 0.07840000152;
 
-	public Clip(Phase settings) {
-		super(PhaseModes.Clip, settings);
-	}
+  public Clip(Phase settings) {
+    super(PhaseModes.Clip, settings);
+  }
 
-	@Override
-	public void onTickEventPre(meteordevelopment.meteorclient.events.world.TickEvent.Pre event) {
-		if (mc.player == null || mc.getConnection() == null) return;
+  @Override
+  public void onTickEventPre(nl.oxod.nekoclient.events.world.TickEvent.Pre event) {
+    if (mc.player == null || mc.getConnection() == null) return;
 
-		LocalPlayer player = mc.player;
-		Vec3 center = Vec3.atCenterOf(player.blockPosition());
+    LocalPlayer player = mc.player;
+    Vec3 center = Vec3.atCenterOf(player.blockPosition());
 
-		mc.getConnection().send(new ServerboundMovePlayerPacket.PosRot(
-			center.x, player.getY() - GRAVITY, center.z,
-			player.getYRot(), player.getXRot(), false, false));
+    mc.getConnection().send(new ServerboundMovePlayerPacket.PosRot(
+      center.x, player.getY() - GRAVITY, center.z,
+      player.getYRot(), player.getXRot(), false, false));
 
-		settings.disable();
-		settings.info("Phase: clip packet sent.");
-	}
+    settings.disable();
+    settings.info("Phase: clip packet sent.");
+  }
 }

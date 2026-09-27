@@ -2,7 +2,7 @@ package nl.oxod.nekoclient.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.DownloadQueue;
 import nl.oxod.nekoclient.security.Protector;
@@ -31,7 +31,7 @@ public class ProtectorDownloadQueueMixin {
 
         UUID accountId = Minecraft.getInstance().getUser().getProfileId();
         if (accountId == null) {
-            MeteorClient.LOG.warn("[NekoClientProtector] Cannot isolate resource-pack cache: account UUID is null.");
+            NekoClient.LOG.warn("[NekoClientProtector] Cannot isolate resource-pack cache: account UUID is null.");
             return original;
         }
         return cacheDir.resolve(accountId.toString()).resolve(packId.toString());

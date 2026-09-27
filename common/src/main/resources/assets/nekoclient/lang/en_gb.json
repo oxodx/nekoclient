@@ -1,5 +1,5 @@
 {
-  "key.meteor-client.open-gui": "Open GUI",
-  "key.meteor-client.open-commands": "Open Commands",
-  "key.category.meteor-client.meteor-client": "Meteor Client"
+  "key.nekoclient.open-gui": "Open GUI",
+  "key.nekoclient.open-commands": "Open Commands",
+  "key.category.nekoclient.nekoclient": "NekoClient"
 }

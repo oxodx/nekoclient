@@ -1,18 +1,18 @@
 package nl.oxod.nekoclient.systems.modules.movement.flight;
 
-import meteordevelopment.meteorclient.events.entity.player.CanWalkOnFluidEvent;
-import meteordevelopment.meteorclient.events.entity.player.PlayerMoveEvent;
-import meteordevelopment.meteorclient.events.entity.player.SendMovementPacketsEvent;
-import meteordevelopment.meteorclient.events.packets.PacketEvent;
-import meteordevelopment.meteorclient.events.world.CollisionShapeEvent;
-import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.mixin.LocalPlayerAccessor;
-import meteordevelopment.meteorclient.mixin.ServerboundMovePlayerPacketAccessor;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.entity.EntityUtils;
+import nl.oxod.nekoclient.events.entity.player.CanWalkOnFluidEvent;
+import nl.oxod.nekoclient.events.entity.player.PlayerMoveEvent;
+import nl.oxod.nekoclient.events.entity.player.SendMovementPacketsEvent;
+import nl.oxod.nekoclient.events.packets.PacketEvent;
+import nl.oxod.nekoclient.events.world.CollisionShapeEvent;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.gui.GuiTheme;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
+import nl.oxod.nekoclient.mixin.LocalPlayerAccessor;
+import nl.oxod.nekoclient.mixin.ServerboundMovePlayerPacketAccessor;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.entity.EntityUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import nl.oxod.nekoclient.systems.modules.movement.flight.modes.Abilities;
@@ -81,7 +81,7 @@ public class Flight extends Module {
       offLeft = antiKick.offTime.get();
 
       if (antiKick.antiKickMode.get() == AntiKickMode.Packet) {
-        ((LocalPlayerAccessor) mc.player).meteor$setPositionReminder(20);
+        ((LocalPlayerAccessor) mc.player).neko$setPositionReminder(20);
       }
     } else if (delayLeft <= 0) {
       boolean shouldReturn = false;
@@ -92,7 +92,7 @@ public class Flight extends Module {
           shouldReturn = true;
         }
       } else if (antiKick.antiKickMode.get() == AntiKickMode.Packet && offLeft == antiKick.offTime.get()) {
-        ((LocalPlayerAccessor) mc.player).meteor$setPositionReminder(20);
+        ((LocalPlayerAccessor) mc.player).neko$setPositionReminder(20);
       }
 
       offLeft--;
@@ -110,7 +110,7 @@ public class Flight extends Module {
   private void antiKickPacket(ServerboundMovePlayerPacket packet, double currentY) {
     if (this.delayLeft <= 0 && this.lastPacketY != Double.MAX_VALUE &&
       shouldFlyDown(currentY, this.lastPacketY) && EntityUtils.isOnAir(mc.player)) {
-      ((ServerboundMovePlayerPacketAccessor) packet).meteor$setY(lastPacketY - 0.03130D);
+      ((ServerboundMovePlayerPacketAccessor) packet).neko$setY(lastPacketY - 0.03130D);
     } else {
       lastPacketY = currentY;
     }

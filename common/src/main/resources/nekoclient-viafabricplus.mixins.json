@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "nl.oxod.nekoclient.mixin.viafabricplus",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "nl.oxod.nekoclient.MixinPlugin",
+  "client": [
+    "GeneralSettingsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -14,21 +14,21 @@ import java.util.ServiceLoader;
  * through the loader of the mod that declared them.
  */
 final class ServiceLoaderLite {
-    private ServiceLoaderLite() {
-    }
+  private ServiceLoaderLite() {
+  }
 
-    static <T> List<T> loadAll(Class<T> type, ModContainer container) {
-        List<T> services = new ArrayList<>();
-        ClassLoader classLoader = container.getClass().getClassLoader();
-        if (classLoader == null) return services;
+  static <T> List<T> loadAll(Class<T> type, ModContainer container) {
+    List<T> services = new ArrayList<>();
+    ClassLoader classLoader = container.getClass().getClassLoader();
+    if (classLoader == null) return services;
 
-        try {
-            for (T service : ServiceLoader.load(type, classLoader)) {
-                services.add(service);
-            }
-        } catch (Throwable ignored) {
-            // A mod with a broken service file should not stop the rest from loading.
-        }
-        return services;
+    try {
+      for (T service : ServiceLoader.load(type, classLoader)) {
+        services.add(service);
+      }
+    } catch (Throwable ignored) {
+      // A mod with a broken service file should not stop the rest from loading.
     }
+    return services;
+  }
 }

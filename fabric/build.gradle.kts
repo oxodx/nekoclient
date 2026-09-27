@@ -232,7 +232,7 @@ tasks {
         if (runErrorProne) {
             options.errorprone {
                 check("NullAway", net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
-                option("NullAway:AnnotatedPackages", "meteordevelopment.meteorclient")
+                option("NullAway:AnnotatedPackages", "nl.oxod.nekoclient")
                 option("NullAway:JSpecifyMode", "true")
                 // Event handlers are discovered reflectively by Orbit.
                 option("UnusedMethod:ExcludedAnnotations", "meteordevelopment.orbit.EventHandler")

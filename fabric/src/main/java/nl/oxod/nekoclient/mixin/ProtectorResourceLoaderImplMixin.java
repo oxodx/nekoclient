@@ -15,15 +15,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @SuppressWarnings("UnstableApiUsage")
 @Mixin(ResourceLoaderImpl.class)
 public class ProtectorResourceLoaderImplMixin {
-    @Inject(
-        method = "registerBuiltinPack(Lnet/minecraft/resources/Identifier;Ljava/lang/String;Lnet/fabricmc/loader/api/ModContainer;Lnet/minecraft/network/chat/Component;Lnet/fabricmc/fabric/api/resource/v1/pack/PackActivationType;)Z",
-        at = @At("RETURN"))
-    private static void protector$trackBuiltinPackDefaults(Identifier id, String subPath, ModContainer container,
-                                                           Component displayName, PackActivationType activationType,
-                                                           CallbackInfoReturnable<Boolean> cir) {
-        if (!cir.getReturnValueZ() || container == null) return;
-        String mod = container.getMetadata().getId();
-        ProtectorTracker.addDefaultAllowedMod(mod);
-        ProtectorTracker.addDefaultAllowedMods(ProtectorModResolver.dependenciesFor(mod));
-    }
+  @Inject(
+    method = "registerBuiltinPack(Lnet/minecraft/resources/Identifier;Ljava/lang/String;Lnet/fabricmc/loader/api/ModContainer;Lnet/minecraft/network/chat/Component;Lnet/fabricmc/fabric/api/resource/v1/pack/PackActivationType;)Z",
+    at = @At("RETURN"))
+  private static void protector$trackBuiltinPackDefaults(Identifier id, String subPath, ModContainer container,
+                                                         Component displayName, PackActivationType activationType,
+                                                         CallbackInfoReturnable<Boolean> cir) {
+    if (!cir.getReturnValueZ() || container == null) return;
+    String mod = container.getMetadata().getId();
+    ProtectorTracker.addDefaultAllowedMod(mod);
+    ProtectorTracker.addDefaultAllowedMods(ProtectorModResolver.dependenciesFor(mod));
+  }
 }

@@ -11,70 +11,70 @@ import java.lang.reflect.Method;
  * loader class degrades to "not loaded" rather than failing the mixin phase.
  */
 public final class LoaderDetection {
-    private static final String FABRIC_LOADER = "net.fabricmc.loader.api.FabricLoader";
-    private static final String NEOFORGE_LIST = "net.neoforged.fml.ModList";
+  private static final String FABRIC_LOADER = "net.fabricmc.loader.api.FabricLoader";
+  private static final String NEOFORGE_LIST = "net.neoforged.fml.ModList";
 
-    private LoaderDetection() {
+  private LoaderDetection() {
+  }
+
+  public static boolean classExists(String name) {
+    try {
+      Class.forName(name, false, LoaderDetection.class.getClassLoader());
+      return true;
+    } catch (Throwable ignored) {
+      return false;
     }
+  }
 
-    public static boolean classExists(String name) {
-        try {
-            Class.forName(name, false, LoaderDetection.class.getClassLoader());
-            return true;
-        } catch (Throwable ignored) {
-            return false;
-        }
+  public static boolean isFabric() {
+    return classExists(FABRIC_LOADER);
+  }
+
+  public static boolean isNeoForge() {
+    return classExists(NEOFORGE_LIST);
+  }
+
+  /**
+   * Best-effort "is this mod loaded" probe for the active loader. Returns {@code false} when the
+   * loader is unknown, the mod id is unknown to it, or reflection fails.
+   */
+  public static boolean isModLoaded(String modId) {
+    if (modId == null || modId.isBlank()) return false;
+    try {
+      if (isFabric()) return fabricIsModLoaded(modId);
+      if (isNeoForge()) return neoforgeIsModLoaded(modId);
+    } catch (Throwable ignored) {
+      // A loader that cannot answer is treated as "not loaded", so the mixin is skipped.
     }
+    return false;
+  }
 
-    public static boolean isFabric() {
-        return classExists(FABRIC_LOADER);
+  private static boolean fabricIsModLoaded(String modId) throws Exception {
+    Class<?> loader = Class.forName(FABRIC_LOADER);
+    Object instance = loader.getMethod("getInstance").invoke(null);
+    return (Boolean) loader.getMethod("isModLoaded", String.class).invoke(instance, modId);
+  }
+
+  private static boolean neoforgeIsModLoaded(String modId) throws Exception {
+    Class<?> listClass = Class.forName(NEOFORGE_LIST);
+    Object modList = listClass.getMethod("get").invoke(null);
+
+    Method byId = findMethod(listClass, "getModContainerById", String.class);
+    Object container = byId == null ? null : byId.invoke(modList, modId);
+    if (container == null) return false;
+
+    Method isLoaded = findMethod(container.getClass(), "isLoaded", Object.class);
+    return isLoaded != null && Boolean.TRUE.equals(isLoaded.invoke(container, modList));
+  }
+
+  private static Method findMethod(Class<?> owner, String name, Class<?> parameter) {
+    for (Class<?> type = owner; type != null; type = type.getSuperclass()) {
+      try {
+        return type.getDeclaredMethod(name, parameter);
+      } catch (NoSuchMethodException ignored) {
+        // Try the superclass.
+      }
     }
-
-    public static boolean isNeoForge() {
-        return classExists(NEOFORGE_LIST);
-    }
-
-    /**
-     * Best-effort "is this mod loaded" probe for the active loader. Returns {@code false} when the
-     * loader is unknown, the mod id is unknown to it, or reflection fails.
-     */
-    public static boolean isModLoaded(String modId) {
-        if (modId == null || modId.isBlank()) return false;
-        try {
-            if (isFabric()) return fabricIsModLoaded(modId);
-            if (isNeoForge()) return neoforgeIsModLoaded(modId);
-        } catch (Throwable ignored) {
-            // A loader that cannot answer is treated as "not loaded", so the mixin is skipped.
-        }
-        return false;
-    }
-
-    private static boolean fabricIsModLoaded(String modId) throws Exception {
-        Class<?> loader = Class.forName(FABRIC_LOADER);
-        Object instance = loader.getMethod("getInstance").invoke(null);
-        return (Boolean) loader.getMethod("isModLoaded", String.class).invoke(instance, modId);
-    }
-
-    private static boolean neoforgeIsModLoaded(String modId) throws Exception {
-        Class<?> listClass = Class.forName(NEOFORGE_LIST);
-        Object modList = listClass.getMethod("get").invoke(null);
-
-        Method byId = findMethod(listClass, "getModContainerById", String.class);
-        Object container = byId == null ? null : byId.invoke(modList, modId);
-        if (container == null) return false;
-
-        Method isLoaded = findMethod(container.getClass(), "isLoaded", Object.class);
-        return isLoaded != null && Boolean.TRUE.equals(isLoaded.invoke(container, modList));
-    }
-
-    private static Method findMethod(Class<?> owner, String name, Class<?> parameter) {
-        for (Class<?> type = owner; type != null; type = type.getSuperclass()) {
-            try {
-                return type.getDeclaredMethod(name, parameter);
-            } catch (NoSuchMethodException ignored) {
-                // Try the superclass.
-            }
-        }
-        return null;
-    }
+    return null;
+  }
 }

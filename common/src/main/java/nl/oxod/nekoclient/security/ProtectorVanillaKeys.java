@@ -3,7 +3,7 @@ package nl.oxod.nekoclient.security;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.client.Minecraft;
 
 import java.io.InputStream;
@@ -44,7 +44,7 @@ public final class ProtectorVanillaKeys {
   private static Set<String> load() {
     try (InputStream in = Minecraft.class.getResourceAsStream("/assets/minecraft/lang/en_us.json")) {
       if (in == null) {
-        MeteorClient.LOG.warn("[Protector] vanilla en_us.json not on classpath; falling back to blocklist only.");
+        NekoClient.LOG.warn("[Protector] vanilla en_us.json not on classpath; falling back to blocklist only.");
         return Collections.emptySet();
       }
       JsonObject root = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
@@ -56,11 +56,11 @@ public final class ProtectorVanillaKeys {
         }
       }
       if (DEBUG) {
-        MeteorClient.LOG.debug("[Protector] Loaded {} vanilla translation keys.", out.size());
+        NekoClient.LOG.debug("[Protector] Loaded {} vanilla translation keys.", out.size());
       }
       return Collections.unmodifiableSet(out);
     } catch (Exception e) {
-      MeteorClient.LOG.warn("[Protector] Failed to load vanilla en_us.json: {}", e.getMessage());
+      NekoClient.LOG.warn("[Protector] Failed to load vanilla en_us.json: {}", e.getMessage());
       return Collections.emptySet();
     }
   }

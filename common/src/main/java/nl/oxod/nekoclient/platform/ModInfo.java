@@ -9,10 +9,10 @@ import java.util.List;
  * code actually reads, so callers never touch a loader metadata class directly.
  */
 public record ModInfo(String id, String name, String version, List<String> authors) {
-    public ModInfo {
-        id = id == null ? "" : id;
-        name = name == null || name.isBlank() ? id : name;
-        version = version == null ? "" : version;
-        authors = authors == null ? List.of() : List.copyOf(authors);
-    }
+  public ModInfo {
+    id = id == null ? "" : id;
+    name = name == null || name.isBlank() ? id : name;
+    version = version == null ? "" : version;
+    authors = authors == null ? List.of() : List.copyOf(authors);
+  }
 }

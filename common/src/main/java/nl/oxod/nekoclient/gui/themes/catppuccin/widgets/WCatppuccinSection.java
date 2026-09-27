@@ -4,10 +4,10 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.gui.widgets.containers.WSection;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WTriangle;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
+import nl.oxod.nekoclient.gui.widgets.containers.WSection;
+import nl.oxod.nekoclient.gui.widgets.pressable.WTriangle;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinSection extends WSection {

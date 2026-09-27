@@ -1,25 +1,25 @@
 package nl.oxod.nekoclient.systems.modules.movement;
 
-import meteordevelopment.meteorclient.events.game.GameLeftEvent;
-import meteordevelopment.meteorclient.events.packets.PacketEvent;
-import meteordevelopment.meteorclient.events.render.Render3DEvent;
-import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.settings.BlockListSetting;
-import meteordevelopment.meteorclient.settings.BoolSetting;
-import meteordevelopment.meteorclient.settings.ColorSetting;
-import meteordevelopment.meteorclient.settings.EnumSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import nl.oxod.nekoclient.events.game.GameLeftEvent;
+import nl.oxod.nekoclient.events.packets.PacketEvent;
+import nl.oxod.nekoclient.events.render.Render3DEvent;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.settings.BlockListSetting;
+import nl.oxod.nekoclient.settings.BoolSetting;
+import nl.oxod.nekoclient.settings.ColorSetting;
+import nl.oxod.nekoclient.settings.EnumSetting;
+import nl.oxod.nekoclient.settings.Setting;
+import nl.oxod.nekoclient.settings.SettingGroup;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
-import nl.oxod.nekoclient.util.CpsTracker;
-import nl.oxod.nekoclient.util.InputClicker;
-import nl.oxod.nekoclient.util.KeyMappingBridge;
-import nl.oxod.nekoclient.util.RotationUtil;
-import nl.oxod.nekoclient.util.ScaffoldPlaceRenderer;
+import nl.oxod.nekoclient.utils.CpsTracker;
+import nl.oxod.nekoclient.utils.InputClicker;
+import nl.oxod.nekoclient.utils.KeyMappingBridge;
+import nl.oxod.nekoclient.utils.RotationUtil;
+import nl.oxod.nekoclient.utils.ScaffoldPlaceRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +36,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -63,7 +62,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class Scaffold extends meteordevelopment.meteorclient.systems.modules.Module {
+public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   /**
    * The registered Scaffold, or null before the client has bootstrapped.
    *

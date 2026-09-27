@@ -4,9 +4,9 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.widgets.WMultiLabel;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.widgets.WMultiLabel;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinMultiLabel extends WMultiLabel implements CatppuccinWidget {

@@ -26,46 +26,46 @@ import java.util.function.BiConsumer;
 
 @Mixin(ClientLanguage.class)
 public class ProtectorClientLanguageMixin {
-    @Inject(method = "loadFrom", at = @At("HEAD"))
-    private static void protector$clearLanguageTracking(ResourceManager resourceManager, List<String> languageStack,
-                                                        boolean defaultRightToLeft,
-                                                        CallbackInfoReturnable<ClientLanguage> cir) {
-        ProtectorTracker.resetTranslations();
-    }
+  @Inject(method = "loadFrom", at = @At("HEAD"))
+  private static void protector$clearLanguageTracking(ResourceManager resourceManager, List<String> languageStack,
+                                                      boolean defaultRightToLeft,
+                                                      CallbackInfoReturnable<ClientLanguage> cir) {
+    ProtectorTracker.resetTranslations();
+  }
 
-    @WrapOperation(
-        method = "appendFrom",
-        at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/locale/Language;loadFromJson(Ljava/io/InputStream;Ljava/util/function/BiConsumer;)V"))
-    private static void protector$trackTranslations(InputStream stream, BiConsumer<String, String> output,
-                                                    Operation<Void> original, @Local Resource resource) {
-        PackResources source = resource.source();
-        if (source instanceof VanillaPackResources) {
-            original.call(stream, trackingOutput(output, (key, value) -> ProtectorTracker.addVanillaTranslation(key)));
-            return;
-        }
-        if (source instanceof FilePackResources || source instanceof CompositePackResources) {
-            original.call(stream, trackingOutput(output, ProtectorTracker::addServerTranslation));
-            return;
-        }
-        if (source instanceof PathPackResources) {
-            original.call(stream, output);
-            return;
-        }
-        String modId = source instanceof ModNioPackResources modPack
-            ? modPack.getFabricModMetadata().getId()
-            : ProtectorModResolver.modFromClass(source.getClass());
-        if (modId == null) {
-            original.call(stream, output);
-            return;
-        }
-        original.call(stream, trackingOutput(output, (key, value) -> ProtectorTracker.addModTranslation(key, modId)));
+  @WrapOperation(
+    method = "appendFrom",
+    at = @At(value = "INVOKE",
+      target = "Lnet/minecraft/locale/Language;loadFromJson(Ljava/io/InputStream;Ljava/util/function/BiConsumer;)V"))
+  private static void protector$trackTranslations(InputStream stream, BiConsumer<String, String> output,
+                                                  Operation<Void> original, @Local Resource resource) {
+    PackResources source = resource.source();
+    if (source instanceof VanillaPackResources) {
+      original.call(stream, trackingOutput(output, (key, value) -> ProtectorTracker.addVanillaTranslation(key)));
+      return;
     }
+    if (source instanceof FilePackResources || source instanceof CompositePackResources) {
+      original.call(stream, trackingOutput(output, ProtectorTracker::addServerTranslation));
+      return;
+    }
+    if (source instanceof PathPackResources) {
+      original.call(stream, output);
+      return;
+    }
+    String modId = source instanceof ModNioPackResources modPack
+      ? modPack.getFabricModMetadata().getId()
+      : ProtectorModResolver.modFromClass(source.getClass());
+    if (modId == null) {
+      original.call(stream, output);
+      return;
+    }
+    original.call(stream, trackingOutput(output, (key, value) -> ProtectorTracker.addModTranslation(key, modId)));
+  }
 
-    private static BiConsumer<String, String> trackingOutput(BiConsumer<String, String> output, BiConsumer<String, String> tracker) {
-        return (key, value) -> {
-            tracker.accept(key, value);
-            output.accept(key, value);
-        };
-    }
+  private static BiConsumer<String, String> trackingOutput(BiConsumer<String, String> output, BiConsumer<String, String> tracker) {
+    return (key, value) -> {
+      tracker.accept(key, value);
+      output.accept(key, value);
+    };
+  }
 }

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static meteordevelopment.meteorclient.MeteorClient.mc;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class GuiDupeScreenMixin<T extends AbstractContainerMenu> extends Screen {

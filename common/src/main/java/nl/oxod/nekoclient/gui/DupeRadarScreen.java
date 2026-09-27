@@ -1,21 +1,18 @@
 package nl.oxod.nekoclient.gui;
 
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.WindowScreen;
-import meteordevelopment.meteorclient.gui.widgets.WLabel;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.gui.widgets.containers.WHorizontalList;
-import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
-import meteordevelopment.meteorclient.gui.widgets.containers.WView;
-import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import nl.oxod.nekoclient.gui.widgets.WLabel;
+import nl.oxod.nekoclient.gui.widgets.containers.WHorizontalList;
+import nl.oxod.nekoclient.gui.widgets.containers.WTable;
+import nl.oxod.nekoclient.gui.widgets.containers.WView;
+import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
+import nl.oxod.nekoclient.gui.widgets.pressable.WButton;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.systems.modules.misc.DupeRadarModule;
-import nl.oxod.nekoclient.util.DupeRadar;
+import nl.oxod.nekoclient.utils.DupeRadar;
 
 import java.util.List;
 
-import static meteordevelopment.meteorclient.MeteorClient.mc;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class DupeRadarScreen extends WindowScreen {
   private final DupeRadarModule module;

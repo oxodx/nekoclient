@@ -4,8 +4,8 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.widgets.WHorizontalSeparator;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.widgets.WHorizontalSeparator;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 

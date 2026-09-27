@@ -4,8 +4,8 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets.pressable;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WMinus;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.widgets.pressable.WMinus;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinMinus extends WMinus implements CatppuccinWidget {

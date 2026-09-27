@@ -2,7 +2,7 @@ package nl.oxod.nekoclient.mixin;
 
 import net.minecraft.client.Minecraft;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
-import nl.oxod.nekoclient.util.InputClicker;
+import nl.oxod.nekoclient.utils.InputClicker;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

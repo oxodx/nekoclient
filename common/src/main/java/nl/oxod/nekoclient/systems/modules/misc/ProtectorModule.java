@@ -1,11 +1,11 @@
 package nl.oxod.nekoclient.systems.modules.misc;
 
-import meteordevelopment.meteorclient.settings.BoolSetting;
-import meteordevelopment.meteorclient.settings.IntSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
+import nl.oxod.nekoclient.settings.BoolSetting;
+import nl.oxod.nekoclient.settings.IntSetting;
+import nl.oxod.nekoclient.settings.Setting;
+import nl.oxod.nekoclient.settings.SettingGroup;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.security.Protector;
 
 public class ProtectorModule extends Module {

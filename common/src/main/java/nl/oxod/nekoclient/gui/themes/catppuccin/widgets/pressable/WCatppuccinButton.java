@@ -4,9 +4,9 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets.pressable;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.renderer.packer.GuiTexture;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.renderer.packer.GuiTexture;
+import nl.oxod.nekoclient.gui.widgets.pressable.WButton;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 

@@ -1,0 +1,28 @@
+/*
+ * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * Copyright (c) Meteor Development.
+ */
+
+package nl.oxod.nekoclient.utils.world;
+
+public enum Dimension {
+  Overworld,
+  Nether,
+  End;
+
+  public Dimension opposite() {
+    return switch (this) {
+      case Overworld -> Nether;
+      case Nether -> Overworld;
+      default -> this;
+    };
+  }
+
+  public String toString() {
+    return switch (this) {
+      case Nether -> "minecraft:the_nether";
+      case End -> "minecraft:the_end";
+      default -> "minecraft:overworld";
+    };
+  }
+}

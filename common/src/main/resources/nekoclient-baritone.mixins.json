@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "nl.oxod.nekoclient.mixin.baritone",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "nl.oxod.nekoclient.MixinPlugin",
+  "client": [
+    "ComeCommandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

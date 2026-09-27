@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "package": "nl.oxod.nekoclient.mixin.lithium",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "nl.oxod.nekoclient.MixinPlugin",
+  "client": [
+    "ChunkAwareBlockCollisionSweeperMixin",
+    "LithiumEntityCollisionsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

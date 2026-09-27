@@ -23,18 +23,18 @@
       "nl.oxod.nekoclient.NekoClientFabric"
     ],
     "modmenu": [
-      "meteordevelopment.meteorclient.modintegration.ModMenuIntegration"
+      "nl.oxod.nekoclient.modintegration.ModMenuIntegration"
     ]
   },
   "mixins": [
-    "meteor-client.mixins.json",
+    "nekoclient-core.mixins.json",
     "nekoclient.mixins.json",
     "nekoclient-fabric.mixins.json",
-    "meteor-client-baritone.mixins.json",
-    "meteor-client-indigo.mixins.json",
-    "meteor-client-sodium.mixins.json",
-    "meteor-client-lithium.mixins.json",
-    "meteor-client-viafabricplus.mixins.json"
+    "nekoclient-baritone.mixins.json",
+    "nekoclient-indigo.mixins.json",
+    "nekoclient-sodium.mixins.json",
+    "nekoclient-lithium.mixins.json",
+    "nekoclient-viafabricplus.mixins.json"
   ],
   "accessWidener": "nekoclient.classtweaker",
   "custom": {
@@ -44,7 +44,7 @@
     "modmenu": {
     },
     "badoptimizations:cache_hooks": {
-      "lightmap": "meteordevelopment.meteorclient.modintegration.BadOptimizationsHook"
+      "lightmap": "nl.oxod.nekoclient.modintegration.BadOptimizationsHook"
     }
   },
   "depends": {

@@ -8,19 +8,19 @@ package nl.oxod.nekoclient.systems.modules.misc;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import meteordevelopment.discordipc.DiscordIPC;
 import meteordevelopment.discordipc.RichPresence;
-import meteordevelopment.meteorclient.MeteorClient;
-import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
-import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.WidgetScreen;
-import meteordevelopment.meteorclient.gui.utils.StarscriptTextBoxRenderer;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
-import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.Utils;
-import meteordevelopment.meteorclient.utils.misc.MeteorStarscript;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.game.OpenScreenEvent;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.gui.GuiTheme;
+import nl.oxod.nekoclient.gui.WidgetScreen;
+import nl.oxod.nekoclient.gui.utils.StarscriptTextBoxRenderer;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
+import nl.oxod.nekoclient.gui.widgets.pressable.WButton;
+import nl.oxod.nekoclient.settings.*;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.misc.NekoStarscript;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screens.*;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -72,7 +72,7 @@ public class DiscordPresence extends Module {
   private final Setting<List<String>> line2Strings = sgLine2.add(new StringListSetting.Builder()
     .name("line-2-messages")
     .description("Messages used for the second line.")
-    .defaultValue("Meteor on Crack!", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
+    .defaultValue("NekoClient on Crack!", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
     .onChanged(_ -> recompileLine2())
     .renderer(StarscriptTextBoxRenderer.class)
     .build());
@@ -110,7 +110,7 @@ public class DiscordPresence extends Module {
   }
 
   public DiscordPresence() {
-    super(Categories.Misc, "discord-presence", "Displays Meteor as your presence on Discord.");
+    super(Categories.Misc, "discord-presence", "Displays NekoClient as your presence on Discord.");
 
     runInMainMenu = true;
   }
@@ -135,8 +135,8 @@ public class DiscordPresence extends Module {
 
     rpc.setStart(System.currentTimeMillis() / 1000L);
 
-    String largeText = "%s %s".formatted(MeteorClient.NAME, MeteorClient.VERSION);
-    if (!MeteorClient.BUILD_NUMBER.isEmpty()) largeText += " Build: " + MeteorClient.BUILD_NUMBER;
+    String largeText = "%s %s".formatted(NekoClient.NAME, NekoClient.VERSION);
+    if (!NekoClient.BUILD_NUMBER.isEmpty()) largeText += " Build: " + NekoClient.BUILD_NUMBER;
     rpc.setLargeImage("meteor_client", largeText);
 
     currentSmallImage = SmallImage.Snail;
@@ -162,7 +162,7 @@ public class DiscordPresence extends Module {
     scripts.clear();
 
     for (String message : messages) {
-      Script script = MeteorStarscript.compile(message);
+      Script script = NekoStarscript.compile(message);
       if (script != null) scripts.add(script);
     }
 
@@ -200,7 +200,7 @@ public class DiscordPresence extends Module {
             i = line1I++;
           }
 
-          String message = MeteorStarscript.run(line1Scripts.get(i));
+          String message = NekoStarscript.run(line1Scripts.get(i));
           if (message != null) rpc.setDetails(message);
         }
         update = true;
@@ -217,7 +217,7 @@ public class DiscordPresence extends Module {
             i = line2I++;
           }
 
-          String message = MeteorStarscript.run(line2Scripts.get(i));
+          String message = NekoStarscript.run(line2Scripts.get(i));
           if (message != null) rpc.setState(message);
         }
         update = true;
@@ -226,7 +226,7 @@ public class DiscordPresence extends Module {
       } else line2Ticks++;
     } else {
       if (!lastWasInMainMenu) {
-        rpc.setDetails(MeteorClient.NAME + " " + (MeteorClient.BUILD_NUMBER.isEmpty() ? MeteorClient.VERSION : MeteorClient.VERSION + " " + MeteorClient.BUILD_NUMBER));
+        rpc.setDetails(NekoClient.NAME + " " + (NekoClient.BUILD_NUMBER.isEmpty() ? NekoClient.VERSION : NekoClient.VERSION + " " + NekoClient.BUILD_NUMBER));
 
         if (mc.gui.screen() instanceof TitleScreen) rpc.setState("Looking at title screen");
         else if (mc.gui.screen() instanceof SelectWorldScreen) rpc.setState("Selecting world");
@@ -238,7 +238,7 @@ public class DiscordPresence extends Module {
         else if (mc.gui.screen() instanceof ManageServerScreen) rpc.setState("Adding server");
         else if (mc.gui.screen() instanceof ConnectScreen || mc.gui.screen() instanceof DirectJoinServerScreen)
           rpc.setState("Connecting to server");
-        else if (mc.gui.screen() instanceof WidgetScreen) rpc.setState("Browsing Meteor's GUI");
+        else if (mc.gui.screen() instanceof WidgetScreen) rpc.setState("Browsing NekoClient's GUI");
         else if (mc.gui.screen() instanceof OptionsScreen || mc.gui.screen() instanceof SkinCustomizationScreen || mc.gui.screen() instanceof SoundOptionsScreen || mc.gui.screen() instanceof VideoSettingsScreen || mc.gui.screen() instanceof ControlsScreen || mc.gui.screen() instanceof LanguageSelectScreen || mc.gui.screen() instanceof ChatOptionsScreen || mc.gui.screen() instanceof PackSelectionScreen || mc.gui.screen() instanceof AccessibilityOptionsScreen)
           rpc.setState("Changing options");
         else if (mc.gui.screen() instanceof WinScreen) rpc.setState("Reading credits");

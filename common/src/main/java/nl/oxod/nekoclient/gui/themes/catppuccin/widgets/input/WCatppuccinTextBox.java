@@ -4,13 +4,13 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets.input;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.utils.CharFilter;
-import meteordevelopment.meteorclient.gui.widgets.WWidget;
-import meteordevelopment.meteorclient.gui.widgets.containers.WContainer;
-import meteordevelopment.meteorclient.gui.widgets.containers.WVerticalList;
-import meteordevelopment.meteorclient.gui.widgets.input.WTextBox;
-import meteordevelopment.meteorclient.utils.render.color.Color;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.utils.CharFilter;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
+import nl.oxod.nekoclient.gui.widgets.containers.WContainer;
+import nl.oxod.nekoclient.gui.widgets.containers.WVerticalList;
+import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;

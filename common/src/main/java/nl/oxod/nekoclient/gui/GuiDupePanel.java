@@ -1,9 +1,7 @@
 package nl.oxod.nekoclient.gui;
 
-import meteordevelopment.meteorclient.gui.GuiTheme;
-import meteordevelopment.meteorclient.gui.GuiThemes;
-import meteordevelopment.meteorclient.gui.themes.meteor.MeteorGuiTheme;
-import meteordevelopment.meteorclient.systems.modules.Modules;
+import nl.oxod.nekoclient.gui.themes.neko.NekoGuiTheme;
+import nl.oxod.nekoclient.systems.modules.Modules;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -15,13 +13,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import nl.oxod.nekoclient.mixin.AbstractContainerScreenAccessor;
 import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
-import nl.oxod.nekoclient.util.GuiDupeState;
+import nl.oxod.nekoclient.utils.GuiDupeState;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static meteordevelopment.meteorclient.MeteorClient.mc;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class GuiDupePanel extends AbstractWidget {
   // ---- Panel geometry ----
@@ -41,7 +39,7 @@ public class GuiDupePanel extends AbstractWidget {
   private static int dragOffX;
   private static int dragOffY;
 
-  // ---- Theme colors (from the Meteor GUI theme) ----
+  // ---- Theme colors (from the NekoClient GUI theme) ----
   private static final int FALLBACK_WINDOW_FILL = 0xD8141414;
   private static final int FALLBACK_HEADER_FILL = 0xF02E2E2E;
   private static final int FALLBACK_ACCENT = 0xFF913DE2;
@@ -90,11 +88,11 @@ public class GuiDupePanel extends AbstractWidget {
       + SECTION_GAP;
   }
 
-  private static int themeInt(java.util.function.Function<MeteorGuiTheme, Integer> getter, int fallback) {
+  private static int themeInt(java.util.function.Function<NekoGuiTheme, Integer> getter, int fallback) {
     GuiTheme theme = GuiThemes.get();
-    if (theme instanceof MeteorGuiTheme meteorTheme) {
+    if (theme instanceof NekoGuiTheme nekoTheme) {
       try {
-        Integer value = getter.apply(meteorTheme);
+        Integer value = getter.apply(nekoTheme);
         if (value != null) return value;
       } catch (Throwable ignored) {
       }

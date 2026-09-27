@@ -1,15 +1,15 @@
 package nl.oxod.nekoclient.systems.modules.misc;
 
-import meteordevelopment.meteorclient.events.packets.PacketEvent;
-import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.settings.BoolSetting;
-import meteordevelopment.meteorclient.settings.IntSetting;
-import meteordevelopment.meteorclient.settings.KeybindSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.Categories;
-import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.utils.misc.Keybind;
+import nl.oxod.nekoclient.events.packets.PacketEvent;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.settings.BoolSetting;
+import nl.oxod.nekoclient.settings.IntSetting;
+import nl.oxod.nekoclient.settings.KeybindSetting;
+import nl.oxod.nekoclient.settings.Setting;
+import nl.oxod.nekoclient.settings.SettingGroup;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.misc.Keybind;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,7 @@ import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import nl.oxod.nekoclient.util.GuiDupeState;
+import nl.oxod.nekoclient.utils.GuiDupeState;
 
 import com.mojang.serialization.JsonOps;
 

@@ -4,7 +4,7 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin;
 
-import meteordevelopment.meteorclient.utils.render.color.SettingColor;
+import nl.oxod.nekoclient.utils.render.color.SettingColor;
 
 public enum CatppuccinFlavor {
     Latte(

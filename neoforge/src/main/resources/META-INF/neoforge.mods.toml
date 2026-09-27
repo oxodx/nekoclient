@@ -27,7 +27,7 @@ commit = "${commit}"
 config = "nekoclient.mixins.json"
 
 [[mixins]]
-config = "meteor-client.mixins.json"
+config = "nekoclient-core.mixins.json"
 
 # NeoForge uses the AccessTransformers library rather than Fabric's class tweaker, so the
 # widened members the shared code relies on are declared here instead. This must stay in sync

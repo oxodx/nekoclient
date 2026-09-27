@@ -4,17 +4,17 @@
 
 package nl.oxod.nekoclient.gui.themes.catppuccin.widgets;
 
-import meteordevelopment.meteorclient.gui.renderer.GuiRenderer;
-import meteordevelopment.meteorclient.gui.utils.AlignmentX;
-import meteordevelopment.meteorclient.gui.widgets.pressable.WPressable;
-import meteordevelopment.meteorclient.systems.modules.Module;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.utils.AlignmentX;
+import nl.oxod.nekoclient.gui.widgets.pressable.WPressable;
+import nl.oxod.nekoclient.systems.modules.Module;
 import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinGuiTheme;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT;
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT;
-import static meteordevelopment.meteorclient.MeteorClient.mc;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class WCatppuccinModule extends WPressable implements CatppuccinWidget {
     private final Module module;

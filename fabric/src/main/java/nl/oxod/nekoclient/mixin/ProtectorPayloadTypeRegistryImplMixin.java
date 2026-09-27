@@ -13,12 +13,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @SuppressWarnings("UnstableApiUsage")
 @Mixin(PayloadTypeRegistryImpl.class)
 public class ProtectorPayloadTypeRegistryImplMixin {
-    @Inject(method = "register", at = @At("RETURN"))
-    private void protector$trackPayloadDefaultMod(CustomPacketPayload.Type<?> type, StreamCodec<?, ?> codec,
-                                                  CallbackInfoReturnable<CustomPacketPayload.TypeAndCodec<?, ?>> cir) {
-        for (String mod : ProtectorModResolver.modsFromStacktrace()) {
-            ProtectorTracker.addDefaultAllowedMod(mod);
-            ProtectorTracker.addDefaultAllowedMods(ProtectorModResolver.dependenciesFor(mod));
-        }
+  @Inject(method = "register", at = @At("RETURN"))
+  private void protector$trackPayloadDefaultMod(CustomPacketPayload.Type<?> type, StreamCodec<?, ?> codec,
+                                                CallbackInfoReturnable<CustomPacketPayload.TypeAndCodec<?, ?>> cir) {
+    for (String mod : ProtectorModResolver.modsFromStacktrace()) {
+      ProtectorTracker.addDefaultAllowedMod(mod);
+      ProtectorTracker.addDefaultAllowedMods(ProtectorModResolver.dependenciesFor(mod));
     }
+  }
 }

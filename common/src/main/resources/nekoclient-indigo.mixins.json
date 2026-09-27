@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "nl.oxod.nekoclient.mixin.indigo",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "nl.oxod.nekoclient.MixinPlugin",
+  "client": [
+    "AltModelBlockRendererImplMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

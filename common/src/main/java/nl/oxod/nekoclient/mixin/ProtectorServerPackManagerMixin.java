@@ -1,6 +1,6 @@
 package nl.oxod.nekoclient.mixin;
 
-import meteordevelopment.meteorclient.MeteorClient;
+import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.server.ServerPackManager;
 import net.minecraft.server.packs.DownloadQueue;
@@ -34,7 +34,7 @@ public abstract class ProtectorServerPackManagerMixin {
             Map<UUID, ?> downloaded = result.downloaded();
             if (downloaded != null) downloaded.clear();
         } catch (Throwable error) {
-            MeteorClient.LOG.warn("[NekoClientProtector] Failed to clear partial server-pack batch.", error);
+            NekoClient.LOG.warn("[NekoClientProtector] Failed to clear partial server-pack batch.", error);
         }
     }
 
@@ -48,7 +48,7 @@ public abstract class ProtectorServerPackManagerMixin {
         try {
             popAll();
         } catch (Throwable error) {
-            MeteorClient.LOG.warn("[NekoClientProtector] Failed to clear server packs after download failure.", error);
+            NekoClient.LOG.warn("[NekoClientProtector] Failed to clear server packs after download failure.", error);
         }
 
         Minecraft client = Minecraft.getInstance();
@@ -59,14 +59,14 @@ public abstract class ProtectorServerPackManagerMixin {
                     long now = System.currentTimeMillis();
                     if (now - protector$lastRecoveryToastMs > 5000L) {
                         protector$lastRecoveryToastMs = now;
-                        MeteorClient.LOG.warn("[NekoClientProtector] Server resource pack failed. Restored client resources.");
+                        NekoClient.LOG.warn("[NekoClientProtector] Server resource pack failed. Restored client resources.");
                     }
                     if (now - protector$lastRecoveryReloadMs > 1000L) {
                         protector$lastRecoveryReloadMs = now;
                         client.reloadResourcePacks();
                     }
                 } catch (Throwable error) {
-                    MeteorClient.LOG.warn("[NekoClientProtector] Failed to clear downloaded pack source after download failure.", error);
+                    NekoClient.LOG.warn("[NekoClientProtector] Failed to clear downloaded pack source after download failure.", error);
                 }
             });
         }

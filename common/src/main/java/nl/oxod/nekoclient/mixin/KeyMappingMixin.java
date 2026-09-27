@@ -8,7 +8,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonInfo;
 import nl.oxod.nekoclient.mixin.accessor.KeyboardHandlerAccessor;
 import nl.oxod.nekoclient.mixin.accessor.MouseHandlerAccessor;
-import nl.oxod.nekoclient.util.KeyMappingBridge;
+import nl.oxod.nekoclient.utils.KeyMappingBridge;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
