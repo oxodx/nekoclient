@@ -10,5 +10,5 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.Vec3;
 
 public interface IClipContext {
-    void neko$set(Vec3 start, Vec3 end, ClipContext.Block shapeType, ClipContext.Fluid fluidHandling, Entity entity);
+  void neko$set(Vec3 start, Vec3 end, ClipContext.Block shapeType, ClipContext.Fluid fluidHandling, Entity entity);
 }

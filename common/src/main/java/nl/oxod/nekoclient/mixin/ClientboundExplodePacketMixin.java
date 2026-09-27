@@ -17,38 +17,38 @@ import java.util.Optional;
 
 @Mixin(ClientboundExplodePacket.class)
 public abstract class ClientboundExplodePacketMixin implements IClientboundExplodePacket {
-    @Shadow
-    @Final
-    @Mutable
-    private Optional<Vec3> playerKnockback;
+  @Shadow
+  @Final
+  @Mutable
+  private Optional<Vec3> playerKnockback;
 
-    @Override
-    public void neko$setVelocityX(float velocity) {
-        if (playerKnockback.isPresent()) {
-            Vec3 kb = playerKnockback.get();
-            playerKnockback = Optional.of(new Vec3(velocity, kb.y, kb.z));
-        } else {
-            playerKnockback = Optional.of(new Vec3(velocity, 0, 0));
-        }
+  @Override
+  public void neko$setVelocityX(float velocity) {
+    if (playerKnockback.isPresent()) {
+      Vec3 kb = playerKnockback.get();
+      playerKnockback = Optional.of(new Vec3(velocity, kb.y, kb.z));
+    } else {
+      playerKnockback = Optional.of(new Vec3(velocity, 0, 0));
     }
+  }
 
-    @Override
-    public void neko$setVelocityY(float velocity) {
-        if (playerKnockback.isPresent()) {
-            Vec3 kb = playerKnockback.get();
-            playerKnockback = Optional.of(new Vec3(kb.x, velocity, kb.z));
-        } else {
-            playerKnockback = Optional.of(new Vec3(0, velocity, 0));
-        }
+  @Override
+  public void neko$setVelocityY(float velocity) {
+    if (playerKnockback.isPresent()) {
+      Vec3 kb = playerKnockback.get();
+      playerKnockback = Optional.of(new Vec3(kb.x, velocity, kb.z));
+    } else {
+      playerKnockback = Optional.of(new Vec3(0, velocity, 0));
     }
+  }
 
-    @Override
-    public void neko$setVelocityZ(float velocity) {
-        if (playerKnockback.isPresent()) {
-            Vec3 kb = playerKnockback.get();
-            playerKnockback = Optional.of(new Vec3(kb.x, kb.y, velocity));
-        } else {
-            playerKnockback = Optional.of(new Vec3(0, 0, velocity));
-        }
+  @Override
+  public void neko$setVelocityZ(float velocity) {
+    if (playerKnockback.isPresent()) {
+      Vec3 kb = playerKnockback.get();
+      playerKnockback = Optional.of(new Vec3(kb.x, kb.y, velocity));
+    } else {
+      playerKnockback = Optional.of(new Vec3(0, 0, velocity));
     }
+  }
 }

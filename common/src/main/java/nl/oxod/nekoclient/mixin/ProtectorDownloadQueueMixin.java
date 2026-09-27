@@ -16,24 +16,26 @@ import java.util.UUID;
 
 @Mixin(DownloadQueue.class)
 public class ProtectorDownloadQueueMixin {
-    @Shadow @Final private Path cacheDir;
+  @Shadow
+  @Final
+  private Path cacheDir;
 
-    @SuppressWarnings("UnresolvedMixinReference")
-    @ModifyExpressionValue(
-        method = {"lambda$runDownload$0", "method_55485"},
-        at = @At(value = "INVOKE", target = "Ljava/nio/file/Path;resolve(Ljava/lang/String;)Ljava/nio/file/Path;"),
-        require = 0)
-    private Path protector$isolatePackCache(Path original, @Local(argsOnly = true, name = "id") UUID packId) {
-        if (!Protector.shouldIsolatePackCache()) return original;
-        if (original == null || cacheDir == null || packId == null) return original;
-        Path parent = original.getParent();
-        if (parent == null || !parent.equals(cacheDir)) return original;
+  @SuppressWarnings("UnresolvedMixinReference")
+  @ModifyExpressionValue(
+    method = {"lambda$runDownload$0", "method_55485"},
+    at = @At(value = "INVOKE", target = "Ljava/nio/file/Path;resolve(Ljava/lang/String;)Ljava/nio/file/Path;"),
+    require = 0)
+  private Path protector$isolatePackCache(Path original, @Local(argsOnly = true, name = "id") UUID packId) {
+    if (!Protector.shouldIsolatePackCache()) return original;
+    if (original == null || cacheDir == null || packId == null) return original;
+    Path parent = original.getParent();
+    if (parent == null || !parent.equals(cacheDir)) return original;
 
-        UUID accountId = Minecraft.getInstance().getUser().getProfileId();
-        if (accountId == null) {
-            NekoClient.LOG.warn("[NekoClientProtector] Cannot isolate resource-pack cache: account UUID is null.");
-            return original;
-        }
-        return cacheDir.resolve(accountId.toString()).resolve(packId.toString());
+    UUID accountId = Minecraft.getInstance().getUser().getProfileId();
+    if (accountId == null) {
+      NekoClient.LOG.warn("[NekoClientProtector] Cannot isolate resource-pack cache: account UUID is null.");
+      return original;
     }
+    return cacheDir.resolve(accountId.toString()).resolve(packId.toString());
+  }
 }

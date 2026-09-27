@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(AbstractFurnaceMenu.class)
 public abstract class AbstractFurnaceMenuMixin implements IAbstractFurnaceMenu {
-    @Shadow
-    protected abstract boolean canSmelt(ItemStack itemStack);
+  @Shadow
+  protected abstract boolean canSmelt(ItemStack itemStack);
 
-    @Override
-    public boolean neko$canSmelt(ItemStack itemStack) {
-        return canSmelt(itemStack);
-    }
+  @Override
+  public boolean neko$canSmelt(ItemStack itemStack) {
+    return canSmelt(itemStack);
+  }
 }

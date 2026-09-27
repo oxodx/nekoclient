@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(EntitySectionStorage.class)
 public interface EntitySectionStorageAccessor {
-    @Accessor("sectionIds")
-    LongSortedSet neko$getSectionIds();
+  @Accessor("sectionIds")
+  LongSortedSet neko$getSectionIds();
 
-    @Accessor("sections")
-    <T extends EntityAccess> Long2ObjectMap<EntitySection<T>> neko$getSections();
+  @Accessor("sections")
+  <T extends EntityAccess> Long2ObjectMap<EntitySection<T>> neko$getSections();
 }

@@ -32,39 +32,39 @@ import static com.mojang.blaze3d.platform.InputConstants.*;
 @Mixin(value = Screen.class, priority = 500) // needs to be before baritone
 public abstract class ScreenMixin {
 
-    @Unique
-    private static boolean neko$isArray(int key) {
-        return key == KEY_RIGHT || key == KEY_LEFT || key == KEY_DOWN || key == KEY_UP;
-    }
+  @Unique
+  private static boolean neko$isArray(int key) {
+    return key == KEY_RIGHT || key == KEY_LEFT || key == KEY_DOWN || key == KEY_UP;
+  }
 
-    @Inject(method = "extractTransparentBackground", at = @At("HEAD"), cancellable = true)
-    private void onExtractTransparentBackground(CallbackInfo ci) {
-        if (Utils.canUpdate() && Modules.get().get(NoRender.class).noGuiBackground())
-            ci.cancel();
-    }
+  @Inject(method = "extractTransparentBackground", at = @At("HEAD"), cancellable = true)
+  private void onExtractTransparentBackground(CallbackInfo ci) {
+    if (Utils.canUpdate() && Modules.get().get(NoRender.class).noGuiBackground())
+      ci.cancel();
+  }
 
-    @Inject(method = "defaultHandleClickEvent", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false), cancellable = true)
-    private static void onDefaultHandleClickEvent(ClickEvent event, Minecraft minecraft, Screen activeScreen, CallbackInfo ci) {
-        if (event instanceof RunnableClickEvent runnableClickEvent) {
-            runnableClickEvent.runnable.run();
-            ci.cancel();
-        } else if (event instanceof NekoClickEvent nekoClickEvent && nekoClickEvent.value.startsWith(Config.get().prefix.get())) {
-            try {
-                Commands.dispatch(nekoClickEvent.value.substring(Config.get().prefix.get().length()));
-            } catch (CommandSyntaxException e) {
-                NekoClient.LOG.error("Failed to run command", e);
-            } finally {
-                ci.cancel();
-            }
-        }
+  @Inject(method = "defaultHandleClickEvent", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false), cancellable = true)
+  private static void onDefaultHandleClickEvent(ClickEvent event, Minecraft minecraft, Screen activeScreen, CallbackInfo ci) {
+    if (event instanceof RunnableClickEvent runnableClickEvent) {
+      runnableClickEvent.runnable.run();
+      ci.cancel();
+    } else if (event instanceof NekoClickEvent nekoClickEvent && nekoClickEvent.value.startsWith(Config.get().prefix.get())) {
+      try {
+        Commands.dispatch(nekoClickEvent.value.substring(Config.get().prefix.get().length()));
+      } catch (CommandSyntaxException e) {
+        NekoClient.LOG.error("Failed to run command", e);
+      } finally {
+        ci.cancel();
+      }
     }
+  }
 
-    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if ((Object) (this) instanceof ChatScreen) return;
-        GUIMove guiMove = Modules.get().get(GUIMove.class);
-        if ((guiMove.disableArrows() && neko$isArray(event.key())) || (guiMove.disableSpace() && event.key() == KEY_SPACE)) {
-            cir.setReturnValue(true);
-        }
+  @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+  private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    if ((Object) (this) instanceof ChatScreen) return;
+    GUIMove guiMove = Modules.get().get(GUIMove.class);
+    if ((guiMove.disableArrows() && neko$isArray(event.key())) || (guiMove.disableSpace() && event.key() == KEY_SPACE)) {
+      cir.setReturnValue(true);
     }
+  }
 }

@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(MultiPlayerGameMode.class)
 public interface MultiPlayerGameModeAccessor {
-    @Accessor("destroyProgress")
-    float neko$getBreakingProgress();
+  @Accessor("destroyProgress")
+  float neko$getBreakingProgress();
 
-    @Accessor("destroyProgress")
-    void neko$setDestroyProgress(float progress);
+  @Accessor("destroyProgress")
+  void neko$setDestroyProgress(float progress);
 
-    @Accessor("destroyBlockPos")
-    BlockPos neko$getCurrentBreakingBlockPos();
+  @Accessor("destroyBlockPos")
+  BlockPos neko$getCurrentBreakingBlockPos();
 }

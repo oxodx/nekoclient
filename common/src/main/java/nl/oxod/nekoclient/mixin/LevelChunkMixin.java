@@ -20,12 +20,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelChunk.class)
 public abstract class LevelChunkMixin {
-    @Shadow
-    @Final
-    private Level level;
+  @Shadow
+  @Final
+  private Level level;
 
-    @Inject(method = "setBlockState", at = @At("TAIL"))
-    private void onSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir) {
-        if (level.isClientSide()) NekoClient.EVENT_BUS.post(BlockUpdateEvent.get(pos, cir.getReturnValue(), state));
-    }
+  @Inject(method = "setBlockState", at = @At("TAIL"))
+  private void onSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir) {
+    if (level.isClientSide()) NekoClient.EVENT_BUS.post(BlockUpdateEvent.get(pos, cir.getReturnValue(), state));
+  }
 }

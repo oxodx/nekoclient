@@ -22,20 +22,20 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(BlockCollisions.class)
 public abstract class BlockCollisionsMixin {
-    @WrapOperation(method = "computeNext",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/shapes/CollisionContext;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/CollisionGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"
-        )
+  @WrapOperation(method = "computeNext",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/world/phys/shapes/CollisionContext;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/CollisionGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"
     )
-    private VoxelShape onComputeNextCollisionBox(CollisionContext instance, BlockState blockState, CollisionGetter collisionView, BlockPos blockPos, Operation<VoxelShape> original) {
-        VoxelShape shape = original.call(instance, blockState, collisionView, blockPos);
+  )
+  private VoxelShape onComputeNextCollisionBox(CollisionContext instance, BlockState blockState, CollisionGetter collisionView, BlockPos blockPos, Operation<VoxelShape> original) {
+    VoxelShape shape = original.call(instance, blockState, collisionView, blockPos);
 
-        if (collisionView != Minecraft.getInstance().level) {
-            return shape;
-        }
-
-        CollisionShapeEvent event = NekoClient.EVENT_BUS.post(CollisionShapeEvent.get(blockState, blockPos, shape));
-        return event.isCancelled() ? Shapes.empty() : event.shape;
+    if (collisionView != Minecraft.getInstance().level) {
+      return shape;
     }
+
+    CollisionShapeEvent event = NekoClient.EVENT_BUS.post(CollisionShapeEvent.get(blockState, blockPos, shape));
+    return event.isCancelled() ? Shapes.empty() : event.shape;
+  }
 }

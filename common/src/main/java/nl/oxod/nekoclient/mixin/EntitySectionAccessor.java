@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(EntitySection.class)
 public interface EntitySectionAccessor {
-    @Accessor("storage")
-    <T> ClassInstanceMultiMap<T> neko$getStorage();
+  @Accessor("storage")
+  <T> ClassInstanceMultiMap<T> neko$getStorage();
 }

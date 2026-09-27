@@ -18,16 +18,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MusicManager.class)
 public abstract class MusicManagerMixin {
-    @Shadow
-    private @Nullable SoundInstance currentMusic;
+  @Shadow
+  private @Nullable SoundInstance currentMusic;
 
-    @Shadow
-    public abstract void stopPlaying();
+  @Shadow
+  public abstract void stopPlaying();
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void onTick(CallbackInfo ci) {
-        if (currentMusic == null) return;
+  @Inject(method = "tick", at = @At("HEAD"))
+  private void onTick(CallbackInfo ci) {
+    if (currentMusic == null) return;
 
-        if (Modules.get().get(SoundBlocker.class).shouldBlock(currentMusic)) stopPlaying();
-    }
+    if (Modules.get().get(SoundBlocker.class).shouldBlock(currentMusic)) stopPlaying();
+  }
 }

@@ -12,16 +12,16 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ServerboundMovePlayerPacket.class)
 public abstract class ServerboundMovePlayerPacketMixin implements IServerboundMovePlayerPacket {
-    @Unique
-    private int tag;
+  @Unique
+  private int tag;
 
-    @Override
-    public void neko$setTag(int tag) {
-        this.tag = tag;
-    }
+  @Override
+  public void neko$setTag(int tag) {
+    this.tag = tag;
+  }
 
-    @Override
-    public int neko$getTag() {
-        return this.tag;
-    }
+  @Override
+  public int neko$getTag() {
+    return this.tag;
+  }
 }

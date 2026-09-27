@@ -9,10 +9,10 @@ import nl.oxod.nekoclient.gui.widgets.containers.WView;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinView extends WView implements CatppuccinWidget {
-    @Override
-    protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        if (canScroll && hasScrollBar) {
-            renderer.quad(handleX(), handleY(), handleWidth(), handleHeight(), theme().scrollbarColor.get(focused, handleMouseOver));
-        }
+  @Override
+  protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+    if (canScroll && hasScrollBar) {
+      renderer.quad(handleX(), handleY(), handleWidth(), handleHeight(), theme().scrollbarColor.get(focused, handleMouseOver));
     }
+  }
 }

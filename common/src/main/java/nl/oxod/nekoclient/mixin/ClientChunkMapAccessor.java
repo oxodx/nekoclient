@@ -14,6 +14,6 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 @Mixin(ClientChunkCache.Storage.class)
 public interface ClientChunkMapAccessor {
-    @Accessor("chunks")
-    AtomicReferenceArray<LevelChunk> neko$getChunks();
+  @Accessor("chunks")
+  AtomicReferenceArray<LevelChunk> neko$getChunks();
 }

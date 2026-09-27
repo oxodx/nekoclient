@@ -14,23 +14,23 @@ import java.net.SocketAddress;
 @Mixin(Connection.class)
 public class ProtectorConnectionTrackingMixin {
 
-    @Inject(method = "channelActive", at = @At("HEAD"))
-    private void protector$onChannelActive(ChannelHandlerContext context, CallbackInfo ci) {
-        try {
-            if (context.channel() == null) return;
-            SocketAddress addr = context.channel().remoteAddress();
-            if (addr instanceof InetSocketAddress inet && inet.getAddress() != null) {
-                ProtectorLocalAddressUtil.serverAddress = inet.getAddress().getHostAddress();
-            } else {
-                ProtectorLocalAddressUtil.serverAddress = null;
-            }
-        } catch (Throwable ignored) {
-            ProtectorLocalAddressUtil.serverAddress = null;
-        }
-    }
-
-    @Inject(method = "channelInactive", at = @At("HEAD"))
-    private void protector$onChannelInactive(ChannelHandlerContext context, CallbackInfo ci) {
+  @Inject(method = "channelActive", at = @At("HEAD"))
+  private void protector$onChannelActive(ChannelHandlerContext context, CallbackInfo ci) {
+    try {
+      if (context.channel() == null) return;
+      SocketAddress addr = context.channel().remoteAddress();
+      if (addr instanceof InetSocketAddress inet && inet.getAddress() != null) {
+        ProtectorLocalAddressUtil.serverAddress = inet.getAddress().getHostAddress();
+      } else {
         ProtectorLocalAddressUtil.serverAddress = null;
+      }
+    } catch (Throwable ignored) {
+      ProtectorLocalAddressUtil.serverAddress = null;
     }
+  }
+
+  @Inject(method = "channelInactive", at = @At("HEAD"))
+  private void protector$onChannelInactive(ChannelHandlerContext context, CallbackInfo ci) {
+    ProtectorLocalAddressUtil.serverAddress = null;
+  }
 }

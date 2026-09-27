@@ -19,40 +19,42 @@ import java.util.function.Supplier;
 @Mixin(KeybindContents.class)
 public abstract class ProtectorKeybindContentsMixin implements ProtectorFromPacketAccess {
 
-    @Shadow @Final private String name;
+  @Shadow
+  @Final
+  private String name;
 
-    @Unique
-    private boolean protector$fromPacket;
+  @Unique
+  private boolean protector$fromPacket;
 
-    @Unique
-    private Object protector$cachedBlocked;
+  @Unique
+  private Object protector$cachedBlocked;
 
-    @Override
-    public void protector$setFromPacket() {
-        this.protector$fromPacket = true;
+  @Override
+  public void protector$setFromPacket() {
+    this.protector$fromPacket = true;
+  }
+
+  @WrapOperation(
+    method = "getNestedComponent",
+    at = @At(value = "INVOKE", target = "Ljava/util/function/Supplier;get()Ljava/lang/Object;")
+  )
+  private Object protector$interceptKeybind(Supplier<?> supplier, Operation<Object> original) {
+    if (!this.protector$fromPacket) return original.call(supplier);
+    if (!Protector.shouldProtectTranslationKeys()) return original.call(supplier);
+
+    Minecraft mc;
+    try {
+      mc = Minecraft.getInstance();
+    } catch (Throwable ignored) {
+      return original.call(supplier);
     }
+    if (mc == null || mc.hasSingleplayerServer()) return original.call(supplier);
 
-    @WrapOperation(
-        method = "getNestedComponent",
-        at = @At(value = "INVOKE", target = "Ljava/util/function/Supplier;get()Ljava/lang/Object;")
-    )
-    private Object protector$interceptKeybind(Supplier<?> supplier, Operation<Object> original) {
-        if (!this.protector$fromPacket) return original.call(supplier);
-        if (!Protector.shouldProtectTranslationKeys()) return original.call(supplier);
+    if (!ProtectorTracker.shouldBlockKeybind(name)) return original.call(supplier);
 
-        Minecraft mc;
-        try {
-            mc = Minecraft.getInstance();
-        } catch (Throwable ignored) {
-            return original.call(supplier);
-        }
-        if (mc == null || mc.hasSingleplayerServer()) return original.call(supplier);
-
-        if (!ProtectorTracker.shouldBlockKeybind(name)) return original.call(supplier);
-
-        if (protector$cachedBlocked != null) return protector$cachedBlocked;
-        Component replacement = Component.literal(name);
-        protector$cachedBlocked = replacement;
-        return replacement;
-    }
+    if (protector$cachedBlocked != null) return protector$cachedBlocked;
+    Component replacement = Component.literal(name);
+    protector$cachedBlocked = replacement;
+    return replacement;
+  }
 }

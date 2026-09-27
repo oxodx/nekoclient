@@ -27,24 +27,24 @@ import java.io.File;
 
 @Mixin(Options.class)
 public abstract class OptionsMixin {
-    @Shadow
-    @Final
-    @Mutable
-    public KeyMapping[] keyMappings;
+  @Shadow
+  @Final
+  @Mutable
+  public KeyMapping[] keyMappings;
 
-    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;keyMappings:[Lnet/minecraft/client/KeyMapping;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
-    private void onInitAfterKeysAll(Minecraft minecraft, File workingDirectory, CallbackInfo ci) {
-        keyMappings = KeyBinds.apply(keyMappings);
-    }
+  @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;keyMappings:[Lnet/minecraft/client/KeyMapping;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+  private void onInitAfterKeysAll(Minecraft minecraft, File workingDirectory, CallbackInfo ci) {
+    keyMappings = KeyBinds.apply(keyMappings);
+  }
 
-    @Inject(method = "setCameraType", at = @At("HEAD"), cancellable = true)
-    private void setPerspective(CameraType cameraType, CallbackInfo ci) {
-        if (Modules.get() == null) return; // nothing is loaded yet, shouldersurfing compat
+  @Inject(method = "setCameraType", at = @At("HEAD"), cancellable = true)
+  private void setPerspective(CameraType cameraType, CallbackInfo ci) {
+    if (Modules.get() == null) return; // nothing is loaded yet, shouldersurfing compat
 
-        ChangePerspectiveEvent event = NekoClient.EVENT_BUS.post(ChangePerspectiveEvent.get(cameraType));
+    ChangePerspectiveEvent event = NekoClient.EVENT_BUS.post(ChangePerspectiveEvent.get(cameraType));
 
-        if (event.isCancelled()) ci.cancel();
+    if (event.isCancelled()) ci.cancel();
 
-        if (Modules.get().isActive(Freecam.class)) ci.cancel();
-    }
+    if (Modules.get().isActive(Freecam.class)) ci.cancel();
+  }
 }

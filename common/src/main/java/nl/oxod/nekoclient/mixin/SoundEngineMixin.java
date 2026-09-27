@@ -22,18 +22,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SoundEngine.class)
 public abstract class SoundEngineMixin {
-    @Shadow
-    public abstract void stop(SoundInstance soundInstance);
+  @Shadow
+  public abstract void stop(SoundInstance soundInstance);
 
-    @Inject(method = "play(Lnet/minecraft/client/resources/sounds/SoundInstance;)Lnet/minecraft/client/sounds/SoundEngine$PlayResult;", at = @At("HEAD"), cancellable = true)
-    private void onPlay(SoundInstance instance, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
-        PlaySoundEvent event = NekoClient.EVENT_BUS.post(PlaySoundEvent.get(instance));
+  @Inject(method = "play(Lnet/minecraft/client/resources/sounds/SoundInstance;)Lnet/minecraft/client/sounds/SoundEngine$PlayResult;", at = @At("HEAD"), cancellable = true)
+  private void onPlay(SoundInstance instance, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
+    PlaySoundEvent event = NekoClient.EVENT_BUS.post(PlaySoundEvent.get(instance));
 
-        if (event.isCancelled()) cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
-    }
+    if (event.isCancelled()) cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
+  }
 
-    @Inject(method = "tickInGameSound()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/TickableSoundInstance;tick()V", ordinal = 0))
-    private void onTick(CallbackInfo ci, @Local(name = "instance") TickableSoundInstance instance) {
-        if (Modules.get().get(SoundBlocker.class).shouldBlock(instance)) stop(instance);
-    }
+  @Inject(method = "tickInGameSound()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/TickableSoundInstance;tick()V", ordinal = 0))
+  private void onTick(CallbackInfo ci, @Local(name = "instance") TickableSoundInstance instance) {
+    if (Modules.get().get(SoundBlocker.class).shouldBlock(instance)) stop(instance);
+  }
 }

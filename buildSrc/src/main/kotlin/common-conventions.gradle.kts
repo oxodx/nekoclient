@@ -1,3 +1,3 @@
 plugins {
-    id("minecraft-conventions")
+  id("minecraft-conventions")
 }

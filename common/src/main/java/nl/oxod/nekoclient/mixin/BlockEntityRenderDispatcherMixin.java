@@ -19,9 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BlockEntityRenderDispatcher.class)
 public abstract class BlockEntityRenderDispatcherMixin {
-    @Inject(method = "submit", at = @At("HEAD"), cancellable = true)
-    private <S extends BlockEntityRenderState> void onRenderEntity(S state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera, CallbackInfo ci) {
-        RenderBlockEntityEvent event = NekoClient.EVENT_BUS.post(RenderBlockEntityEvent.get(state));
-        if (event.isCancelled()) ci.cancel();
-    }
+  @Inject(method = "submit", at = @At("HEAD"), cancellable = true)
+  private <S extends BlockEntityRenderState> void onRenderEntity(S state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera, CallbackInfo ci) {
+    RenderBlockEntityEvent event = NekoClient.EVENT_BUS.post(RenderBlockEntityEvent.get(state));
+    if (event.isCancelled()) ci.cancel();
+  }
 }

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(Component.class)
 public interface ComponentMixin extends IComponent {
-    @Override
-    default void neko$invalidateCache() {
-    }
+  @Override
+  default void neko$invalidateCache() {
+  }
 }

@@ -13,24 +13,24 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(targets = "net.minecraft.network.PacketProcessor$ListenerAndPacket")
 public class ProtectorPacketProcessorMixin {
 
-    @WrapOperation(
-        method = "handle",
-        at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/Packet;handle(Lnet/minecraft/network/PacketListener;)V")
-    )
-    private <T extends PacketListener> void protector$wrapHandle(Packet<?> instance, T listener,
-                                                                 Operation<Void> original) {
+  @WrapOperation(
+    method = "handle",
+    at = @At(value = "INVOKE",
+      target = "Lnet/minecraft/network/protocol/Packet;handle(Lnet/minecraft/network/PacketListener;)V")
+  )
+  private <T extends PacketListener> void protector$wrapHandle(Packet<?> instance, T listener,
+                                                               Operation<Void> original) {
 
-        if (!(instance instanceof ClientboundCustomPayloadPacket)
-            || !Protector.shouldTagPacketComponents()) {
-            original.call(instance, listener);
-            return;
-        }
-        ProtectorPacketContext.setProcessingPacket(true);
-        try {
-            original.call(instance, listener);
-        } finally {
-            ProtectorPacketContext.setProcessingPacket(false);
-        }
+    if (!(instance instanceof ClientboundCustomPayloadPacket)
+      || !Protector.shouldTagPacketComponents()) {
+      original.call(instance, listener);
+      return;
     }
+    ProtectorPacketContext.setProcessingPacket(true);
+    try {
+      original.call(instance, listener);
+    } finally {
+      ProtectorPacketContext.setProcessingPacket(false);
+    }
+  }
 }

@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Level.class)
 public interface LevelAccessor {
-    @Invoker("getEntities")
-    LevelEntityGetter<Entity> neko$getEntityLookup();
+  @Invoker("getEntities")
+  LevelEntityGetter<Entity> neko$getEntityLookup();
 }

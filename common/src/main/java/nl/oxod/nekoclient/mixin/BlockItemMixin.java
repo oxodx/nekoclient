@@ -21,32 +21,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockItem.class)
 public abstract class BlockItemMixin {
-    @Shadow
-    protected abstract BlockState getPlacementState(BlockPlaceContext context);
+  @Shadow
+  protected abstract BlockState getPlacementState(BlockPlaceContext context);
 
-    @Inject(method = "placeBlock(Lnet/minecraft/world/item/context/BlockPlaceContext;Lnet/minecraft/world/level/block/state/BlockState;)Z", at = @At("HEAD"), cancellable = true)
-    private void onPlace(BlockPlaceContext context, BlockState placementState, CallbackInfoReturnable<Boolean> cir) {
-        if (!context.getLevel().isClientSide()) return;
+  @Inject(method = "placeBlock(Lnet/minecraft/world/item/context/BlockPlaceContext;Lnet/minecraft/world/level/block/state/BlockState;)Z", at = @At("HEAD"), cancellable = true)
+  private void onPlace(BlockPlaceContext context, BlockState placementState, CallbackInfoReturnable<Boolean> cir) {
+    if (!context.getLevel().isClientSide()) return;
 
-        if (NekoClient.EVENT_BUS.post(PlaceBlockEvent.get(context.getClickedPos(), placementState.getBlock())).isCancelled()) {
-            cir.setReturnValue(true);
-        }
+    if (NekoClient.EVENT_BUS.post(PlaceBlockEvent.get(context.getClickedPos(), placementState.getBlock())).isCancelled()) {
+      cir.setReturnValue(true);
+    }
+  }
+
+  @ModifyVariable(
+    method = "place(Lnet/minecraft/world/item/context/BlockPlaceContext;)Lnet/minecraft/world/InteractionResult;",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"
+    ),
+    name = "placedState")
+  private BlockState modifyState(BlockState placedState, BlockPlaceContext placeContext) {
+    var noGhostBlocks = Modules.get().get(NoGhostBlocks.class);
+
+    if (noGhostBlocks.isActive() && noGhostBlocks.placing.get()) {
+      return getPlacementState(placeContext);
     }
 
-    @ModifyVariable(
-        method = "place(Lnet/minecraft/world/item/context/BlockPlaceContext;)Lnet/minecraft/world/InteractionResult;",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"
-        ),
-        name = "placedState")
-    private BlockState modifyState(BlockState placedState, BlockPlaceContext placeContext) {
-        var noGhostBlocks = Modules.get().get(NoGhostBlocks.class);
-
-        if (noGhostBlocks.isActive() && noGhostBlocks.placing.get()) {
-            return getPlacementState(placeContext);
-        }
-
-        return placedState;
-    }
+    return placedState;
+  }
 }

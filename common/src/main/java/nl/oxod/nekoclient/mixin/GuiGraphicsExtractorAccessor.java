@@ -12,9 +12,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(GuiGraphicsExtractor.class)
 public interface GuiGraphicsExtractorAccessor {
-    @Accessor("guiRenderState")
-    GuiRenderState getGuiRenderState();
+  @Accessor("guiRenderState")
+  GuiRenderState getGuiRenderState();
 
-    @Accessor("scissorStack")
-    GuiGraphicsExtractor.ScissorStack getScissorStack();
+  @Accessor("scissorStack")
+  GuiGraphicsExtractor.ScissorStack getScissorStack();
 }

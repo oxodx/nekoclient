@@ -8,13 +8,13 @@ package nl.oxod.nekoclient.mixininterface;
 import com.mojang.authlib.GameProfile;
 
 public interface IGuiMessage {
-    String neko$getText();
+  String neko$getText();
 
-    int neko$getId();
+  int neko$getId();
 
-    void neko$setId(int id);
+  void neko$setId(int id);
 
-    GameProfile neko$getSender();
+  GameProfile neko$getSender();
 
-    void neko$setSender(GameProfile profile);
+  void neko$setSender(GameProfile profile);
 }

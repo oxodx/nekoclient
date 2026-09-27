@@ -25,39 +25,39 @@ import java.util.UUID;
 @Mixin(DownloadedPackSource.class)
 public abstract class ProtectorDownloadedPackSourceMixin {
 
-    @Inject(method = "createRepositorySource", at = @At("RETURN"), cancellable = true)
-    private void protector$suppressDownloadedPackSourceAfterFailure(CallbackInfoReturnable<RepositorySource> cir) {
-        RepositorySource original = cir.getReturnValue();
-        cir.setReturnValue(output -> {
-            if (ProtectorServerPackFailureGuard.shouldSuppressServerPacks()) return;
-            original.loadPacks(output);
-        });
-    }
+  @Inject(method = "createRepositorySource", at = @At("RETURN"), cancellable = true)
+  private void protector$suppressDownloadedPackSourceAfterFailure(CallbackInfoReturnable<RepositorySource> cir) {
+    RepositorySource original = cir.getReturnValue();
+    cir.setReturnValue(output -> {
+      if (ProtectorServerPackFailureGuard.shouldSuppressServerPacks()) return;
+      original.loadPacks(output);
+    });
+  }
 
-    @WrapOperation(
-        method = "loadRequestedPacks",
-        at = @At(value = "NEW", target = "(Ljava/nio/file/Path;)Lnet/minecraft/server/packs/FilePackResources$FileResourcesSupplier;"))
-    private FilePackResources.FileResourcesSupplier protector$wrapFilePackSupplier(
-            Path file,
-            Operation<FilePackResources.FileResourcesSupplier> original,
-            @Local PackReloadConfig.IdAndPath idAndPath) {
+  @WrapOperation(
+    method = "loadRequestedPacks",
+    at = @At(value = "NEW", target = "(Ljava/nio/file/Path;)Lnet/minecraft/server/packs/FilePackResources$FileResourcesSupplier;"))
+  private FilePackResources.FileResourcesSupplier protector$wrapFilePackSupplier(
+    Path file,
+    Operation<FilePackResources.FileResourcesSupplier> original,
+    @Local PackReloadConfig.IdAndPath idAndPath) {
 
-        FilePackResources.FileResourcesSupplier real = original.call(file);
+    FilePackResources.FileResourcesSupplier real = original.call(file);
 
-        if (!Protector.shouldStripServerPacks()) return real;
-        UUID packId = idAndPath.id();
-        if (!ProtectorPackStrip.isWrapped(packId)) return real;
+    if (!Protector.shouldStripServerPacks()) return real;
+    UUID packId = idAndPath.id();
+    if (!ProtectorPackStrip.isWrapped(packId)) return real;
 
-        return new FilePackResources.FileResourcesSupplier(file) {
-            @Override
-            public PackResources openPrimary(PackLocationInfo loc) {
-                return new ProtectorLangOnlyPackResources(real.openPrimary(loc));
-            }
+    return new FilePackResources.FileResourcesSupplier(file) {
+      @Override
+      public PackResources openPrimary(PackLocationInfo loc) {
+        return new ProtectorLangOnlyPackResources(real.openPrimary(loc));
+      }
 
-            @Override
-            public PackResources openFull(PackLocationInfo loc, Pack.Metadata md) {
-                return new ProtectorLangOnlyPackResources(real.openFull(loc, md));
-            }
-        };
-    }
+      @Override
+      public PackResources openFull(PackLocationInfo loc, Pack.Metadata md) {
+        return new ProtectorLangOnlyPackResources(real.openFull(loc, md));
+      }
+    };
+  }
 }

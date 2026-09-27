@@ -13,6 +13,6 @@ import java.nio.file.Path;
 
 @Mixin(SkinManager.TextureCache.class)
 public interface FileCacheAccessor {
-    @Accessor("root")
-    Path neko$getRoot();
+  @Accessor("root")
+  Path neko$getRoot();
 }

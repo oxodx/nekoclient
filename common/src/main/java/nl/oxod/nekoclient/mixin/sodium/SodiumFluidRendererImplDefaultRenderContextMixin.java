@@ -29,25 +29,25 @@ import java.util.Arrays;
 
 @Mixin(targets = "net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl$DefaultRenderContext", remap = false)
 public abstract class SodiumFluidRendererImplDefaultRenderContextMixin {
-    @Unique
-    private Ambience ambience;
+  @Unique
+  private Ambience ambience;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        ambience = Modules.get().get(Ambience.class);
-    }
+  @Inject(method = "<init>", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    ambience = Modules.get().get(Ambience.class);
+  }
 
-    @Inject(method = "getColorProvider", at = @At("HEAD"), cancellable = true)
-    private void onGetColorProvider(Fluid fluid, @Nullable BlockTintSource blockTintSource, CallbackInfoReturnable<ColorProvider<FluidState>> cir) {
-        if (ambience.isActive() && ambience.customLavaColor.get() && fluid.defaultFluidState().is(FluidTags.LAVA)) {
-            cir.setReturnValue(this::lavaColorProvider);
-        }
+  @Inject(method = "getColorProvider", at = @At("HEAD"), cancellable = true)
+  private void onGetColorProvider(Fluid fluid, @Nullable BlockTintSource blockTintSource, CallbackInfoReturnable<ColorProvider<FluidState>> cir) {
+    if (ambience.isActive() && ambience.customLavaColor.get() && fluid.defaultFluidState().is(FluidTags.LAVA)) {
+      cir.setReturnValue(this::lavaColorProvider);
     }
+  }
 
-    @Unique
-    private void lavaColorProvider(LevelSlice slice, BlockPos pos, BlockPos.MutableBlockPos scratchPos, FluidState state, ModelQuadView quad, int[] output, boolean smooth) {
-        Color c = ambience.lavaColor.get();
-        int alpha = Xray.getFluidAlpha(state, pos);
-        Arrays.fill(output, Color.fromRGBA(c.r, c.g, c.b, alpha != -1 ? alpha : c.a));
-    }
+  @Unique
+  private void lavaColorProvider(LevelSlice slice, BlockPos pos, BlockPos.MutableBlockPos scratchPos, FluidState state, ModelQuadView quad, int[] output, boolean smooth) {
+    Color c = ambience.lavaColor.get();
+    int alpha = Xray.getFluidAlpha(state, pos);
+    Arrays.fill(output, Color.fromRGBA(c.r, c.g, c.b, alpha != -1 ? alpha : c.a));
+  }
 }

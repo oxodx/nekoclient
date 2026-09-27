@@ -20,97 +20,97 @@ import java.util.UUID;
 @Mixin(PacketDecoder.class)
 public class ProtectorPacketDecoderMixin {
 
-    @WrapOperation(
-        method = "decode",
-        at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/network/codec/StreamCodec;decode(Ljava/lang/Object;)Ljava/lang/Object;")
-    )
-    private Object protector$wrapDecode(StreamCodec instance, Object buffer, Operation<Object> original) {
-        if (!Protector.shouldTagPacketComponents()) {
-            return protector$decodeCompatibly(instance, buffer, original);
-        }
-        ProtectorPacketContext.setProcessingPacket(true);
-        try {
-            return protector$decodeCompatibly(instance, buffer, original);
-        } finally {
-            ProtectorPacketContext.setProcessingPacket(false);
-        }
+  @WrapOperation(
+    method = "decode",
+    at = @At(value = "INVOKE",
+      target = "Lnet/minecraft/network/codec/StreamCodec;decode(Ljava/lang/Object;)Ljava/lang/Object;")
+  )
+  private Object protector$wrapDecode(StreamCodec instance, Object buffer, Operation<Object> original) {
+    if (!Protector.shouldTagPacketComponents()) {
+      return protector$decodeCompatibly(instance, buffer, original);
+    }
+    ProtectorPacketContext.setProcessingPacket(true);
+    try {
+      return protector$decodeCompatibly(instance, buffer, original);
+    } finally {
+      ProtectorPacketContext.setProcessingPacket(false);
+    }
+  }
+
+  @Unique
+  private static Object protector$decodeCompatibly(StreamCodec instance, Object buffer,
+                                                   Operation<Object> original) {
+    if (!(buffer instanceof ByteBuf byteBuf)) {
+      return original.call(instance, buffer);
     }
 
-    @Unique
-    private static Object protector$decodeCompatibly(StreamCodec instance, Object buffer,
-                                                     Operation<Object> original) {
-        if (!(buffer instanceof ByteBuf byteBuf)) {
-            return original.call(instance, buffer);
-        }
-
-        int startIndex = byteBuf.readerIndex();
+    int startIndex = byteBuf.readerIndex();
+    try {
+      return original.call(instance, buffer);
+    } catch (DecoderException decodeFailure) {
+      if (protector$isMissingLoginSessionId(decodeFailure)) {
+        byteBuf.readerIndex(startIndex);
         try {
-            return original.call(instance, buffer);
-        } catch (DecoderException decodeFailure) {
-            if (protector$isMissingLoginSessionId(decodeFailure)) {
-                byteBuf.readerIndex(startIndex);
-                try {
-                    protector$readVarInt(byteBuf);
-                    var profile = ByteBufCodecs.GAME_PROFILE.decode(byteBuf);
-                    if (byteBuf.isReadable()) {
-                        byteBuf.readerIndex(startIndex);
-                        throw decodeFailure;
-                    }
-
-                    return new ClientboundLoginFinishedPacket(profile, UUID.randomUUID());
-                } catch (RuntimeException fallbackFailure) {
-                    byteBuf.readerIndex(startIndex);
-                    throw decodeFailure;
-                }
-            }
-            if (protector$isTruncatedEntityData(decodeFailure)) {
-                byteBuf.readerIndex(startIndex);
-                try {
-                    int entityId = protector$readVarInt(byteBuf);
-
-                    return new ClientboundSetEntityDataPacket(entityId, java.util.List.of());
-                } catch (RuntimeException fallbackFailure) {
-                    byteBuf.readerIndex(startIndex);
-                    throw decodeFailure;
-                }
-            }
+          protector$readVarInt(byteBuf);
+          var profile = ByteBufCodecs.GAME_PROFILE.decode(byteBuf);
+          if (byteBuf.isReadable()) {
+            byteBuf.readerIndex(startIndex);
             throw decodeFailure;
-        }
-    }
+          }
 
-    @Unique
-    private static boolean protector$isTruncatedEntityData(DecoderException failure) {
-        String message = failure.getMessage();
-        if (message == null || !message.contains("clientbound/minecraft:set_entity_data")) return false;
-        Throwable cause = failure;
-        while (cause != null) {
-            if (cause instanceof IndexOutOfBoundsException) return true;
-            cause = cause.getCause();
+          return new ClientboundLoginFinishedPacket(profile, UUID.randomUUID());
+        } catch (RuntimeException fallbackFailure) {
+          byteBuf.readerIndex(startIndex);
+          throw decodeFailure;
         }
-        return false;
-    }
+      }
+      if (protector$isTruncatedEntityData(decodeFailure)) {
+        byteBuf.readerIndex(startIndex);
+        try {
+          int entityId = protector$readVarInt(byteBuf);
 
-    @Unique
-    private static boolean protector$isMissingLoginSessionId(DecoderException failure) {
-        String message = failure.getMessage();
-        if (message == null || !message.contains("clientbound/minecraft:login_finished")) return false;
-        Throwable cause = failure;
-        while (cause != null) {
-            if (cause instanceof IndexOutOfBoundsException) return true;
-            cause = cause.getCause();
+          return new ClientboundSetEntityDataPacket(entityId, java.util.List.of());
+        } catch (RuntimeException fallbackFailure) {
+          byteBuf.readerIndex(startIndex);
+          throw decodeFailure;
         }
-        return false;
+      }
+      throw decodeFailure;
     }
+  }
 
-    @Unique
-    private static int protector$readVarInt(ByteBuf buffer) {
-        int value = 0;
-        for (int byteIndex = 0; byteIndex < 5; byteIndex++) {
-            int current = buffer.readByte();
-            value |= (current & 0x7F) << (byteIndex * 7);
-            if ((current & 0x80) == 0) return value;
-        }
-        throw new DecoderException("VarInt is too big");
+  @Unique
+  private static boolean protector$isTruncatedEntityData(DecoderException failure) {
+    String message = failure.getMessage();
+    if (message == null || !message.contains("clientbound/minecraft:set_entity_data")) return false;
+    Throwable cause = failure;
+    while (cause != null) {
+      if (cause instanceof IndexOutOfBoundsException) return true;
+      cause = cause.getCause();
     }
+    return false;
+  }
+
+  @Unique
+  private static boolean protector$isMissingLoginSessionId(DecoderException failure) {
+    String message = failure.getMessage();
+    if (message == null || !message.contains("clientbound/minecraft:login_finished")) return false;
+    Throwable cause = failure;
+    while (cause != null) {
+      if (cause instanceof IndexOutOfBoundsException) return true;
+      cause = cause.getCause();
+    }
+    return false;
+  }
+
+  @Unique
+  private static int protector$readVarInt(ByteBuf buffer) {
+    int value = 0;
+    for (int byteIndex = 0; byteIndex < 5; byteIndex++) {
+      int current = buffer.readByte();
+      value |= (current & 0x7F) << (byteIndex * 7);
+      if ((current & 0x80) == 0) return value;
+    }
+    throw new DecoderException("VarInt is too big");
+  }
 }

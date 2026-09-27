@@ -13,10 +13,10 @@ import java.util.concurrent.Executor;
 @Mixin(value = YggdrasilUserApiService.class, remap = false)
 public class ProtectorYggdrasilMixin {
 
-    @Inject(method = "newTelemetrySession", at = @At("HEAD"), cancellable = true)
-    private void protector$disableTelemetrySession(Executor executor, CallbackInfoReturnable<TelemetrySession> info) {
-        if (Protector.shouldDisableTelemetry()) {
-            info.setReturnValue(TelemetrySession.DISABLED);
-        }
+  @Inject(method = "newTelemetrySession", at = @At("HEAD"), cancellable = true)
+  private void protector$disableTelemetrySession(Executor executor, CallbackInfoReturnable<TelemetrySession> info) {
+    if (Protector.shouldDisableTelemetry()) {
+      info.setReturnValue(TelemetrySession.DISABLED);
     }
+  }
 }

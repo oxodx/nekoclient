@@ -14,14 +14,14 @@ import java.util.function.Function;
 @Mixin(ComponentSerialization.class)
 public class ProtectorComponentSerializationMixin {
 
-    @WrapOperation(
-        method = "<clinit>",
-        at = @At(value = "INVOKE",
-            target = "Lcom/mojang/serialization/Codec;recursive(Ljava/lang/String;Ljava/util/function/Function;)Lcom/mojang/serialization/Codec;"))
-    private static Codec<Component> protector$wrapRecursive(
-            String name,
-            Function<Codec<Component>, Codec<Component>> body,
-            Operation<Codec<Component>> original) {
-        return new ProtectorComponentCodec(original.call(name, body));
-    }
+  @WrapOperation(
+    method = "<clinit>",
+    at = @At(value = "INVOKE",
+      target = "Lcom/mojang/serialization/Codec;recursive(Ljava/lang/String;Ljava/util/function/Function;)Lcom/mojang/serialization/Codec;"))
+  private static Codec<Component> protector$wrapRecursive(
+    String name,
+    Function<Codec<Component>, Codec<Component>> body,
+    Operation<Codec<Component>> original) {
+    return new ProtectorComponentCodec(original.call(name, body));
+  }
 }

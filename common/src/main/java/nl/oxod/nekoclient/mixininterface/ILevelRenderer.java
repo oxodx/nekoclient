@@ -8,7 +8,7 @@ package nl.oxod.nekoclient.mixininterface;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 
 public interface ILevelRenderer {
-    void neko$pushEntityOutlineFramebuffer(RenderTarget framebuffer);
+  void neko$pushEntityOutlineFramebuffer(RenderTarget framebuffer);
 
-    void neko$popEntityOutlineFramebuffer();
+  void neko$popEntityOutlineFramebuffer();
 }

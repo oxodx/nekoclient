@@ -43,151 +43,151 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin extends AbstractClientPlayer {
-    @Shadow
-    public ClientInput input;
+  @Shadow
+  public ClientInput input;
 
-    public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
-        super(world, profile);
+  public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
+    super(world, profile);
+  }
+
+  @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
+  private void onDrop(boolean all, CallbackInfoReturnable<Boolean> cir) {
+    if (NekoClient.EVENT_BUS.post(DropItemsEvent.get(getMainHandItem())).isCancelled())
+      cir.setReturnValue(false);
+  }
+
+  @ModifyExpressionValue(method = "handlePortalTransitionEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;screen()Lnet/minecraft/client/gui/screens/Screen;", ordinal = 0))
+  private Screen modifyPortalTransitionEffect(Screen original) {
+    if (Modules.get().isActive(Portals.class)) return null;
+    return original;
+  }
+
+  @ModifyExpressionValue(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
+  private boolean redirectUsingItem(boolean isUsingItem) {
+    if (Modules.get().get(NoSlow.class).items()) return false;
+    return isUsingItem;
+  }
+
+  @Inject(method = "isShiftKeyDown", at = @At("HEAD"), cancellable = true)
+  private void onIsShiftKeyDown(CallbackInfoReturnable<Boolean> cir) {
+    var scaffold = Modules.get().get(Scaffold.class);
+    if (scaffold != null && scaffold.isActive()) cir.setReturnValue(false);
+    if (Modules.get().get(Flight.class).noSneak()) cir.setReturnValue(false);
+  }
+
+  @Inject(method = "isMovingSlowly", at = @At("HEAD"), cancellable = true)
+  private void onIsMovingSlowly(CallbackInfoReturnable<Boolean> cir) {
+    if (Modules.get().get(NoSlow.class).sneaking()) {
+      cir.setReturnValue(isVisuallyCrawling());
+    }
+  }
+
+  @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
+  private void onMoveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
+    Velocity velocity = Modules.get().get(Velocity.class);
+    if (velocity.isActive() && velocity.blocks.get()) {
+      ci.cancel();
+    }
+  }
+
+  @ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/player/ClientInput;keyPresses:Lnet/minecraft/world/entity/player/Input;", opcode = Opcodes.GETFIELD))
+  private Input isSneaking(Input original) {
+    if (Modules.get().get(Sneak.class).doPacket() || Modules.get().get(NoSlow.class).airStrict()) {
+      return new Input(
+        original.forward(),
+        original.backward(),
+        original.left(),
+        original.right(),
+        original.jump(),
+        true,
+        original.sprint()
+      );
+    }
+    return original;
+  }
+
+  @Inject(method = "aiStep", at = @At("HEAD"))
+  private void preAiStep(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(PlayerTickMovementEvent.get());
+  }
+
+  @ModifyReturnValue(method = "getJumpRidingScale", at = @At("RETURN"))
+  private float modifyJumpRidingScale(float original) {
+    if (Modules.get().get(EntityControl.class).maxJump()) return 1f;
+    return original;
+  }
+
+  @Inject(method = "jumpableVehicle", at = @At("RETURN"), cancellable = true)
+  private void changeJumpableVehicle(CallbackInfoReturnable<PlayerRideableJumping> cir) {
+    if (Modules.get().get(EntityControl.class).cancelJump()) cir.setReturnValue(null);
+  }
+
+  @ModifyReturnValue(method = "pick", at = @At("RETURN"))
+  private static HitResult onUpdateTargetedEntity(HitResult original, @Local(name = "blockHitResult") HitResult blockHitResult) {
+    if (original instanceof EntityHitResult ehr) {
+      if (Modules.get().get(NoMiningTrace.class).canWork(ehr.getEntity()) && blockHitResult.getType() == HitResult.Type.BLOCK) {
+        return blockHitResult;
+      } else if (ehr.getEntity() instanceof FakePlayerEntity fakePlayer && fakePlayer.noHit) {
+        return blockHitResult;
+      }
     }
 
-    @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
-    private void onDrop(boolean all, CallbackInfoReturnable<Boolean> cir) {
-        if (NekoClient.EVENT_BUS.post(DropItemsEvent.get(getMainHandItem())).isCancelled())
-            cir.setReturnValue(false);
-    }
+    return original;
+  }
 
-    @ModifyExpressionValue(method = "handlePortalTransitionEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;screen()Lnet/minecraft/client/gui/screens/Screen;", ordinal = 0))
-    private Screen modifyPortalTransitionEffect(Screen original) {
-        if (Modules.get().isActive(Portals.class)) return null;
-        return original;
-    }
+  @ModifyExpressionValue(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
+  private static HitResult modifyPick(HitResult original, @Local(argsOnly = true, name = "cameraEntity") Entity cameraEntity, @Local(argsOnly = true, name = "partialTicks") float partialTicks, @Local(name = "maxDistance") double maxDistance) {
+    if (!Modules.get().isActive(LiquidInteract.class)) return original;
+    if (original.getType() != HitResult.Type.MISS) return original;
 
-    @ModifyExpressionValue(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
-    private boolean redirectUsingItem(boolean isUsingItem) {
-        if (Modules.get().get(NoSlow.class).items()) return false;
-        return isUsingItem;
-    }
+    return cameraEntity.pick(maxDistance, partialTicks, true);
+  }
 
-    @Inject(method = "isShiftKeyDown", at = @At("HEAD"), cancellable = true)
-    private void onIsShiftKeyDown(CallbackInfoReturnable<Boolean> cir) {
-        var scaffold = Modules.get().get(Scaffold.class);
-        if (scaffold != null && scaffold.isActive()) cir.setReturnValue(false);
-        if (Modules.get().get(Flight.class).noSneak()) cir.setReturnValue(false);
-    }
+  // Sprint
 
-    @Inject(method = "isMovingSlowly", at = @At("HEAD"), cancellable = true)
-    private void onIsMovingSlowly(CallbackInfoReturnable<Boolean> cir) {
-        if (Modules.get().get(NoSlow.class).sneaking()) {
-            cir.setReturnValue(isVisuallyCrawling());
-        }
-    }
+  @ModifyExpressionValue(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
+  private boolean modifyIsWalking(boolean original) {
+    if (!Modules.get().get(Sprint.class).rageSprint()) return original;
 
-    @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
-    private void onMoveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
-        Velocity velocity = Modules.get().get(Velocity.class);
-        if (velocity.isActive() && velocity.blocks.get()) {
-            ci.cancel();
-        }
-    }
+    float forwards = Math.abs(zza);
+    float sideways = Math.abs(xxa);
 
-    @ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/player/ClientInput;keyPresses:Lnet/minecraft/world/entity/player/Input;", opcode = Opcodes.GETFIELD))
-    private Input isSneaking(Input original) {
-        if (Modules.get().get(Sneak.class).doPacket() || Modules.get().get(NoSlow.class).airStrict()) {
-            return new Input(
-                original.forward(),
-                original.backward(),
-                original.left(),
-                original.right(),
-                original.jump(),
-                true,
-                original.sprint()
-            );
-        }
-        return original;
-    }
+    return (isUnderWater() ? (forwards > 1.0E-5F || sideways > 1.0E-5F) : (forwards > 0.8 || sideways > 0.8));
+  }
 
-    @Inject(method = "aiStep", at = @At("HEAD"))
-    private void preAiStep(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(PlayerTickMovementEvent.get());
-    }
+  @ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
+  private boolean modifyAiStep(boolean original) {
+    if (!Modules.get().get(Sprint.class).rageSprint()) return original;
 
-    @ModifyReturnValue(method = "getJumpRidingScale", at = @At("RETURN"))
-    private float modifyJumpRidingScale(float original) {
-        if (Modules.get().get(EntityControl.class).maxJump()) return 1f;
-        return original;
-    }
+    return Math.abs(xxa) > 1.0E-5F || Math.abs(zza) > 1.0E-5F;
+  }
 
-    @Inject(method = "jumpableVehicle", at = @At("RETURN"), cancellable = true)
-    private void changeJumpableVehicle(CallbackInfoReturnable<PlayerRideableJumping> cir) {
-        if (Modules.get().get(EntityControl.class).cancelJump()) cir.setReturnValue(null);
-    }
+  @WrapWithCondition(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;setSprinting(Z)V", ordinal = 3))
+  private boolean wrapSetSprinting(LocalPlayer instance, boolean b) {
+    Sprint s = Modules.get().get(Sprint.class);
 
-    @ModifyReturnValue(method = "pick", at = @At("RETURN"))
-    private static HitResult onUpdateTargetedEntity(HitResult original, @Local(name = "blockHitResult") HitResult blockHitResult) {
-        if (original instanceof EntityHitResult ehr) {
-            if (Modules.get().get(NoMiningTrace.class).canWork(ehr.getEntity()) && blockHitResult.getType() == HitResult.Type.BLOCK) {
-                return blockHitResult;
-            } else if (ehr.getEntity() instanceof FakePlayerEntity fakePlayer && fakePlayer.noHit) {
-                return blockHitResult;
-            }
-        }
+    return !s.rageSprint() || s.unsprintInWater() && isInWater();
+  }
 
-        return original;
-    }
+  // Rotations
 
-    @ModifyExpressionValue(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
-    private static HitResult modifyPick(HitResult original, @Local(argsOnly = true, name = "cameraEntity") Entity cameraEntity, @Local(argsOnly = true, name = "partialTicks") float partialTicks, @Local(name = "maxDistance") double maxDistance) {
-        if (!Modules.get().isActive(LiquidInteract.class)) return original;
-        if (original.getType() != HitResult.Type.MISS) return original;
+  @Inject(method = "sendPosition", at = @At("HEAD"))
+  private void onSendPositionHead(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
+  }
 
-        return cameraEntity.pick(maxDistance, partialTicks, true);
-    }
+  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1))
+  private void onTickHasVehicleBeforeSendPackets(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
+  }
 
-    // Sprint
+  @Inject(method = "sendPosition", at = @At("TAIL"))
+  private void onSendPositionTail(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
+  }
 
-    @ModifyExpressionValue(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
-    private boolean modifyIsWalking(boolean original) {
-        if (!Modules.get().get(Sprint.class).rageSprint()) return original;
-
-        float forwards = Math.abs(zza);
-        float sideways = Math.abs(xxa);
-
-        return (isUnderWater() ? (forwards > 1.0E-5F || sideways > 1.0E-5F) : (forwards > 0.8 || sideways > 0.8));
-    }
-
-    @ModifyExpressionValue(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
-    private boolean modifyAiStep(boolean original) {
-        if (!Modules.get().get(Sprint.class).rageSprint()) return original;
-
-        return Math.abs(xxa) > 1.0E-5F || Math.abs(zza) > 1.0E-5F;
-    }
-
-    @WrapWithCondition(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;setSprinting(Z)V", ordinal = 3))
-    private boolean wrapSetSprinting(LocalPlayer instance, boolean b) {
-        Sprint s = Modules.get().get(Sprint.class);
-
-        return !s.rageSprint() || s.unsprintInWater() && isInWater();
-    }
-
-    // Rotations
-
-    @Inject(method = "sendPosition", at = @At("HEAD"))
-    private void onSendPositionHead(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
-    }
-
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1))
-    private void onTickHasVehicleBeforeSendPackets(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
-    }
-
-    @Inject(method = "sendPosition", at = @At("TAIL"))
-    private void onSendPositionTail(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
-    }
-
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1, shift = At.Shift.AFTER))
-    private void onTickHasVehicleAfterSendPackets(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
-    }
+  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1, shift = At.Shift.AFTER))
+  private void onTickHasVehicleAfterSendPackets(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
+  }
 }

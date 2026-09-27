@@ -29,72 +29,72 @@ import java.util.List;
 
 @Mixin(GuiRenderer.class)
 public abstract class GuiRendererMixin {
-    @Unique
-    private GuiRenderState renderState;
+  @Unique
+  private GuiRenderState renderState;
 
-    @Unique
-    private NekoMcGuiRenderer guiRenderer;
+  @Unique
+  private NekoMcGuiRenderer guiRenderer;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void init$neko(GuiRenderState renderState, FeatureRenderDispatcher featureRenderDispatcher, List<PictureInPictureRenderer<?>> pictureInPictureRenderers, CallbackInfo ci) {
-        if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
+  @Inject(method = "<init>", at = @At("RETURN"))
+  private void init$neko(GuiRenderState renderState, FeatureRenderDispatcher featureRenderDispatcher, List<PictureInPictureRenderer<?>> pictureInPictureRenderers, CallbackInfo ci) {
+    if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
 
-        this.renderState = new GuiRenderState();
+    this.renderState = new GuiRenderState();
 
-        guiRenderer = new NekoMcGuiRenderer(
-            this.renderState,
-            featureRenderDispatcher,
-            pictureInPictureRenderers
-        );
+    guiRenderer = new NekoMcGuiRenderer(
+      this.renderState,
+      featureRenderDispatcher,
+      pictureInPictureRenderers
+    );
+  }
+
+  @Inject(method = "render", at = @At("HEAD"))
+  private void render$preGui(CallbackInfo ci) {
+    if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
+    var mc = Minecraft.getInstance();
+
+    if (mc.gui.screen() == null || mc.gui.screen() instanceof WidgetScreen) return;
+    neko$render2D(mc);
+  }
+
+  @Inject(method = "render", at = @At("TAIL"))
+  private void render$postGui(CallbackInfo ci) {
+    if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
+    var mc = Minecraft.getInstance();
+
+    RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(mc.gameRenderer.mainRenderTarget().getDepthTexture(), 1.0);
+
+    if (mc.gui.screen() == null || mc.gui.screen() instanceof WidgetScreen) {
+      neko$render2D(mc);
     }
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void render$preGui(CallbackInfo ci) {
-        if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
-        var mc = Minecraft.getInstance();
+    guiRenderer.endFrame();
+  }
 
-        if (mc.gui.screen() == null || mc.gui.screen() instanceof WidgetScreen) return;
-        neko$render2D(mc);
+  @Unique
+  private void neko$render2D(Minecraft mc) {
+    var mouseX = (int) mc.mouseHandler.getScaledXPos(mc.getWindow());
+    var mouseY = (int) mc.mouseHandler.getScaledYPos(mc.getWindow());
+    if (Utils.canUpdate() || HudEditorScreen.isOpen()) {
+      Profiler.get().push(NekoClient.MOD_ID + "_render_2d");
+      Utils.unscaledProjection();
+
+      var graphics = new GuiGraphicsExtractor(mc, renderState, mouseX, mouseY);
+      var tickDelta = mc.getDeltaTracker().getGameTimeDeltaPartialTick(true);
+
+      NekoClient.EVENT_BUS.post(Render2DEvent.get(graphics, graphics.guiWidth(), graphics.guiHeight(), tickDelta));
+      guiRenderer.render();
+
+      Utils.scaledProjection();
+      Profiler.get().pop();
     }
 
-    @Inject(method = "render", at = @At("TAIL"))
-    private void render$postGui(CallbackInfo ci) {
-        if ((GuiRenderer) (Object) this instanceof NekoMcGuiRenderer) return;
-        var mc = Minecraft.getInstance();
+    if (mc.gui.screen() instanceof WidgetScreen widgetScreen) {
+      var graphics = new GuiGraphicsExtractor(mc, renderState, mouseX, mouseY);
+      var guiDelta = mc.getDeltaTracker().getGameTimeDeltaTicks();
 
-        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(mc.gameRenderer.mainRenderTarget().getDepthTexture(), 1.0);
-
-        if (mc.gui.screen() == null || mc.gui.screen() instanceof WidgetScreen) {
-            neko$render2D(mc);
-        }
-
-        guiRenderer.endFrame();
+      widgetScreen.renderCustom(graphics, mouseX, mouseY, guiDelta);
+      guiRenderer.render();
     }
-
-    @Unique
-    private void neko$render2D(Minecraft mc) {
-        var mouseX = (int) mc.mouseHandler.getScaledXPos(mc.getWindow());
-        var mouseY = (int) mc.mouseHandler.getScaledYPos(mc.getWindow());
-        if (Utils.canUpdate() || HudEditorScreen.isOpen()) {
-            Profiler.get().push(NekoClient.MOD_ID + "_render_2d");
-            Utils.unscaledProjection();
-
-            var graphics = new GuiGraphicsExtractor(mc, renderState, mouseX, mouseY);
-            var tickDelta = mc.getDeltaTracker().getGameTimeDeltaPartialTick(true);
-
-            NekoClient.EVENT_BUS.post(Render2DEvent.get(graphics, graphics.guiWidth(), graphics.guiHeight(), tickDelta));
-            guiRenderer.render();
-
-            Utils.scaledProjection();
-            Profiler.get().pop();
-        }
-
-        if (mc.gui.screen() instanceof WidgetScreen widgetScreen) {
-            var graphics = new GuiGraphicsExtractor(mc, renderState, mouseX, mouseY);
-            var guiDelta = mc.getDeltaTracker().getGameTimeDeltaTicks();
-
-            widgetScreen.renderCustom(graphics, mouseX, mouseY, guiDelta);
-            guiRenderer.render();
-        }
-    }
+  }
 }

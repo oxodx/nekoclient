@@ -29,101 +29,101 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(BookEditScreen.class)
 public abstract class BookEditScreenMixin extends Screen {
-    @Shadow
-    @Final
-    private List<String> pages;
-    @Shadow
-    private int currentPage;
+  @Shadow
+  @Final
+  private List<String> pages;
+  @Shadow
+  private int currentPage;
 
-    @Shadow
-    protected abstract void updatePageContent();
+  @Shadow
+  protected abstract void updatePageContent();
 
-    @Shadow
-    protected abstract void pageForward();
+  @Shadow
+  protected abstract void pageForward();
 
-    @Shadow
-    protected abstract void pageBack();
+  @Shadow
+  protected abstract void pageBack();
 
-    public BookEditScreenMixin(Component title) {
-        super(title);
-    }
+  public BookEditScreenMixin(Component title) {
+    super(title);
+  }
 
-    @Inject(method = "init", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        addRenderableWidget(
-            new Button.Builder(Component.literal("Copy"), _ -> {
-                ListTag listTag = new ListTag();
-                pages.stream().map(StringTag::valueOf).forEach(listTag::add);
+  @Inject(method = "init", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    addRenderableWidget(
+      new Button.Builder(Component.literal("Copy"), _ -> {
+        ListTag listTag = new ListTag();
+        pages.stream().map(StringTag::valueOf).forEach(listTag::add);
 
-                CompoundTag tag = new CompoundTag();
-                tag.put("pages", listTag);
-                tag.putInt("currentPage", currentPage);
+        CompoundTag tag = new CompoundTag();
+        tag.put("pages", listTag);
+        tag.putInt("currentPage", currentPage);
 
-                FastByteArrayOutputStream bytes = new FastByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream(bytes);
-                try {
-                    NbtIo.write(tag, out);
-                } catch (IOException e) {
-                    NekoClient.LOG.error("Error writing the book to the output stream", e);
-                }
+        FastByteArrayOutputStream bytes = new FastByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bytes);
+        try {
+          NbtIo.write(tag, out);
+        } catch (IOException e) {
+          NekoClient.LOG.error("Error writing the book to the output stream", e);
+        }
 
-                try {
-                    mc.keyboardHandler.setClipboard(Base64.getEncoder().encodeToString(bytes.toByteArray()));
-                } catch (OutOfMemoryError exception) {
-                    mc.keyboardHandler.setClipboard(exception.toString());
-                }
-            })
-                .pos(4, 4)
-                .size(120, 20)
-                .build()
-        );
+        try {
+          mc.keyboardHandler.setClipboard(Base64.getEncoder().encodeToString(bytes.toByteArray()));
+        } catch (OutOfMemoryError exception) {
+          mc.keyboardHandler.setClipboard(exception.toString());
+        }
+      })
+        .pos(4, 4)
+        .size(120, 20)
+        .build()
+    );
 
-        addRenderableWidget(
-            new Button.Builder(Component.literal("Paste"), _ -> {
-                String clipboard = mc.keyboardHandler.getClipboard();
-                if (clipboard.isEmpty()) return;
+    addRenderableWidget(
+      new Button.Builder(Component.literal("Paste"), _ -> {
+        String clipboard = mc.keyboardHandler.getClipboard();
+        if (clipboard.isEmpty()) return;
 
-                byte[] bytes;
-                try {
-                    bytes = Base64.getDecoder().decode(clipboard);
-                } catch (IllegalArgumentException _) {
-                    return;
-                }
-                var in = new FastByteArrayInputStream(bytes);
+        byte[] bytes;
+        try {
+          bytes = Base64.getDecoder().decode(clipboard);
+        } catch (IllegalArgumentException _) {
+          return;
+        }
+        var in = new FastByteArrayInputStream(bytes);
 
-                try {
-                    CompoundTag tag = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+        try {
+          CompoundTag tag = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
 
-                    ListTag listTag = tag.getListOrEmpty("pages").copy();
+          ListTag listTag = tag.getListOrEmpty("pages").copy();
 
-                    pages.clear();
-                    for (int i = 0; i < listTag.size(); ++i) {
-                        pages.add(listTag.getStringOr(i, ""));
-                    }
+          pages.clear();
+          for (int i = 0; i < listTag.size(); ++i) {
+            pages.add(listTag.getStringOr(i, ""));
+          }
 
-                    if (pages.isEmpty()) {
-                        pages.add("");
-                    }
+          if (pages.isEmpty()) {
+            pages.add("");
+          }
 
-                    currentPage = tag.getIntOr("currentPage", 0);
+          currentPage = tag.getIntOr("currentPage", 0);
 
-                    updatePageContent();
-                } catch (IOException e) {
-                    NekoClient.LOG.error("Error reading the data from your clipboard", e);
-                }
-            })
-                .pos(4, 4 + 20 + 2)
-                .size(120, 20)
-                .build()
-        );
-    }
+          updatePageContent();
+        } catch (IOException e) {
+          NekoClient.LOG.error("Error reading the data from your clipboard", e);
+        }
+      })
+        .pos(4, 4 + 20 + 2)
+        .size(120, 20)
+        .build()
+    );
+  }
 
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (verticalAmount == 0) return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+  @Override
+  public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    if (verticalAmount == 0) return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 
-        if (verticalAmount < 0) this.pageForward(); // scroll down
-        else this.pageBack();                       // scroll up
-        return true;
-    }
+    if (verticalAmount < 0) this.pageForward(); // scroll down
+    else this.pageBack();                       // scroll up
+    return true;
+  }
 }

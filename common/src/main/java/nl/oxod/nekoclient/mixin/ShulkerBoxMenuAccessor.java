@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ShulkerBoxMenu.class)
 public interface ShulkerBoxMenuAccessor {
-    @Accessor("container")
-    Container neko$getContainer();
+  @Accessor("container")
+  Container neko$getContainer();
 }

@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(CreativeModeInventoryScreen.class)
 public interface CreativeModeInventoryScreenAccessor {
-    @Accessor("selectedTab")
-    static CreativeModeTab neko$getSelectedTab() {
-        return null;
-    }
+  @Accessor("selectedTab")
+  static CreativeModeTab neko$getSelectedTab() {
+    return null;
+  }
 }

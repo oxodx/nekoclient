@@ -9,12 +9,12 @@ import nl.oxod.nekoclient.gui.widgets.pressable.WMinus;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinMinus extends WMinus implements CatppuccinWidget {
-    @Override
-    protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-        double pad = pad();
-        double s = theme.scale(3);
+  @Override
+  protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+    double pad = pad();
+    double s = theme.scale(3);
 
-        renderBackground(renderer, this, pressed, mouseOver);
-        renderer.quad(x + pad, y + height / 2 - s / 2, width - pad * 2, s, theme().redColor());
-    }
+    renderBackground(renderer, this, pressed, mouseOver);
+    renderer.quad(x + pad, y + height / 2 - s / 2, width - pad * 2, s, theme().redColor());
+  }
 }

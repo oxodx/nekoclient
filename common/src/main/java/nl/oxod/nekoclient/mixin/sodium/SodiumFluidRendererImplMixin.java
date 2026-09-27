@@ -24,22 +24,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = FluidRendererImpl.class, remap = false)
 public abstract class SodiumFluidRendererImplMixin {
-    @Unique
-    private int xrayAlpha;
+  @Unique
+  private int xrayAlpha;
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void onRender(LevelSlice level, BlockState blockState, FluidState fluidState, BlockPos blockPos, BlockPos offset, TranslucentGeometryCollector collector, ChunkBuildBuffers buffers, CallbackInfo ci) {
-        xrayAlpha = Xray.getFluidAlpha(fluidState, blockPos);
+  @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+  private void onRender(LevelSlice level, BlockState blockState, FluidState fluidState, BlockPos blockPos, BlockPos offset, TranslucentGeometryCollector collector, ChunkBuildBuffers buffers, CallbackInfo ci) {
+    xrayAlpha = Xray.getFluidAlpha(fluidState, blockPos);
 
-        if (xrayAlpha == 0) ci.cancel();
+    if (xrayAlpha == 0) ci.cancel();
+  }
+
+  @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/DefaultMaterials;forChunkLayer(Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;)Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;"))
+  private Material neko$modifyFluidMaterial(Material material, LevelSlice level, BlockState blockState, FluidState fluidState, BlockPos blockPos, BlockPos offset, TranslucentGeometryCollector collector, ChunkBuildBuffers buffers) {
+    if (xrayAlpha != -1) {
+      return DefaultMaterials.TRANSLUCENT;
     }
 
-    @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/DefaultMaterials;forChunkLayer(Lnet/minecraft/client/renderer/chunk/ChunkSectionLayer;)Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;"))
-    private Material neko$modifyFluidMaterial(Material material, LevelSlice level, BlockState blockState, FluidState fluidState, BlockPos blockPos, BlockPos offset, TranslucentGeometryCollector collector, ChunkBuildBuffers buffers) {
-        if (xrayAlpha != -1) {
-            return DefaultMaterials.TRANSLUCENT;
-        }
-
-        return material;
-    }
+    return material;
+  }
 }

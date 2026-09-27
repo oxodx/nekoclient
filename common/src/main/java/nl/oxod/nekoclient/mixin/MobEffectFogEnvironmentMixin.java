@@ -18,14 +18,14 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(MobEffectFogEnvironment.class)
 public abstract class MobEffectFogEnvironmentMixin {
-    @Shadow
-    public abstract Holder<MobEffect> getMobEffect();
+  @Shadow
+  public abstract Holder<MobEffect> getMobEffect();
 
-    @ModifyReturnValue(method = "isApplicable", at = @At("RETURN"))
-    private boolean modifyShouldApply(boolean original) {
-        NoRender noRender = Modules.get().get(NoRender.class);
-        if (getMobEffect() == MobEffects.BLINDNESS) return original && !noRender.noBlindness();
-        if (getMobEffect() == MobEffects.DARKNESS) return original && !noRender.noDarkness();
-        return original;
-    }
+  @ModifyReturnValue(method = "isApplicable", at = @At("RETURN"))
+  private boolean modifyShouldApply(boolean original) {
+    NoRender noRender = Modules.get().get(NoRender.class);
+    if (getMobEffect() == MobEffects.BLINDNESS) return original && !noRender.noBlindness();
+    if (getMobEffect() == MobEffects.DARKNESS) return original && !noRender.noDarkness();
+    return original;
+  }
 }

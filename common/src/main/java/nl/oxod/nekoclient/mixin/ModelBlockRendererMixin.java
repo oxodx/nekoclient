@@ -5,9 +5,7 @@
 
 package nl.oxod.nekoclient.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.blaze3d.vertex.QuadInstance;
-import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.Xray;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.BlockQuadOutput;
@@ -16,7 +14,6 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
@@ -32,67 +29,67 @@ import java.util.List;
 
 @Mixin(ModelBlockRenderer.class)
 public abstract class ModelBlockRendererMixin {
-    @Shadow
-    @Final
-    private QuadInstance quadInstance;
+  @Shadow
+  @Final
+  private QuadInstance quadInstance;
 
-    @Unique
-    private static final ThreadLocal<Integer> ALPHAS = ThreadLocal.withInitial(() -> -1);
+  @Unique
+  private static final ThreadLocal<Integer> ALPHAS = ThreadLocal.withInitial(() -> -1);
 
-    @Inject(method = {"tesselateFlat", "tesselateAmbientOcclusion"}, at = @At("HEAD"), cancellable = true)
-    private void tesselate$xray(BlockQuadOutput output, float x, float y, float z, List<BlockStateModelPart> parts, BlockAndTintGetter level, BlockState state, BlockPos pos, CallbackInfo ci) {
-        int alpha = Xray.getAlpha(state, pos);
+  @Inject(method = {"tesselateFlat", "tesselateAmbientOcclusion"}, at = @At("HEAD"), cancellable = true)
+  private void tesselate$xray(BlockQuadOutput output, float x, float y, float z, List<BlockStateModelPart> parts, BlockAndTintGetter level, BlockState state, BlockPos pos, CallbackInfo ci) {
+    int alpha = Xray.getAlpha(state, pos);
 
-        if (alpha == 0) ci.cancel();
-        else ALPHAS.set(alpha);
+    if (alpha == 0) ci.cancel();
+    else ALPHAS.set(alpha);
+  }
+
+  @Inject(method = "putQuadWithTint", at = @At("HEAD"))
+  private void putQuadWithTint$xray(BlockQuadOutput output, float x, float y, float z, BlockAndTintGetter level, BlockState state, BlockPos pos, BakedQuad quad, CallbackInfo ci) {
+    int alpha = ALPHAS.get();
+
+    if (alpha != -1) {
+      quadInstance.multiplyColor(ARGB.color(alpha, 255, 255, 255));
     }
+  }
 
-    @Inject(method = "putQuadWithTint", at = @At("HEAD"))
-    private void putQuadWithTint$xray(BlockQuadOutput output, float x, float y, float z, BlockAndTintGetter level, BlockState state, BlockPos pos, BakedQuad quad, CallbackInfo ci) {
-        int alpha = ALPHAS.get();
+  @ModifyArg(
+    method = "putQuadWithTint",
+    at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockQuadOutput;put(FFFLnet/minecraft/client/resources/model/geometry/BakedQuad;Lcom/mojang/blaze3d/vertex/QuadInstance;)V"),
+    index = 3
+  )
+  private BakedQuad putQuadWithTint$xrayLayer(BakedQuad quad) {
+    int alpha = ALPHAS.get();
+    if (alpha <= 0 || alpha >= 255) return quad;
 
-        if (alpha != -1) {
-            quadInstance.multiplyColor(ARGB.color(alpha, 255, 255, 255));
-        }
-    }
+    BakedQuad.MaterialInfo materialInfo = quad.materialInfo();
+    if (materialInfo.layer() == ChunkSectionLayer.TRANSLUCENT) return quad;
 
-    @ModifyArg(
-        method = "putQuadWithTint",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockQuadOutput;put(FFFLnet/minecraft/client/resources/model/geometry/BakedQuad;Lcom/mojang/blaze3d/vertex/QuadInstance;)V"),
-        index = 3
-    )
-    private BakedQuad putQuadWithTint$xrayLayer(BakedQuad quad) {
-        int alpha = ALPHAS.get();
-        if (alpha <= 0 || alpha >= 255) return quad;
+    BakedQuad.MaterialInfo translucentInfo = new BakedQuad.MaterialInfo(
+      materialInfo.sprite(),
+      ChunkSectionLayer.TRANSLUCENT,
+      materialInfo.itemRenderType(),
+      materialInfo.tintIndex(),
+      materialInfo.shade(),
+      materialInfo.lightEmission()
+    );
 
-        BakedQuad.MaterialInfo materialInfo = quad.materialInfo();
-        if (materialInfo.layer() == ChunkSectionLayer.TRANSLUCENT) return quad;
+    return new BakedQuad(
+      quad.position0(),
+      quad.position1(),
+      quad.position2(),
+      quad.position3(),
+      quad.packedUV0(),
+      quad.packedUV1(),
+      quad.packedUV2(),
+      quad.packedUV3(),
+      quad.direction(),
+      translucentInfo
+    );
+  }
 
-        BakedQuad.MaterialInfo translucentInfo = new BakedQuad.MaterialInfo(
-            materialInfo.sprite(),
-            ChunkSectionLayer.TRANSLUCENT,
-            materialInfo.itemRenderType(),
-            materialInfo.tintIndex(),
-            materialInfo.shade(),
-            materialInfo.lightEmission()
-        );
-
-        return new BakedQuad(
-            quad.position0(),
-            quad.position1(),
-            quad.position2(),
-            quad.position3(),
-            quad.packedUV0(),
-            quad.packedUV1(),
-            quad.packedUV2(),
-            quad.packedUV3(),
-            quad.direction(),
-            translucentInfo
-        );
-    }
-
-    // The Xray hook on shouldRenderFace is loader-specific: NeoForge added a 5-argument overload
-    // and deprecated the 4-argument one, so an unqualified method name matches both and the
-    // handler signature fits only one of them. See ModelBlockRendererXrayMixin and
-    // ModelBlockRendererXrayNeoForgeMixin.
+  // The Xray hook on shouldRenderFace is loader-specific: NeoForge added a 5-argument overload
+  // and deprecated the 4-argument one, so an unqualified method name matches both and the
+  // handler signature fits only one of them. See ModelBlockRendererXrayMixin and
+  // ModelBlockRendererXrayNeoForgeMixin.
 }

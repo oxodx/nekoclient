@@ -17,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = ChatScreen.class, priority = 1001)
 public abstract class ChatScreenMixin {
-    @Shadow
-    protected EditBox input;
+  @Shadow
+  protected EditBox input;
 
-    @Inject(method = "init", at = @At(value = "RETURN"))
-    private void onInit(CallbackInfo ci) {
-        if (Modules.get().get(BetterChat.class).isInfiniteChatBox()) input.setMaxLength(Integer.MAX_VALUE);
-    }
+  @Inject(method = "init", at = @At(value = "RETURN"))
+  private void onInit(CallbackInfo ci) {
+    if (Modules.get().get(BetterChat.class).isInfiniteChatBox()) input.setMaxLength(Integer.MAX_VALUE);
+  }
 }

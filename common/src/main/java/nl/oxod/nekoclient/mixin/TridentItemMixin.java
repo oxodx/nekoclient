@@ -24,36 +24,36 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(TridentItem.class)
 public abstract class TridentItemMixin {
-    @Inject(method = "releaseUsing", at = @At("HEAD"))
-    private void onReleaseUsingHead(ItemStack itemStack, Level level, LivingEntity entity, int remainingTime, CallbackInfoReturnable<Boolean> cir) {
-        if (entity == mc.player) Utils.isReleasingTrident = true;
-    }
+  @Inject(method = "releaseUsing", at = @At("HEAD"))
+  private void onReleaseUsingHead(ItemStack itemStack, Level level, LivingEntity entity, int remainingTime, CallbackInfoReturnable<Boolean> cir) {
+    if (entity == mc.player) Utils.isReleasingTrident = true;
+  }
 
-    @Inject(method = "releaseUsing", at = @At("TAIL"))
-    private void onReleaseUsingTail(ItemStack itemStack, Level level, LivingEntity entity, int remainingTime, CallbackInfoReturnable<Boolean> cir) {
-        if (entity == mc.player) Utils.isReleasingTrident = false;
-    }
+  @Inject(method = "releaseUsing", at = @At("TAIL"))
+  private void onReleaseUsingTail(ItemStack itemStack, Level level, LivingEntity entity, int remainingTime, CallbackInfoReturnable<Boolean> cir) {
+    if (entity == mc.player) Utils.isReleasingTrident = false;
+  }
 
-    @ModifyArgs(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;push(DDD)V"))
-    private void modifyVelocity(Args args) {
-        TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
+  @ModifyArgs(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;push(DDD)V"))
+  private void modifyVelocity(Args args) {
+    TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
 
-        args.set(0, (double) args.get(0) * tridentBoost.getMultiplier());
-        args.set(1, (double) args.get(1) * tridentBoost.getMultiplier());
-        args.set(2, (double) args.get(2) * tridentBoost.getMultiplier());
-    }
+    args.set(0, (double) args.get(0) * tridentBoost.getMultiplier());
+    args.set(1, (double) args.get(1) * tridentBoost.getMultiplier());
+    args.set(2, (double) args.get(2) * tridentBoost.getMultiplier());
+  }
 
-    @ModifyExpressionValue(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInWaterOrRain()Z"))
-    private boolean isInWaterUse(boolean original) {
-        TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
+  @ModifyExpressionValue(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInWaterOrRain()Z"))
+  private boolean isInWaterUse(boolean original) {
+    TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
 
-        return tridentBoost.allowOutOfWater() || original;
-    }
+    return tridentBoost.allowOutOfWater() || original;
+  }
 
-    @ModifyExpressionValue(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInWaterOrRain()Z"))
-    private boolean isInWaterPostUse(boolean original) {
-        TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
+  @ModifyExpressionValue(method = "releaseUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInWaterOrRain()Z"))
+  private boolean isInWaterPostUse(boolean original) {
+    TridentBoost tridentBoost = Modules.get().get(TridentBoost.class);
 
-        return tridentBoost.allowOutOfWater() || original;
-    }
+    return tridentBoost.allowOutOfWater() || original;
+  }
 }

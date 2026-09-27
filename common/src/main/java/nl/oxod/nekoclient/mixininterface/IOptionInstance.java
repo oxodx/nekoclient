@@ -6,5 +6,5 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IOptionInstance {
-    void neko$set(Object value);
+  void neko$set(Object value);
 }

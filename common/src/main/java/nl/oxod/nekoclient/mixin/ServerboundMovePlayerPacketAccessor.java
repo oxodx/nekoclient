@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ServerboundMovePlayerPacket.class)
 public interface ServerboundMovePlayerPacketAccessor {
-    @Mutable
-    @Accessor("y")
-    void neko$setY(double y);
+  @Mutable
+  @Accessor("y")
+  void neko$setY(double y);
 
-    @Mutable
-    @Accessor("onGround")
-    void neko$setOnGround(boolean onGround);
+  @Mutable
+  @Accessor("onGround")
+  void neko$setOnGround(boolean onGround);
 }

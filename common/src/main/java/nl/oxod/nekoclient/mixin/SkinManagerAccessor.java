@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(SkinManager.class)
 public interface SkinManagerAccessor {
-    @Accessor("skinTextures")
-    SkinManager.TextureCache neko$getSkinTextures();
+  @Accessor("skinTextures")
+  SkinManager.TextureCache neko$getSkinTextures();
 }

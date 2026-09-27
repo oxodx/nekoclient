@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ItemStackRenderState.class)
 public interface ItemStackRenderStateAccessor {
-    @Accessor("activeLayerCount")
-    int neko$getActiveLayerCount();
+  @Accessor("activeLayerCount")
+  int neko$getActiveLayerCount();
 
-    @Accessor("layers")
-    ItemStackRenderState.LayerRenderState[] neko$getLayers();
+  @Accessor("layers")
+  ItemStackRenderState.LayerRenderState[] neko$getLayers();
 }

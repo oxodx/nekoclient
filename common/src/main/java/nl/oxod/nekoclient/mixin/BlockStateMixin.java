@@ -20,13 +20,13 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BlockState.class)
 public abstract class BlockStateMixin extends BlockBehaviour.BlockStateBase {
-    protected BlockStateMixin(Block owner, Property<?>[] propertyKeys, Comparable<?>[] propertyValues) {
-        super(owner, propertyKeys, propertyValues);
-    }
+  protected BlockStateMixin(Block owner, Property<?>[] propertyKeys, Comparable<?>[] propertyValues) {
+    super(owner, propertyKeys, propertyValues);
+  }
 
-    @Override
-    public @NonNull InteractionResult useWithoutItem(@NonNull Level level, @NonNull Player player, @NonNull BlockHitResult hitResult) {
-        NekoClient.EVENT_BUS.post(BlockActivateEvent.get((BlockState) (Object) this));
-        return super.useWithoutItem(level, player, hitResult);
-    }
+  @Override
+  public @NonNull InteractionResult useWithoutItem(@NonNull Level level, @NonNull Player player, @NonNull BlockHitResult hitResult) {
+    NekoClient.EVENT_BUS.post(BlockActivateEvent.get((BlockState) (Object) this));
+    return super.useWithoutItem(level, player, hitResult);
+  }
 }

@@ -17,33 +17,33 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ClipContext.class)
 public abstract class ClipContextMixin implements IClipContext {
-    @Shadow
-    @Final
-    @Mutable
-    private Vec3 from;
-    @Shadow
-    @Final
-    @Mutable
-    private Vec3 to;
-    @Shadow
-    @Final
-    @Mutable
-    private ClipContext.Block block;
-    @Shadow
-    @Final
-    @Mutable
-    private ClipContext.Fluid fluid;
-    @Shadow
-    @Final
-    @Mutable
-    private CollisionContext collisionContext;
+  @Shadow
+  @Final
+  @Mutable
+  private Vec3 from;
+  @Shadow
+  @Final
+  @Mutable
+  private Vec3 to;
+  @Shadow
+  @Final
+  @Mutable
+  private ClipContext.Block block;
+  @Shadow
+  @Final
+  @Mutable
+  private ClipContext.Fluid fluid;
+  @Shadow
+  @Final
+  @Mutable
+  private CollisionContext collisionContext;
 
-    @Override
-    public void neko$set(Vec3 start, Vec3 end, ClipContext.Block shapeType, ClipContext.Fluid fluidHandling, Entity entity) {
-        this.from = start;
-        this.to = end;
-        this.block = shapeType;
-        this.fluid = fluidHandling;
-        this.collisionContext = CollisionContext.of(entity);
-    }
+  @Override
+  public void neko$set(Vec3 start, Vec3 end, ClipContext.Block shapeType, ClipContext.Fluid fluidHandling, Entity entity) {
+    this.from = start;
+    this.to = end;
+    this.block = shapeType;
+    this.fluid = fluidHandling;
+    this.collisionContext = CollisionContext.of(entity);
+  }
 }

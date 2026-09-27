@@ -7,22 +7,22 @@ package nl.oxod.nekoclient.gui.themes.catppuccin;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 
 public enum CatppuccinAccent {
-    Rosewater,
-    Flamingo,
-    Pink,
-    Mauve,
-    Red,
-    Maroon,
-    Peach,
-    Yellow,
-    Green,
-    Teal,
-    Sky,
-    Sapphire,
-    Blue,
-    Lavender;
+  Rosewater,
+  Flamingo,
+  Pink,
+  Mauve,
+  Red,
+  Maroon,
+  Peach,
+  Yellow,
+  Green,
+  Teal,
+  Sky,
+  Sapphire,
+  Blue,
+  Lavender;
 
-    public SettingColor get(CatppuccinFlavor flavor) {
-        return flavor.get(CatppuccinColor.valueOf(name()));
-    }
+  public SettingColor get(CatppuccinFlavor flavor) {
+    return flavor.get(CatppuccinColor.valueOf(name()));
+  }
 }

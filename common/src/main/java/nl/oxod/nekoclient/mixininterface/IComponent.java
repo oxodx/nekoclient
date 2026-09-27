@@ -6,5 +6,5 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IComponent {
-    void neko$invalidateCache();
+  void neko$invalidateCache();
 }

@@ -6,7 +6,7 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IServerboundMovePlayerPacket {
-    int neko$getTag();
+  int neko$getTag();
 
-    void neko$setTag(int tag);
+  void neko$setTag(int tag);
 }

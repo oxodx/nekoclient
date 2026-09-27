@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractSignEditScreen.class)
 public interface AbstractSignEditScreenAccessor {
-    @Accessor("sign")
-    SignBlockEntity neko$getSign();
+  @Accessor("sign")
+  SignBlockEntity neko$getSign();
 }

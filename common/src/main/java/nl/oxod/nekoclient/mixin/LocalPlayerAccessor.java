@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(LocalPlayer.class)
 public interface LocalPlayerAccessor {
-    @Accessor("positionReminder")
-    void neko$setPositionReminder(int ticks);
+  @Accessor("positionReminder")
+  void neko$setPositionReminder(int ticks);
 }

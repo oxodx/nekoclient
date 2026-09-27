@@ -14,15 +14,15 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(LivingEntity.class)
 public interface LivingEntityAccessor {
-    @Invoker("jumpInLiquid")
-    void neko$swimUpwards(TagKey<Fluid> fluid);
+  @Invoker("jumpInLiquid")
+  void neko$swimUpwards(TagKey<Fluid> fluid);
 
-    @Accessor("jumping")
-    boolean neko$isJumping();
+  @Accessor("jumping")
+  boolean neko$isJumping();
 
-    @Accessor("noJumpDelay")
-    int neko$getJumpCooldown();
+  @Accessor("noJumpDelay")
+  int neko$getJumpCooldown();
 
-    @Accessor("noJumpDelay")
-    void neko$setJumpCooldown(int cooldown);
+  @Accessor("noJumpDelay")
+  void neko$setJumpCooldown(int cooldown);
 }

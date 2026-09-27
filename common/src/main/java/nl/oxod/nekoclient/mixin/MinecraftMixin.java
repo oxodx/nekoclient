@@ -60,293 +60,293 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(value = Minecraft.class, priority = 1001)
 public abstract class MinecraftMixin implements IMinecraft {
-    @Unique
-    private boolean startUseItemCalled;
-    @Unique
-    private boolean rightClick;
-    @Unique
-    private long lastTime;
-    @Unique
-    private boolean firstFrame;
-    @Unique
-    private boolean initialized;
+  @Unique
+  private boolean startUseItemCalled;
+  @Unique
+  private boolean rightClick;
+  @Unique
+  private long lastTime;
+  @Unique
+  private boolean firstFrame;
+  @Unique
+  private boolean initialized;
 
-    @Shadow
-    public ClientLevel level;
-    @Shadow
-    @Final
-    public Options options;
+  @Shadow
+  public ClientLevel level;
+  @Shadow
+  @Final
+  public Options options;
 
-    @Shadow
-    protected abstract void startUseItem();
+  @Shadow
+  protected abstract void startUseItem();
 
-    @Shadow
-    @Nullable
-    public MultiPlayerGameMode gameMode;
+  @Shadow
+  @Nullable
+  public MultiPlayerGameMode gameMode;
 
-    @Shadow
-    private int rightClickDelay;
+  @Shadow
+  private int rightClickDelay;
 
-    @Shadow
-    @Nullable
-    public LocalPlayer player;
+  @Shadow
+  @Nullable
+  public LocalPlayer player;
 
-    @Shadow
-    protected abstract void continueAttack(boolean down);
+  @Shadow
+  protected abstract void continueAttack(boolean down);
 
-    @Unique
-    private boolean freecamSet = false;
+  @Unique
+  private boolean freecamSet = false;
 
-    @Final
-    @Shadow
-    public GameRenderer gameRenderer;
+  @Final
+  @Shadow
+  public GameRenderer gameRenderer;
 
-    @Shadow
-    protected abstract void pick(float partialTicks);
+  @Shadow
+  protected abstract void pick(float partialTicks);
 
-    @Shadow
-    public abstract Entity getCameraEntity();
+  @Shadow
+  public abstract Entity getCameraEntity();
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        firstFrame = true;
+  @Inject(method = "<init>", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    firstFrame = true;
+  }
+
+  @Inject(at = @At("HEAD"), method = "tick")
+  private void onPreTick(CallbackInfo ci) {
+    // Bootstrap here rather than at the end of Minecraft's constructor: at constructor TAIL
+    // vanilla's texture-atlas / render-pass setup is still in flight, and doing GPU work
+    // (texture uploads, RenderPipeline registration) in that window leaves GL state that makes
+    // the first vanilla atlas animation draw fail validation. The first tick is guaranteed to
+    // run after startup has settled, so it is the earliest safe point.
+    if (!initialized) {
+      initialized = true;
+      NekoClient.onInitialize();
     }
 
-    @Inject(at = @At("HEAD"), method = "tick")
-    private void onPreTick(CallbackInfo ci) {
-        // Bootstrap here rather than at the end of Minecraft's constructor: at constructor TAIL
-        // vanilla's texture-atlas / render-pass setup is still in flight, and doing GPU work
-        // (texture uploads, RenderPipeline registration) in that window leaves GL state that makes
-        // the first vanilla atlas animation draw fail validation. The first tick is guaranteed to
-        // run after startup has settled, so it is the earliest safe point.
-        if (!initialized) {
-            initialized = true;
-            NekoClient.onInitialize();
-        }
+    OnlinePlayers.update();
 
-        OnlinePlayers.update();
+    startUseItemCalled = false;
 
-        startUseItemCalled = false;
+    Profiler.get().push(NekoClient.MOD_ID + "_pre_update");
+    NekoClient.EVENT_BUS.post(TickEvent.Pre.get());
+    Profiler.get().pop();
 
-        Profiler.get().push(NekoClient.MOD_ID + "_pre_update");
-        NekoClient.EVENT_BUS.post(TickEvent.Pre.get());
-        Profiler.get().pop();
+    if (rightClick && !startUseItemCalled && gameMode != null) startUseItem();
+    rightClick = false;
+  }
 
-        if (rightClick && !startUseItemCalled && gameMode != null) startUseItem();
-        rightClick = false;
+  @Inject(at = @At("TAIL"), method = "tick")
+  private void onTick(CallbackInfo ci) {
+    Profiler.get().push(NekoClient.MOD_ID + "_post_update");
+    NekoClient.EVENT_BUS.post(TickEvent.Post.get());
+    Profiler.get().pop();
+  }
+
+  @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
+  private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
+    CPSUtils.onAttack();
+    if (NekoClient.EVENT_BUS.post(DoAttackEvent.get()).isCancelled()) cir.cancel();
+  }
+
+  @Inject(method = "startUseItem", at = @At("HEAD"))
+  private void onStartUseItem(CallbackInfo ci) {
+    startUseItemCalled = true;
+  }
+
+  @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V", at = @At("HEAD"))
+  private void onDisconnect(Screen screen, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
+    if (level != null) {
+      NekoClient.EVENT_BUS.post(GameLeftEvent.get());
+    }
+  }
+
+  @Inject(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isItemEnabled(Lnet/minecraft/world/flag/FeatureFlagSet;)Z"))
+  private void onStartUseItemHand(CallbackInfo ci, @Local(name = "heldItem") ItemStack heldItem) {
+    FastUse fastUse = Modules.get().get(FastUse.class);
+    if (fastUse.isActive()) {
+      rightClickDelay = fastUse.getItemUseCooldown(heldItem);
+    }
+  }
+
+  @Inject(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/InteractionHand;values()[Lnet/minecraft/world/InteractionHand;"), cancellable = true)
+  private void onStartUseItemBeforeHands(CallbackInfo ci) {
+    if (NekoClient.EVENT_BUS.post(DoItemUseEvent.get()).isCancelled()) ci.cancel();
+  }
+
+  @ModifyExpressionValue(method = "startUseItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;hitResult:Lnet/minecraft/world/phys/HitResult;", ordinal = 1, opcode = Opcodes.GETFIELD))
+  private HitResult startUseItemMinecraftClientCrosshairTargetProxy(HitResult original) {
+    return NekoClient.EVENT_BUS.post(ItemUseCrosshairTargetEvent.get(original)).target;
+  }
+
+  @ModifyReturnValue(method = "reloadResourcePacks(ZLnet/minecraft/client/GameLoadCookie;)Ljava/util/concurrent/CompletableFuture;", at = @At("RETURN"))
+  private CompletableFuture<Void> onReloadResourcePacksNewCompletableFuture(CompletableFuture<Void> original) {
+    return original.thenRun(() -> NekoClient.EVENT_BUS.post(ResourcePacksReloadedEvent.get()));
+  }
+
+  @ModifyArg(method = "updateTitle", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/Window;setTitle(Ljava/lang/String;)V"))
+  private String setTitle(String original) {
+    if (Config.get() == null || !Config.get().customWindowTitle.get()) return original;
+
+    String customTitle = Config.get().customWindowTitleText.get();
+    Script script = NekoStarscript.compile(customTitle);
+
+    if (script != null) {
+      String title = NekoStarscript.run(script);
+      if (title != null) customTitle = title;
     }
 
-    @Inject(at = @At("TAIL"), method = "tick")
-    private void onTick(CallbackInfo ci) {
-        Profiler.get().push(NekoClient.MOD_ID + "_post_update");
-        NekoClient.EVENT_BUS.post(TickEvent.Post.get());
-        Profiler.get().pop();
+    return customTitle;
+  }
+
+  // Have to add this condition if we want to draw back a bow using packets, without it getting cancelled by vanilla code
+  @WrapWithCondition(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;releaseUsingItem(Lnet/minecraft/world/entity/player/Player;)V"))
+  private boolean wrapStopUsing(MultiPlayerGameMode instance, Player player) {
+    return HB$stopUsingItem();
+  }
+
+  @Unique
+  private boolean HB$stopUsingItem() {
+    HighwayBuilder b = Modules.get().get(HighwayBuilder.class);
+    return !b.isActive() || !b.drawingBow;
+  }
+
+  @Inject(method = "resizeGui", at = @At("TAIL"))
+  private void onResizeGui(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(ResolutionChangedEvent.get());
+  }
+
+  // Time delta
+
+  @Inject(method = "runTick", at = @At("HEAD"))
+  private void onRunTick(CallbackInfo ci) {
+    long time = System.currentTimeMillis();
+
+    if (firstFrame) {
+      lastTime = time;
+      firstFrame = false;
     }
 
-    @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
-    private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
-        CPSUtils.onAttack();
-        if (NekoClient.EVENT_BUS.post(DoAttackEvent.get()).isCancelled()) cir.cancel();
+    Utils.frameTime = (time - lastTime) / 1000.0;
+    lastTime = time;
+  }
+
+  // Multitask
+
+  @ModifyExpressionValue(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;isDestroying()Z"))
+  private boolean startUseItemModifyIsBreakingBlock(boolean original) {
+    return !Modules.get().isActive(Multitask.class) && original;
+  }
+
+  @ModifyExpressionValue(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
+  private boolean continueAttackModifyIsUsingItem(boolean original) {
+    return !Modules.get().isActive(Multitask.class) && original;
+  }
+
+  @ModifyExpressionValue(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", ordinal = 0))
+  private boolean handleKeybindsModifyIsUsingItem(boolean original) {
+    return !Modules.get().get(Multitask.class).attackingEntities() && original;
+  }
+
+  @Inject(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", ordinal = 0, shift = At.Shift.BEFORE))
+  private void handleKeybindsInjectStopUsingItem(CallbackInfo ci) {
+    if (Modules.get().get(Multitask.class).attackingEntities() && player.isUsingItem()) {
+      if (!options.keyUse.isDown() && HB$stopUsingItem()) gameMode.releaseUsingItem(player);
+      //noinspection StatementWithEmptyBody
+      while (options.keyUse.consumeClick()) ;
     }
+  }
 
-    @Inject(method = "startUseItem", at = @At("HEAD"))
-    private void onStartUseItem(CallbackInfo ci) {
-        startUseItemCalled = true;
+  // Glow esp
+
+  @ModifyReturnValue(method = "shouldEntityAppearGlowing", at = @At("RETURN"))
+  private boolean shouldEntityAppearGlowingModifyIsOutline(boolean original, Entity entity) {
+    ESP esp = Modules.get().get(ESP.class);
+    if (esp == null) return original;
+    if (!esp.isGlow() || esp.shouldSkip(entity)) return original;
+
+    return esp.getColor(entity) != null || original;
+  }
+
+
+  // faster inputs
+
+  @Unique
+  private boolean isBreaking = false;
+
+  @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))
+  private boolean wrapHandleInputEvents(Minecraft instance) {
+    return !Modules.get().get(InventoryTweaks.class).frameInput();
+  }
+
+  @WrapWithCondition(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;continueAttack(Z)V"))
+  private boolean wrapHandleBlockBreaking(Minecraft instance, boolean down) {
+    isBreaking = down;
+    return !Modules.get().get(InventoryTweaks.class).frameInput();
+  }
+
+  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V", shift = At.Shift.AFTER))
+  private void afterHandleInputEvents(CallbackInfo ci) {
+    if (!Modules.get().get(InventoryTweaks.class).frameInput()) return;
+
+    continueAttack(isBreaking);
+    isBreaking = false;
+  }
+
+  // Interface
+
+  @Override
+  public void neko$rightClick() {
+    rightClick = true;
+  }
+
+  // Freecam
+  @Inject(method = "pick", at = @At("HEAD"), cancellable = true)
+  private void updateTargetedEntityInvoke(float partialTicks, CallbackInfo ci) {
+    Freecam freecam = Modules.get().get(Freecam.class);
+    boolean highwayBuilder = Modules.get().isActive(HighwayBuilder.class);
+
+    if ((freecam.isActive() || highwayBuilder) && this.getCameraEntity() != null && !freecamSet) {
+      ci.cancel();
+      Entity cameraE = this.getCameraEntity();
+
+      double x = cameraE.getX();
+      double y = cameraE.getY();
+      double z = cameraE.getZ();
+      double lastX = cameraE.xo;
+      double lastY = cameraE.yo;
+      double lastZ = cameraE.zo;
+      float yaw = cameraE.getYRot();
+      float pitch = cameraE.getXRot();
+      float lastYaw = cameraE.yRotO;
+      float lastPitch = cameraE.xRotO;
+
+      if (highwayBuilder) {
+        cameraE.setYRot(this.gameRenderer.mainCamera().yRot());
+        cameraE.setXRot(this.gameRenderer.mainCamera().xRot());
+      } else {
+        ((IVec3) cameraE.position()).neko$set(freecam.pos.x, freecam.pos.y - cameraE.getEyeHeight(cameraE.getPose()), freecam.pos.z);
+        cameraE.xo = freecam.prevPos.x;
+        cameraE.yo = freecam.prevPos.y - cameraE.getEyeHeight(cameraE.getPose());
+        cameraE.zo = freecam.prevPos.z;
+        cameraE.setYRot(freecam.yaw);
+        cameraE.setXRot(freecam.pitch);
+        cameraE.yRotO = freecam.lastYaw;
+        cameraE.xRotO = freecam.lastPitch;
+      }
+
+      freecamSet = true;
+      pick(partialTicks);
+      freecamSet = false;
+
+      ((IVec3) cameraE.position()).neko$set(x, y, z);
+      cameraE.xo = lastX;
+      cameraE.yo = lastY;
+      cameraE.zo = lastZ;
+      cameraE.setYRot(yaw);
+      cameraE.setXRot(pitch);
+      cameraE.yRotO = lastYaw;
+      cameraE.xRotO = lastPitch;
     }
-
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V", at = @At("HEAD"))
-    private void onDisconnect(Screen screen, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
-        if (level != null) {
-            NekoClient.EVENT_BUS.post(GameLeftEvent.get());
-        }
-    }
-
-    @Inject(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isItemEnabled(Lnet/minecraft/world/flag/FeatureFlagSet;)Z"))
-    private void onStartUseItemHand(CallbackInfo ci, @Local(name = "heldItem") ItemStack heldItem) {
-        FastUse fastUse = Modules.get().get(FastUse.class);
-        if (fastUse.isActive()) {
-            rightClickDelay = fastUse.getItemUseCooldown(heldItem);
-        }
-    }
-
-    @Inject(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/InteractionHand;values()[Lnet/minecraft/world/InteractionHand;"), cancellable = true)
-    private void onStartUseItemBeforeHands(CallbackInfo ci) {
-        if (NekoClient.EVENT_BUS.post(DoItemUseEvent.get()).isCancelled()) ci.cancel();
-    }
-
-    @ModifyExpressionValue(method = "startUseItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;hitResult:Lnet/minecraft/world/phys/HitResult;", ordinal = 1, opcode = Opcodes.GETFIELD))
-    private HitResult startUseItemMinecraftClientCrosshairTargetProxy(HitResult original) {
-        return NekoClient.EVENT_BUS.post(ItemUseCrosshairTargetEvent.get(original)).target;
-    }
-
-    @ModifyReturnValue(method = "reloadResourcePacks(ZLnet/minecraft/client/GameLoadCookie;)Ljava/util/concurrent/CompletableFuture;", at = @At("RETURN"))
-    private CompletableFuture<Void> onReloadResourcePacksNewCompletableFuture(CompletableFuture<Void> original) {
-        return original.thenRun(() -> NekoClient.EVENT_BUS.post(ResourcePacksReloadedEvent.get()));
-    }
-
-    @ModifyArg(method = "updateTitle", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/Window;setTitle(Ljava/lang/String;)V"))
-    private String setTitle(String original) {
-        if (Config.get() == null || !Config.get().customWindowTitle.get()) return original;
-
-        String customTitle = Config.get().customWindowTitleText.get();
-        Script script = NekoStarscript.compile(customTitle);
-
-        if (script != null) {
-            String title = NekoStarscript.run(script);
-            if (title != null) customTitle = title;
-        }
-
-        return customTitle;
-    }
-
-    // Have to add this condition if we want to draw back a bow using packets, without it getting cancelled by vanilla code
-    @WrapWithCondition(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;releaseUsingItem(Lnet/minecraft/world/entity/player/Player;)V"))
-    private boolean wrapStopUsing(MultiPlayerGameMode instance, Player player) {
-        return HB$stopUsingItem();
-    }
-
-    @Unique
-    private boolean HB$stopUsingItem() {
-        HighwayBuilder b = Modules.get().get(HighwayBuilder.class);
-        return !b.isActive() || !b.drawingBow;
-    }
-
-    @Inject(method = "resizeGui", at = @At("TAIL"))
-    private void onResizeGui(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(ResolutionChangedEvent.get());
-    }
-
-    // Time delta
-
-    @Inject(method = "runTick", at = @At("HEAD"))
-    private void onRunTick(CallbackInfo ci) {
-        long time = System.currentTimeMillis();
-
-        if (firstFrame) {
-            lastTime = time;
-            firstFrame = false;
-        }
-
-        Utils.frameTime = (time - lastTime) / 1000.0;
-        lastTime = time;
-    }
-
-    // Multitask
-
-    @ModifyExpressionValue(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;isDestroying()Z"))
-    private boolean startUseItemModifyIsBreakingBlock(boolean original) {
-        return !Modules.get().isActive(Multitask.class) && original;
-    }
-
-    @ModifyExpressionValue(method = "continueAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
-    private boolean continueAttackModifyIsUsingItem(boolean original) {
-        return !Modules.get().isActive(Multitask.class) && original;
-    }
-
-    @ModifyExpressionValue(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", ordinal = 0))
-    private boolean handleKeybindsModifyIsUsingItem(boolean original) {
-        return !Modules.get().get(Multitask.class).attackingEntities() && original;
-    }
-
-    @Inject(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", ordinal = 0, shift = At.Shift.BEFORE))
-    private void handleKeybindsInjectStopUsingItem(CallbackInfo ci) {
-        if (Modules.get().get(Multitask.class).attackingEntities() && player.isUsingItem()) {
-            if (!options.keyUse.isDown() && HB$stopUsingItem()) gameMode.releaseUsingItem(player);
-            //noinspection StatementWithEmptyBody
-            while (options.keyUse.consumeClick()) ;
-        }
-    }
-
-    // Glow esp
-
-    @ModifyReturnValue(method = "shouldEntityAppearGlowing", at = @At("RETURN"))
-    private boolean shouldEntityAppearGlowingModifyIsOutline(boolean original, Entity entity) {
-        ESP esp = Modules.get().get(ESP.class);
-        if (esp == null) return original;
-        if (!esp.isGlow() || esp.shouldSkip(entity)) return original;
-
-        return esp.getColor(entity) != null || original;
-    }
-
-
-    // faster inputs
-
-    @Unique
-    private boolean isBreaking = false;
-
-    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))
-    private boolean wrapHandleInputEvents(Minecraft instance) {
-        return !Modules.get().get(InventoryTweaks.class).frameInput();
-    }
-
-    @WrapWithCondition(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;continueAttack(Z)V"))
-    private boolean wrapHandleBlockBreaking(Minecraft instance, boolean down) {
-        isBreaking = down;
-        return !Modules.get().get(InventoryTweaks.class).frameInput();
-    }
-
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V", shift = At.Shift.AFTER))
-    private void afterHandleInputEvents(CallbackInfo ci) {
-        if (!Modules.get().get(InventoryTweaks.class).frameInput()) return;
-
-        continueAttack(isBreaking);
-        isBreaking = false;
-    }
-
-    // Interface
-
-    @Override
-    public void neko$rightClick() {
-        rightClick = true;
-    }
-
-    // Freecam
-    @Inject(method = "pick", at = @At("HEAD"), cancellable = true)
-    private void updateTargetedEntityInvoke(float partialTicks, CallbackInfo ci) {
-        Freecam freecam = Modules.get().get(Freecam.class);
-        boolean highwayBuilder = Modules.get().isActive(HighwayBuilder.class);
-
-        if ((freecam.isActive() || highwayBuilder) && this.getCameraEntity() != null && !freecamSet) {
-            ci.cancel();
-            Entity cameraE = this.getCameraEntity();
-
-            double x = cameraE.getX();
-            double y = cameraE.getY();
-            double z = cameraE.getZ();
-            double lastX = cameraE.xo;
-            double lastY = cameraE.yo;
-            double lastZ = cameraE.zo;
-            float yaw = cameraE.getYRot();
-            float pitch = cameraE.getXRot();
-            float lastYaw = cameraE.yRotO;
-            float lastPitch = cameraE.xRotO;
-
-            if (highwayBuilder) {
-                cameraE.setYRot(this.gameRenderer.mainCamera().yRot());
-                cameraE.setXRot(this.gameRenderer.mainCamera().xRot());
-            } else {
-                ((IVec3) cameraE.position()).neko$set(freecam.pos.x, freecam.pos.y - cameraE.getEyeHeight(cameraE.getPose()), freecam.pos.z);
-                cameraE.xo = freecam.prevPos.x;
-                cameraE.yo = freecam.prevPos.y - cameraE.getEyeHeight(cameraE.getPose());
-                cameraE.zo = freecam.prevPos.z;
-                cameraE.setYRot(freecam.yaw);
-                cameraE.setXRot(freecam.pitch);
-                cameraE.yRotO = freecam.lastYaw;
-                cameraE.xRotO = freecam.lastPitch;
-            }
-
-            freecamSet = true;
-            pick(partialTicks);
-            freecamSet = false;
-
-            ((IVec3) cameraE.position()).neko$set(x, y, z);
-            cameraE.xo = lastX;
-            cameraE.yo = lastY;
-            cameraE.zo = lastZ;
-            cameraE.setYRot(yaw);
-            cameraE.setXRot(pitch);
-            cameraE.yRotO = lastYaw;
-            cameraE.xRotO = lastPitch;
-        }
-    }
+  }
 }

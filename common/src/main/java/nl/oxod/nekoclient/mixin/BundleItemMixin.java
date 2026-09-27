@@ -19,11 +19,11 @@ import java.util.Optional;
 
 @Mixin(BundleItem.class)
 public abstract class BundleItemMixin {
-    @Inject(method = "getTooltipImage", at = @At("HEAD"), cancellable = true)
-    private void onGetTooltipImage(ItemStack bundle, CallbackInfoReturnable<Optional<TooltipComponent>> cir) {
-        TooltipDataEvent event = NekoClient.EVENT_BUS.post(TooltipDataEvent.get(bundle));
-        if (event.tooltipData != null) {
-            cir.setReturnValue(Optional.of(event.tooltipData));
-        }
+  @Inject(method = "getTooltipImage", at = @At("HEAD"), cancellable = true)
+  private void onGetTooltipImage(ItemStack bundle, CallbackInfoReturnable<Optional<TooltipComponent>> cir) {
+    TooltipDataEvent event = NekoClient.EVENT_BUS.post(TooltipDataEvent.get(bundle));
+    if (event.tooltipData != null) {
+      cir.setReturnValue(Optional.of(event.tooltipData));
     }
+  }
 }

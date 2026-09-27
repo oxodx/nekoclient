@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientTooltipComponent.class)
 public interface ClientTooltipComponentMixin {
-    @Inject(method = "create(Lnet/minecraft/world/inventory/tooltip/TooltipComponent;)Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;", at = @At("HEAD"), cancellable = true)
-    private static void shortcutNekoTooltipData(TooltipComponent component, CallbackInfoReturnable<ClientTooltipComponent> cir) {
-        if (component instanceof NekoTooltipData) cir.setReturnValue(null);
-    }
+  @Inject(method = "create(Lnet/minecraft/world/inventory/tooltip/TooltipComponent;)Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;", at = @At("HEAD"), cancellable = true)
+  private static void shortcutNekoTooltipData(TooltipComponent component, CallbackInfoReturnable<ClientTooltipComponent> cir) {
+    if (component instanceof NekoTooltipData) cir.setReturnValue(null);
+  }
 }

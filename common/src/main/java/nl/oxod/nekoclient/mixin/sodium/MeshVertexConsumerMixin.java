@@ -17,20 +17,20 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(value = MeshBuilderVertexConsumerProvider.MeshBuilderVertexConsumer.class, remap = false)
 public abstract class MeshVertexConsumerMixin implements VertexConsumer, VertexBufferWriter {
-    @Override
-    public void push(MemoryStack stack, long ptr, int count, VertexFormat format) {
-        VertexFormatElement positionElement = format.getElement(DefaultVertexFormat.POSITION_SEMANTIC_NAME);
-        if (positionElement == null) return;
-        int positionOffset = positionElement.offset();
+  @Override
+  public void push(MemoryStack stack, long ptr, int count, VertexFormat format) {
+    VertexFormatElement positionElement = format.getElement(DefaultVertexFormat.POSITION_SEMANTIC_NAME);
+    if (positionElement == null) return;
+    int positionOffset = positionElement.offset();
 
-        for (int i = 0; i < count; i++) {
-            long positionPtr = ptr + (long) format.getVertexSize() * i + positionOffset;
+    for (int i = 0; i < count; i++) {
+      long positionPtr = ptr + (long) format.getVertexSize() * i + positionOffset;
 
-            float x = MemoryUtil.memGetFloat(positionPtr);
-            float y = MemoryUtil.memGetFloat(positionPtr + 4);
-            float z = MemoryUtil.memGetFloat(positionPtr + 8);
+      float x = MemoryUtil.memGetFloat(positionPtr);
+      float y = MemoryUtil.memGetFloat(positionPtr + 4);
+      float z = MemoryUtil.memGetFloat(positionPtr + 8);
 
-            addVertex(x, y, z);
-        }
+      addVertex(x, y, z);
     }
+  }
 }

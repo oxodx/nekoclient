@@ -23,34 +23,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = AbstractBlockRenderContext.class, remap = false)
 public abstract class AbstractBlockRenderContextMixin {
-    @Shadow
-    protected BlockState state;
-    @Shadow
-    protected BlockAndTintGetter level;
-    @Shadow
-    protected BlockPos pos;
-    @Unique
-    private Xray xray;
+  @Shadow
+  protected BlockState state;
+  @Shadow
+  protected BlockAndTintGetter level;
+  @Shadow
+  protected BlockPos pos;
+  @Unique
+  private Xray xray;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        xray = Modules.get().get(Xray.class);
+  @Inject(method = "<init>", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    xray = Modules.get().get(Xray.class);
+  }
+
+  // For More Culling compatibility - runs before More Culling's inject to force-render whitelisted Xray blocks
+  @Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
+  private void neko$forceXrayFace(Direction facing, CallbackInfoReturnable<Boolean> cir) {
+    if (xray != null && xray.isActive() && !xray.isBlocked(state.getBlock(), null)) {
+      cir.setReturnValue(true);
+    }
+  }
+
+  @ModifyReturnValue(method = "shouldDrawSide", at = @At("RETURN"))
+  private boolean shouldDrawSide(boolean original, Direction facing) {
+    if (xray.isActive()) {
+      return xray.modifyDrawSide(state, level, pos, facing, original);
     }
 
-    // For More Culling compatibility - runs before More Culling's inject to force-render whitelisted Xray blocks
-    @Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
-    private void neko$forceXrayFace(Direction facing, CallbackInfoReturnable<Boolean> cir) {
-        if (xray != null && xray.isActive() && !xray.isBlocked(state.getBlock(), null)) {
-            cir.setReturnValue(true);
-        }
-    }
-
-    @ModifyReturnValue(method = "shouldDrawSide", at = @At("RETURN"))
-    private boolean shouldDrawSide(boolean original, Direction facing) {
-        if (xray.isActive()) {
-            return xray.modifyDrawSide(state, level, pos, facing, original);
-        }
-
-        return original;
-    }
+    return original;
+  }
 }

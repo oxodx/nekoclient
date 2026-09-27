@@ -17,10 +17,10 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(AbstractClientPlayer.class)
 public abstract class AbstractClientPlayerMixin {
-    // Player model rendering in main menu
+  // Player model rendering in main menu
 
-    @Inject(method = "getPlayerInfo", at = @At("HEAD"), cancellable = true)
-    private void onGetPlayerListEntry(CallbackInfoReturnable<PlayerInfo> cir) {
-        if (mc.getConnection() == null) cir.setReturnValue(FakeClientPlayer.getPlayerListEntry());
-    }
+  @Inject(method = "getPlayerInfo", at = @At("HEAD"), cancellable = true)
+  private void onGetPlayerListEntry(CallbackInfoReturnable<PlayerInfo> cir) {
+    if (mc.getConnection() == null) cir.setReturnValue(FakeClientPlayer.getPlayerListEntry());
+  }
 }

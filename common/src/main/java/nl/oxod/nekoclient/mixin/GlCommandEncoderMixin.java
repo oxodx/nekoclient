@@ -23,23 +23,23 @@ import static org.lwjgl.opengl.GL11C.*;
 
 @Mixin(GlCommandEncoder.class)
 public abstract class GlCommandEncoderMixin {
-    @Shadow
-    @Final
-    private GlDevice device;
+  @Shadow
+  @Final
+  private GlDevice device;
 
-    @SuppressWarnings("deprecation")
-    @Inject(method = "createRenderPass(Lcom/mojang/blaze3d/systems/RenderPassDescriptor;)Lcom/mojang/blaze3d/systems/RenderPassBackend;", at = @At("RETURN"))
-    private void createRenderPass$iGpuDevice(CallbackInfoReturnable<RenderPassBackend> cir) {
-        ((IGpuDevice) device).neko$onCreateRenderPass(cir.getReturnValue());
-    }
+  @SuppressWarnings("deprecation")
+  @Inject(method = "createRenderPass(Lcom/mojang/blaze3d/systems/RenderPassDescriptor;)Lcom/mojang/blaze3d/systems/RenderPassBackend;", at = @At("RETURN"))
+  private void createRenderPass$iGpuDevice(CallbackInfoReturnable<RenderPassBackend> cir) {
+    ((IGpuDevice) device).neko$onCreateRenderPass(cir.getReturnValue());
+  }
 
-    @Inject(method = "applyPipelineState", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/opengl/GlStateManager;_polygonMode(II)V"))
-    private void setPipelineAndApplyState$lineSmooth(RenderPipeline pipeline, CallbackInfo ci) {
-        if (((IRenderPipeline) pipeline).neko$getLineSmooth()) {
-            glEnable(GL_LINE_SMOOTH);
-            glLineWidth(1);
-        } else {
-            glDisable(GL_LINE_SMOOTH);
-        }
+  @Inject(method = "applyPipelineState", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/opengl/GlStateManager;_polygonMode(II)V"))
+  private void setPipelineAndApplyState$lineSmooth(RenderPipeline pipeline, CallbackInfo ci) {
+    if (((IRenderPipeline) pipeline).neko$getLineSmooth()) {
+      glEnable(GL_LINE_SMOOTH);
+      glLineWidth(1);
+    } else {
+      glDisable(GL_LINE_SMOOTH);
     }
+  }
 }

@@ -17,23 +17,23 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ClientPacketListener.class)
 public interface ClientPacketListenerAccessor {
-    @Accessor("serverChunkRadius")
-    int neko$getServerChunkRadius();
+  @Accessor("serverChunkRadius")
+  int neko$getServerChunkRadius();
 
-    @Accessor("signedMessageEncoder")
-    SignedMessageChain.Encoder neko$getSignedMessageEncoder();
+  @Accessor("signedMessageEncoder")
+  SignedMessageChain.Encoder neko$getSignedMessageEncoder();
 
-    @Accessor("lastSeenMessages")
-    LastSeenMessagesTracker neko$getLastSeenMessages();
+  @Accessor("lastSeenMessages")
+  LastSeenMessagesTracker neko$getLastSeenMessages();
 
-    @Accessor("registryAccess")
-    RegistryAccess.Frozen neko$getRegistryAccess();
+  @Accessor("registryAccess")
+  RegistryAccess.Frozen neko$getRegistryAccess();
 
-    @Accessor("enabledFeatures")
-    FeatureFlagSet neko$getEnabledFeatures();
+  @Accessor("enabledFeatures")
+  FeatureFlagSet neko$getEnabledFeatures();
 
-    @Accessor("COMMAND_NODE_BUILDER")
-    static ClientboundCommandsPacket.NodeBuilder<ClientSuggestionProvider> neko$getCommandNodeFactory() {
-        return null;
-    }
+  @Accessor("COMMAND_NODE_BUILDER")
+  static ClientboundCommandsPacket.NodeBuilder<ClientSuggestionProvider> neko$getCommandNodeFactory() {
+    return null;
+  }
 }

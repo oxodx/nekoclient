@@ -14,17 +14,17 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(EntityRenderState.class)
 public abstract class EntityRenderStateMixin implements IEntityRenderState {
-    @Unique
-    private Entity entity;
+  @Unique
+  private Entity entity;
 
-    @Override
-    @Nullable // "EntityCulling mod can prevent the code that sets the entity from running"
-    public Entity neko$getEntity() {
-        return entity;
-    }
+  @Override
+  @Nullable // "EntityCulling mod can prevent the code that sets the entity from running"
+  public Entity neko$getEntity() {
+    return entity;
+  }
 
-    @Override
-    public void neko$setEntity(Entity entity) {
-        this.entity = entity;
-    }
+  @Override
+  public void neko$setEntity(Entity entity) {
+    this.entity = entity;
+  }
 }

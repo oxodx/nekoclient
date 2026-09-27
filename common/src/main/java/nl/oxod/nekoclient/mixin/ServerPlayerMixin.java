@@ -18,15 +18,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends LivingEntity {
-    protected ServerPlayerMixin(EntityType<? extends LivingEntity> entityType, Level world) {
-        super(entityType, world);
-    }
+  protected ServerPlayerMixin(EntityType<? extends LivingEntity> entityType, Level world) {
+    super(entityType, world);
+  }
 
-    @Inject(method = "jumpFromGround", at = @At("HEAD"), cancellable = true)
-    public void dontJump(CallbackInfo ci) {
-        if (!level().isClientSide()) return;
+  @Inject(method = "jumpFromGround", at = @At("HEAD"), cancellable = true)
+  public void dontJump(CallbackInfo ci) {
+    if (!level().isClientSide()) return;
 
-        Anchor module = Modules.get().get(Anchor.class);
-        if (module.isActive() && module.cancelJump) ci.cancel();
-    }
+    Anchor module = Modules.get().get(Anchor.class);
+    if (module.isActive() && module.cancelJump) ci.cancel();
+  }
 }

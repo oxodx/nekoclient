@@ -14,8 +14,8 @@ import java.util.function.Supplier;
 
 @Mixin(BuiltInRegistries.class)
 public abstract class BuiltInRegistriesMixin {
-    @WrapWithCondition(method = "internalRegister", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/Bootstrap;checkBootstrapCalled(Ljava/util/function/Supplier;)V"))
-    private static boolean skipBootstrapCheck(Supplier<String> location) {
-        return false;
-    }
+  @WrapWithCondition(method = "internalRegister", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/Bootstrap;checkBootstrapCalled(Ljava/util/function/Supplier;)V"))
+  private static boolean skipBootstrapCheck(Supplier<String> location) {
+    return false;
+  }
 }

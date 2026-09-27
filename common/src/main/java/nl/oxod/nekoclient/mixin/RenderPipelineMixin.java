@@ -12,16 +12,16 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(RenderPipeline.class)
 public abstract class RenderPipelineMixin implements IRenderPipeline {
-    @Unique
-    private boolean lineSmooth;
+  @Unique
+  private boolean lineSmooth;
 
-    @Override
-    public void neko$setLineSmooth(boolean lineSmooth) {
-        this.lineSmooth = lineSmooth;
-    }
+  @Override
+  public void neko$setLineSmooth(boolean lineSmooth) {
+    this.lineSmooth = lineSmooth;
+  }
 
-    @Override
-    public boolean neko$getLineSmooth() {
-        return lineSmooth;
-    }
+  @Override
+  public boolean neko$getLineSmooth() {
+    return lineSmooth;
+  }
 }

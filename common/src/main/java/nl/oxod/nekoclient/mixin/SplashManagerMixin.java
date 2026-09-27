@@ -20,33 +20,33 @@ import java.util.Random;
 
 @Mixin(SplashManager.class)
 public abstract class SplashManagerMixin {
-    @Unique
-    private boolean override = true;
-    @Unique
-    private static final Random random = new Random();
-    @Unique
-    private final List<String> nekoSplashes = getNekoSplashes();
+  @Unique
+  private boolean override = true;
+  @Unique
+  private static final Random random = new Random();
+  @Unique
+  private final List<String> nekoSplashes = getNekoSplashes();
 
-    @Inject(method = "getSplash", at = @At("HEAD"), cancellable = true)
-    private void onApply(CallbackInfoReturnable<SplashRenderer> cir) {
-        if (Config.get() == null || !Config.get().titleScreenSplashes.get()) return;
+  @Inject(method = "getSplash", at = @At("HEAD"), cancellable = true)
+  private void onApply(CallbackInfoReturnable<SplashRenderer> cir) {
+    if (Config.get() == null || !Config.get().titleScreenSplashes.get()) return;
 
-        if (override)
-            cir.setReturnValue(new SplashRenderer(Component.literal(nekoSplashes.get(random.nextInt(nekoSplashes.size())))));
-        override = !override;
-    }
+    if (override)
+      cir.setReturnValue(new SplashRenderer(Component.literal(nekoSplashes.get(random.nextInt(nekoSplashes.size())))));
+    override = !override;
+  }
 
-    @Unique
-    private static List<String> getNekoSplashes() {
-        return List.of(
-            "NekoClient on Crack!",
-            "Star NekoClient on GitHub!",
-            "Based utility mod.",
-            "§6MineGame159 §fbased god",
-            "§4meteorclient.com",
-            "§4NekoClient on Crack!",
-            "§6NekoClient on Crack!"
-        );
-    }
+  @Unique
+  private static List<String> getNekoSplashes() {
+    return List.of(
+      "NekoClient on Crack!",
+      "Star NekoClient on GitHub!",
+      "Based utility mod.",
+      "§6MineGame159 §fbased god",
+      "§4meteorclient.com",
+      "§4NekoClient on Crack!",
+      "§6NekoClient on Crack!"
+    );
+  }
 
 }

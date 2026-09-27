@@ -14,9 +14,9 @@ import java.util.List;
 
 @Mixin(ChatComponent.class)
 public interface ChatComponentAccessor {
-    @Accessor("trimmedMessages")
-    List<GuiMessage.Line> neko$getTrimmedMessages();
+  @Accessor("trimmedMessages")
+  List<GuiMessage.Line> neko$getTrimmedMessages();
 
-    @Accessor("allMessages")
-    List<GuiMessage> neko$getAllMessages();
+  @Accessor("allMessages")
+  List<GuiMessage> neko$getAllMessages();
 }

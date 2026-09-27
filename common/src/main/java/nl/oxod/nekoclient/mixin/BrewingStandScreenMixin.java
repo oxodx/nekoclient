@@ -16,21 +16,21 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BrewingStandScreen.class)
 public abstract class BrewingStandScreenMixin extends AbstractContainerScreen<BrewingStandMenu> {
-    public BrewingStandScreenMixin(BrewingStandMenu container, Inventory playerInventory, Component name) {
-        super(container, playerInventory, name);
-    }
+  public BrewingStandScreenMixin(BrewingStandMenu container, Inventory playerInventory, Component name) {
+    super(container, playerInventory, name);
+  }
 
-    @Override
-    public void containerTick() {
-        super.containerTick();
+  @Override
+  public void containerTick() {
+    super.containerTick();
 
-        if (Modules.get().isActive(AutoBrewer.class)) Modules.get().get(AutoBrewer.class).tick(menu);
-    }
+    if (Modules.get().isActive(AutoBrewer.class)) Modules.get().get(AutoBrewer.class).tick(menu);
+  }
 
-    @Override
-    public void onClose() {
-        if (Modules.get().isActive(AutoBrewer.class)) Modules.get().get(AutoBrewer.class).onBrewingStandClose();
+  @Override
+  public void onClose() {
+    if (Modules.get().isActive(AutoBrewer.class)) Modules.get().get(AutoBrewer.class).onBrewingStandClose();
 
-        super.onClose();
-    }
+    super.onClose();
+  }
 }

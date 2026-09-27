@@ -1,6 +1,5 @@
 package nl.oxod.nekoclient;
 
-import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.gui.screens.ModulesScreen;
 import net.minecraft.client.gui.screens.Screen;

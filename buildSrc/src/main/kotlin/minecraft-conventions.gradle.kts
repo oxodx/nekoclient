@@ -1,5 +1,5 @@
 plugins {
-    id("base-conventions")
+  id("base-conventions")
 }
 
 apply(plugin = "net.fabricmc.fabric-loom")

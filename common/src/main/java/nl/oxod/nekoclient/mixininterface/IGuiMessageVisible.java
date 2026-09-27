@@ -6,7 +6,7 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IGuiMessageVisible extends IGuiMessage {
-    boolean neko$isStartOfEntry();
+  boolean neko$isStartOfEntry();
 
-    void neko$setStartOfEntry(boolean start);
+  void neko$setStartOfEntry(boolean start);
 }

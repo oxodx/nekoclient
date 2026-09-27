@@ -29,18 +29,18 @@ import static nl.oxod.nekoclient.NekoClient.mc;
  */
 @Mixin(DownloadQueue.class)
 public abstract class DownloadQueueMixin {
-    @Shadow
-    @Final
-    private Path cacheDir;
+  @Shadow
+  @Final
+  private Path cacheDir;
 
-    @ModifyExpressionValue(method = "lambda$runDownload$0", at = @At(value = "INVOKE", target = "Ljava/nio/file/Path;resolve(Ljava/lang/String;)Ljava/nio/file/Path;"))
-    private Path hookResolve(Path original, @Local(argsOnly = true, name = "id") UUID id) {
-        UUID accountId = mc.getUser().getProfileId();
-        if (accountId == null) {
-            NekoClient.LOG.warn("Failed to change resource pack download directory because the account id is null.");
-            return original;
-        }
-
-        return cacheDir.resolve(accountId.toString()).resolve(id.toString());
+  @ModifyExpressionValue(method = "lambda$runDownload$0", at = @At(value = "INVOKE", target = "Ljava/nio/file/Path;resolve(Ljava/lang/String;)Ljava/nio/file/Path;"))
+  private Path hookResolve(Path original, @Local(argsOnly = true, name = "id") UUID id) {
+    UUID accountId = mc.getUser().getProfileId();
+    if (accountId == null) {
+      NekoClient.LOG.warn("Failed to change resource pack download directory because the account id is null.");
+      return original;
     }
+
+    return cacheDir.resolve(accountId.toString()).resolve(id.toString());
+  }
 }

@@ -6,5 +6,5 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IMinecraft {
-    void neko$rightClick();
+  void neko$rightClick();
 }

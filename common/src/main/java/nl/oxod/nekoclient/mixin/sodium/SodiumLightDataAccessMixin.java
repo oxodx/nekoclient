@@ -24,46 +24,46 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LightDataAccess.class, remap = false)
 public abstract class SodiumLightDataAccessMixin {
-    @Unique
-    private static final int FULL_LIGHT = 15 | 15 << 4 | 15 << 8;
+  @Unique
+  private static final int FULL_LIGHT = 15 | 15 << 4 | 15 << 8;
 
-    @Shadow
-    protected BlockAndTintGetter level;
-    @Shadow
-    @Final
-    private BlockPos.MutableBlockPos pos;
+  @Shadow
+  protected BlockAndTintGetter level;
+  @Shadow
+  @Final
+  private BlockPos.MutableBlockPos pos;
 
-    @Unique
-    private Xray xray;
+  @Unique
+  private Xray xray;
 
-    @Unique
-    private Fullbright fb;
+  @Unique
+  private Fullbright fb;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        xray = Modules.get().get(Xray.class);
-        fb = Modules.get().get(Fullbright.class);
+  @Inject(method = "<init>", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    xray = Modules.get().get(Xray.class);
+    fb = Modules.get().get(Fullbright.class);
+  }
+
+  @ModifyVariable(method = "compute", at = @At(value = "TAIL"), name = "bl")
+  private int compute_modifyBL(int bl) {
+    if (xray.isActive()) {
+      BlockState state = level.getBlockState(pos);
+      if (!xray.isBlocked(state.getBlock(), pos)) return FULL_LIGHT;
     }
 
-    @ModifyVariable(method = "compute", at = @At(value = "TAIL"), name = "bl")
-    private int compute_modifyBL(int bl) {
-        if (xray.isActive()) {
-            BlockState state = level.getBlockState(pos);
-            if (!xray.isBlocked(state.getBlock(), pos)) return FULL_LIGHT;
-        }
+    return bl;
+  }
 
-        return bl;
-    }
+  // fullbright
 
-    // fullbright
+  @ModifyVariable(method = "compute", at = @At(value = "STORE"), name = "sl")
+  private int compute_assignSL(int sl) {
+    return Math.max(fb.getLuminance(LightLayer.SKY), sl);
+  }
 
-    @ModifyVariable(method = "compute", at = @At(value = "STORE"), name = "sl")
-    private int compute_assignSL(int sl) {
-        return Math.max(fb.getLuminance(LightLayer.SKY), sl);
-    }
-
-    @ModifyVariable(method = "compute", at = @At(value = "STORE"), name = "bl")
-    private int compute_assignBL(int bl) {
-        return Math.max(fb.getLuminance(LightLayer.BLOCK), bl);
-    }
+  @ModifyVariable(method = "compute", at = @At(value = "STORE"), name = "bl")
+  private int compute_assignBL(int bl) {
+    return Math.max(fb.getLuminance(LightLayer.BLOCK), bl);
+  }
 }

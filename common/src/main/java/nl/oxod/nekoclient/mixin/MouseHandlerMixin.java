@@ -26,26 +26,26 @@ import static com.mojang.blaze3d.platform.InputConstants.RELEASE;
 
 @Mixin(MouseHandler.class)
 public abstract class MouseHandlerMixin {
-    @Shadow
-    public abstract double getScaledXPos(Window window);
+  @Shadow
+  public abstract double getScaledXPos(Window window);
 
-    @Shadow
-    public abstract double getScaledYPos(Window window);
+  @Shadow
+  public abstract double getScaledYPos(Window window);
 
-    @Shadow
-    @Final
-    private Minecraft minecraft;
+  @Shadow
+  @Final
+  private Minecraft minecraft;
 
-    @Inject(method = "onButton", at = @At("HEAD"), cancellable = true)
-    private void onMouseButton(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci) {
-        Input.setButtonState(rawButtonInfo.button(), action != RELEASE);
+  @Inject(method = "onButton", at = @At("HEAD"), cancellable = true)
+  private void onMouseButton(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci) {
+    Input.setButtonState(rawButtonInfo.button(), action != RELEASE);
 
-        MouseButtonEvent click = new MouseButtonEvent(getScaledXPos(minecraft.getWindow()), getScaledYPos(minecraft.getWindow()), rawButtonInfo);
-        if (NekoClient.EVENT_BUS.post(MouseClickEvent.get(click, KeyAction.get(action))).isCancelled()) ci.cancel();
-    }
+    MouseButtonEvent click = new MouseButtonEvent(getScaledXPos(minecraft.getWindow()), getScaledYPos(minecraft.getWindow()), rawButtonInfo);
+    if (NekoClient.EVENT_BUS.post(MouseClickEvent.get(click, KeyAction.get(action))).isCancelled()) ci.cancel();
+  }
 
-    @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
-    private void onMouseScroll(long handle, double xoffset, double yoffset, CallbackInfo ci) {
-        if (NekoClient.EVENT_BUS.post(MouseScrollEvent.get(yoffset)).isCancelled()) ci.cancel();
-    }
+  @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
+  private void onMouseScroll(long handle, double xoffset, double yoffset, CallbackInfo ci) {
+    if (NekoClient.EVENT_BUS.post(MouseScrollEvent.get(yoffset)).isCancelled()) ci.cancel();
+  }
 }

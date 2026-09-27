@@ -32,87 +32,87 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(Camera.class)
 public abstract class CameraMixin implements ICamera {
-    @Shadow
-    private boolean detached;
+  @Shadow
+  private boolean detached;
 
-    @Shadow
-    private float yRot;
-    @Shadow
-    private float xRot;
+  @Shadow
+  private float yRot;
+  @Shadow
+  private float xRot;
 
-    @Shadow
-    protected abstract void setRotation(float yRot, float xRot);
+  @Shadow
+  protected abstract void setRotation(float yRot, float xRot);
 
-    @Inject(method = "getFluidInCamera", at = @At("HEAD"), cancellable = true)
-    private void getSubmergedFluidState(CallbackInfoReturnable<FogType> cir) {
-        if (Modules.get().get(NoRender.class).noLiquidOverlay()) cir.setReturnValue(FogType.NONE);
+  @Inject(method = "getFluidInCamera", at = @At("HEAD"), cancellable = true)
+  private void getSubmergedFluidState(CallbackInfoReturnable<FogType> cir) {
+    if (Modules.get().get(NoRender.class).noLiquidOverlay()) cir.setReturnValue(FogType.NONE);
+  }
+
+  @ModifyVariable(method = "getMaxZoom", at = @At("HEAD"), argsOnly = true, name = "cameraDist")
+  private float modifyGetMaxZoom(float cameraDist) {
+    if (Modules.get().get(Freecam.class).isActive()) return 0;
+
+    CameraTweaks cameraTweaks = Modules.get().get(CameraTweaks.class);
+    return cameraTweaks.isActive() ? (float) cameraTweaks.distance : cameraDist;
+  }
+
+  @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)
+  private void onGetMaxZoom(float cameraDist, CallbackInfoReturnable<Float> cir) {
+    if (Modules.get().get(CameraTweaks.class).clip()) {
+      cir.setReturnValue(cameraDist);
     }
+  }
 
-    @ModifyVariable(method = "getMaxZoom", at = @At("HEAD"), argsOnly = true, name = "cameraDist")
-    private float modifyGetMaxZoom(float cameraDist) {
-        if (Modules.get().get(Freecam.class).isActive()) return 0;
-
-        CameraTweaks cameraTweaks = Modules.get().get(CameraTweaks.class);
-        return cameraTweaks.isActive() ? (float) cameraTweaks.distance : cameraDist;
+  @Inject(method = "alignWithEntity", at = @At("TAIL"))
+  private void onAlignWithEntityTail(float partialTicks, CallbackInfo ci) {
+    if (Modules.get().isActive(Freecam.class)) {
+      this.detached = true;
     }
+  }
 
-    @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)
-    private void onGetMaxZoom(float cameraDist, CallbackInfoReturnable<Float> cir) {
-        if (Modules.get().get(CameraTweaks.class).clip()) {
-            cir.setReturnValue(cameraDist);
-        }
+  @ModifyArgs(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
+  private void onAlignSetPosArgs(Args args, @Local(argsOnly = true, name = "partialTicks") float partialTicks) {
+    Freecam freecam = Modules.get().get(Freecam.class);
+
+    if (freecam.isActive()) {
+      args.set(0, freecam.getX(partialTicks));
+      args.set(1, freecam.getY(partialTicks));
+      args.set(2, freecam.getZ(partialTicks));
     }
+  }
 
-    @Inject(method = "alignWithEntity", at = @At("TAIL"))
-    private void onAlignWithEntityTail(float partialTicks, CallbackInfo ci) {
-        if (Modules.get().isActive(Freecam.class)) {
-            this.detached = true;
-        }
+  @ModifyArgs(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V"))
+  private void onAlignSetRotationArgs(Args args, @Local(argsOnly = true, name = "partialTicks") float partialTicks) {
+    Freecam freecam = Modules.get().get(Freecam.class);
+    FreeLook freeLook = Modules.get().get(FreeLook.class);
+
+    if (freecam.isActive()) {
+      args.set(0, (float) freecam.getYaw(partialTicks));
+      args.set(1, (float) freecam.getPitch(partialTicks));
+    } else if (Modules.get().isActive(HighwayBuilder.class)) {
+      args.set(0, yRot);
+      args.set(1, xRot);
+    } else if (freeLook.isActive()) {
+      args.set(0, freeLook.cameraYaw);
+      args.set(1, freeLook.cameraPitch);
     }
+  }
 
-    @ModifyArgs(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
-    private void onAlignSetPosArgs(Args args, @Local(argsOnly = true, name = "partialTicks") float partialTicks) {
-        Freecam freecam = Modules.get().get(Freecam.class);
+  /**
+   * Set as spectator to disable smart culling
+   */
+  @ModifyExpressionValue(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z"))
+  private boolean hookFreeCamDisableSmartCullInBlocks(boolean original) {
+    return original || Modules.get().get(Freecam.class).isActive();
+  }
 
-        if (freecam.isActive()) {
-            args.set(0, freecam.getX(partialTicks));
-            args.set(1, freecam.getY(partialTicks));
-            args.set(2, freecam.getZ(partialTicks));
-        }
-    }
+  @ModifyReturnValue(method = "calculateFov", at = @At("RETURN"))
+  private float modifyFov(float original) {
+    return NekoClient.EVENT_BUS.post(GetFovEvent.get(original)).fov;
+  }
 
-    @ModifyArgs(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setRotation(FF)V"))
-    private void onAlignSetRotationArgs(Args args, @Local(argsOnly = true, name = "partialTicks") float partialTicks) {
-        Freecam freecam = Modules.get().get(Freecam.class);
-        FreeLook freeLook = Modules.get().get(FreeLook.class);
-
-        if (freecam.isActive()) {
-            args.set(0, (float) freecam.getYaw(partialTicks));
-            args.set(1, (float) freecam.getPitch(partialTicks));
-        } else if (Modules.get().isActive(HighwayBuilder.class)) {
-            args.set(0, yRot);
-            args.set(1, xRot);
-        } else if (freeLook.isActive()) {
-            args.set(0, freeLook.cameraYaw);
-            args.set(1, freeLook.cameraPitch);
-        }
-    }
-
-    /**
-     * Set as spectator to disable smart culling
-     */
-    @ModifyExpressionValue(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z"))
-    private boolean hookFreeCamDisableSmartCullInBlocks(boolean original) {
-        return original || Modules.get().get(Freecam.class).isActive();
-    }
-
-    @ModifyReturnValue(method = "calculateFov", at = @At("RETURN"))
-    private float modifyFov(float original) {
-        return NekoClient.EVENT_BUS.post(GetFovEvent.get(original)).fov;
-    }
-
-    @Override
-    public void neko$setRot(double yaw, double pitch) {
-        setRotation((float) yaw, (float) Mth.clamp(pitch, -90, 90));
-    }
+  @Override
+  public void neko$setRot(double yaw, double pitch) {
+    setRotation((float) yaw, (float) Mth.clamp(pitch, -90, 90));
+  }
 }

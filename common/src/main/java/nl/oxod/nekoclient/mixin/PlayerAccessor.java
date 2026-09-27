@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Player.class)
 public interface PlayerAccessor {
-    @Invoker("canPlayerFitWithinBlocksAndEntitiesWhen")
-    boolean neko$canChangeIntoPose(Pose pose);
+  @Invoker("canPlayerFitWithinBlocksAndEntitiesWhen")
+  boolean neko$canChangeIntoPose(Pose pose);
 }

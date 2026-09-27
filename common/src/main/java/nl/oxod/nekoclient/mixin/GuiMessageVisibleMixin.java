@@ -16,55 +16,55 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(GuiMessage.Line.class)
 public abstract class GuiMessageVisibleMixin implements IGuiMessageVisible {
-    @Shadow
-    @Final
-    private FormattedCharSequence content;
-    @Unique
-    private int id;
-    @Unique
-    private GameProfile sender;
-    @Unique
-    private boolean startOfEntry;
+  @Shadow
+  @Final
+  private FormattedCharSequence content;
+  @Unique
+  private int id;
+  @Unique
+  private GameProfile sender;
+  @Unique
+  private boolean startOfEntry;
 
-    @Override
-    public String neko$getText() {
-        StringBuilder sb = new StringBuilder();
+  @Override
+  public String neko$getText() {
+    StringBuilder sb = new StringBuilder();
 
-        content.accept((_, _, codePoint) -> {
-            sb.appendCodePoint(codePoint);
-            return true;
-        });
+    content.accept((_, _, codePoint) -> {
+      sb.appendCodePoint(codePoint);
+      return true;
+    });
 
-        return sb.toString();
-    }
+    return sb.toString();
+  }
 
-    @Override
-    public int neko$getId() {
-        return id;
-    }
+  @Override
+  public int neko$getId() {
+    return id;
+  }
 
-    @Override
-    public void neko$setId(int id) {
-        this.id = id;
-    }
+  @Override
+  public void neko$setId(int id) {
+    this.id = id;
+  }
 
-    @Override
-    public GameProfile neko$getSender() {
-        return sender;
-    }
+  @Override
+  public GameProfile neko$getSender() {
+    return sender;
+  }
 
-    @Override
-    public void neko$setSender(GameProfile profile) {
-        sender = profile;
-    }
+  @Override
+  public void neko$setSender(GameProfile profile) {
+    sender = profile;
+  }
 
-    @Override
-    public boolean neko$isStartOfEntry() {
-        return startOfEntry;
-    }
+  @Override
+  public boolean neko$isStartOfEntry() {
+    return startOfEntry;
+  }
 
-    @Override
-    public void neko$setStartOfEntry(boolean start) {
-        startOfEntry = start;
-    }
+  @Override
+  public void neko$setStartOfEntry(boolean start) {
+    startOfEntry = start;
+  }
 }

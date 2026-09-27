@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(BlockHitResult.class)
 public interface BlockHitResultAccessor {
-    @Mutable
-    @Accessor("direction")
-    void neko$setDirection(Direction direction);
+  @Mutable
+  @Accessor("direction")
+  void neko$setDirection(Direction direction);
 }

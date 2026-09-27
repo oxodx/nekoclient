@@ -9,18 +9,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientBrandRetriever.class)
 public class ProtectorClientBrandRetrieverMixin {
-    @Inject(method = "getClientModName", at = @At("HEAD"), cancellable = true, remap = false)
-    private static void protector$spoofClientBrand(CallbackInfoReturnable<String> cir) {
+  @Inject(method = "getClientModName", at = @At("HEAD"), cancellable = true, remap = false)
+  private static void protector$spoofClientBrand(CallbackInfoReturnable<String> cir) {
 
-        if (Protector.isFullExternalProtectorPresent()) return;
+    if (Protector.isFullExternalProtectorPresent()) return;
 
-        if (Protector.isVanillaMode()) {
-            cir.setReturnValue("vanilla");
-            return;
-        }
-
-        if (Protector.shouldSpoofBrand()) {
-            cir.setReturnValue(Protector.getEffectiveBrand());
-        }
+    if (Protector.isVanillaMode()) {
+      cir.setReturnValue("vanilla");
+      return;
     }
+
+    if (Protector.shouldSpoofBrand()) {
+      cir.setReturnValue(Protector.getEffectiveBrand());
+    }
+  }
 }

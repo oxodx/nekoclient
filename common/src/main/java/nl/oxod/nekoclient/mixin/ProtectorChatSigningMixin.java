@@ -13,15 +13,15 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ClientPacketListener.class)
 public abstract class ProtectorChatSigningMixin {
 
-    @WrapOperation(
-        method = "sendChat",
-        at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/network/chat/SignedMessageChain$Encoder;pack(Lnet/minecraft/network/chat/SignedMessageBody;)Lnet/minecraft/network/chat/MessageSignature;")
-    )
-    private MessageSignature protector$skipSigning(SignedMessageChain.Encoder encoder,
-                                                   SignedMessageBody body,
-                                                   Operation<MessageSignature> original) {
-        if (Protector.shouldSkipChatSigning()) return null;
-        return original.call(encoder, body);
-    }
+  @WrapOperation(
+    method = "sendChat",
+    at = @At(value = "INVOKE",
+      target = "Lnet/minecraft/network/chat/SignedMessageChain$Encoder;pack(Lnet/minecraft/network/chat/SignedMessageBody;)Lnet/minecraft/network/chat/MessageSignature;")
+  )
+  private MessageSignature protector$skipSigning(SignedMessageChain.Encoder encoder,
+                                                 SignedMessageBody body,
+                                                 Operation<MessageSignature> original) {
+    if (Protector.shouldSkipChatSigning()) return null;
+    return original.call(encoder, body);
+  }
 }

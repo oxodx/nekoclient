@@ -26,21 +26,21 @@ import java.util.function.Consumer;
 
 @Mixin(ItemContainerContents.class)
 public abstract class ItemContainerContentsMixin {
-    @Shadow
-    @Final
-    private List<Optional<ItemStackTemplate>> items;
+  @Shadow
+  @Final
+  private List<Optional<ItemStackTemplate>> items;
 
-    @Inject(method = "addToTooltip", at = @At("HEAD"), cancellable = true)
-    private void onAddToTooltip(Item.TooltipContext context, Consumer<Component> consumer, TooltipFlag flag, DataComponentGetter components, CallbackInfo ci) {
-        if (Modules.get() == null) return;
+  @Inject(method = "addToTooltip", at = @At("HEAD"), cancellable = true)
+  private void onAddToTooltip(Item.TooltipContext context, Consumer<Component> consumer, TooltipFlag flag, DataComponentGetter components, CallbackInfo ci) {
+    if (Modules.get() == null) return;
 
-        BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
-        if (tooltips.isActive()) {
-            if (tooltips.previewShulkers()) ci.cancel();
-            else if (tooltips.shulkerCompactTooltip()) {
-                ci.cancel();
-                tooltips.applyCompactShulkerTooltip(items, consumer);
-            }
-        }
+    BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
+    if (tooltips.isActive()) {
+      if (tooltips.previewShulkers()) ci.cancel();
+      else if (tooltips.shulkerCompactTooltip()) {
+        ci.cancel();
+        tooltips.applyCompactShulkerTooltip(items, consumer);
+      }
     }
+  }
 }

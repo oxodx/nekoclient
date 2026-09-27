@@ -13,19 +13,19 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Slot.class)
 public abstract class SlotMixin implements ISlot {
-    @Shadow
-    public int index;
-    @Shadow
-    @Final
-    private int slot;
+  @Shadow
+  public int index;
+  @Shadow
+  @Final
+  private int slot;
 
-    @Override
-    public int neko$getIndex() {
-        return index;
-    }
+  @Override
+  public int neko$getIndex() {
+    return index;
+  }
 
-    @Override
-    public int neko$getSlot() {
-        return slot;
-    }
+  @Override
+  public int neko$getSlot() {
+    return slot;
+  }
 }

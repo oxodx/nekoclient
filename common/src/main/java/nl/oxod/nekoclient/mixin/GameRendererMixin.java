@@ -51,122 +51,122 @@ import java.util.List;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin {
-    @Shadow
-    @Final
-    private Minecraft minecraft;
+  @Shadow
+  @Final
+  private Minecraft minecraft;
 
-    @Shadow
-    @Final
-    private Camera mainCamera;
+  @Shadow
+  @Final
+  private Camera mainCamera;
 
-    @Unique
-    private Renderer3D renderer;
+  @Unique
+  private Renderer3D renderer;
 
-    @Unique
-    private Renderer3D depthRenderer;
+  @Unique
+  private Renderer3D depthRenderer;
 
-    @Unique
-    private final PoseStack matrices = new PoseStack();
+  @Unique
+  private final PoseStack matrices = new PoseStack();
 
-    @Shadow
-    protected abstract void bobView(final CameraRenderState cameraState, final PoseStack poseStack);
+  @Shadow
+  protected abstract void bobView(final CameraRenderState cameraState, final PoseStack poseStack);
 
-    @Shadow
-    protected abstract void bobHurt(final CameraRenderState cameraState, final PoseStack poseStack);
+  @Shadow
+  protected abstract void bobHurt(final CameraRenderState cameraState, final PoseStack poseStack);
 
-    @Shadow
-    @Final
-    private RenderBuffers renderBuffers;
+  @Shadow
+  @Final
+  private RenderBuffers renderBuffers;
 
-    @Shadow
-    @Final
-    private GameRenderState gameRenderState;
+  @Shadow
+  @Final
+  private GameRenderState gameRenderState;
 
-    // The vanilla GuiRenderer constructor takes a plain list of renderers on Fabric, but
-    // NeoForge replaces it with a list of PictureInPictureRendererRegistration factories and casts
-    // every element, so appending our own renderer there would throw a ClassCastException during
-    // GameRenderer construction. The banner renderer therefore only goes in on Fabric, where the
-    // vanilla element type is the one the constructor expects.
-    @ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;<init>(Lnet/minecraft/client/renderer/state/gui/GuiRenderState;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;Ljava/util/List;)V"))
-    private List<PictureInPictureRenderer<?>> neko$addSpecialRenderers(List<PictureInPictureRenderer<?>> list) {
-        if (!LoaderDetection.isFabric()) return list;
+  // The vanilla GuiRenderer constructor takes a plain list of renderers on Fabric, but
+  // NeoForge replaces it with a list of PictureInPictureRendererRegistration factories and casts
+  // every element, so appending our own renderer there would throw a ClassCastException during
+  // GameRenderer construction. The banner renderer therefore only goes in on Fabric, where the
+  // vanilla element type is the one the constructor expects.
+  @ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;<init>(Lnet/minecraft/client/renderer/state/gui/GuiRenderState;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;Ljava/util/List;)V"))
+  private List<PictureInPictureRenderer<?>> neko$addSpecialRenderers(List<PictureInPictureRenderer<?>> list) {
+    if (!LoaderDetection.isFabric()) return list;
 
-        List<PictureInPictureRenderer<?>> result = new ArrayList<>(list.size() + 1);
-        result.addAll(list);
-        result.add(new CustomBannerGuiElementRenderer(minecraft.getAtlasManager()));
-        return result;
+    List<PictureInPictureRenderer<?>> result = new ArrayList<>(list.size() + 1);
+    result.addAll(list);
+    result.add(new CustomBannerGuiElementRenderer(minecraft.getAtlasManager()));
+    return result;
+  }
+
+  @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = "ldc=hand"))
+  private void onRenderLevel(DeltaTracker deltaTracker, CallbackInfo ci, @Local(name = "projectionMatrix") Matrix4f projectionMatrix, @Local(name = "modelViewMatrix") Matrix4fc modelViewMatrix, @Local(name = "worldPartialTicks") float worldPartialTicks, @Local(name = "bobStack") PoseStack bobStack) {
+    if (!Utils.canUpdate()) return;
+
+    Profiler.get().push(NekoClient.MOD_ID + "_render");
+
+    // Create renderer and event
+
+    if (renderer == null)
+      renderer = new Renderer3D(NekoRenderPipelines.WORLD_COLORED_LINES, NekoRenderPipelines.WORLD_COLORED);
+    if (depthRenderer == null)
+      depthRenderer = new Renderer3D(NekoRenderPipelines.WORLD_COLORED_LINES_DEPTH, NekoRenderPipelines.WORLD_COLORED_DEPTH);
+    Render3DEvent event = Render3DEvent.get(bobStack, renderer, depthRenderer, worldPartialTicks, mainCamera.position().x, mainCamera.position().y, mainCamera.position().z);
+
+    // Update model view matrix
+
+    RenderSystem.getModelViewStack().pushMatrix().mul(modelViewMatrix);
+
+    matrices.pushPose();
+    bobHurt(this.gameRenderState.levelRenderState.cameraRenderState, matrices);
+    if (minecraft.options.bobView().get()) {
+      bobView(this.gameRenderState.levelRenderState.cameraRenderState, matrices);
     }
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = "ldc=hand"))
-    private void onRenderLevel(DeltaTracker deltaTracker, CallbackInfo ci, @Local(name = "projectionMatrix") Matrix4f projectionMatrix, @Local(name = "modelViewMatrix") Matrix4fc modelViewMatrix, @Local(name = "worldPartialTicks") float worldPartialTicks, @Local(name = "bobStack") PoseStack bobStack) {
-        if (!Utils.canUpdate()) return;
+    Matrix4f inverseBob = new Matrix4f(matrices.last().pose()).invert();
+    RenderSystem.getModelViewStack().mul(inverseBob);
+    matrices.popPose();
 
-        Profiler.get().push(NekoClient.MOD_ID + "_render");
+    // Call utility classes (apply bob correction when Iris shaders are active)
 
-        // Create renderer and event
+    Matrix4fc correctedPosition = MixinPlugin.isIrisPresent && RenderUtils.isShaderPackInUse() ? new Matrix4f(modelViewMatrix).mul(inverseBob) : modelViewMatrix;
+    RenderUtils.updateScreenCenter(projectionMatrix, correctedPosition);
+    NametagUtils.onRender(modelViewMatrix);
 
-        if (renderer == null)
-            renderer = new Renderer3D(NekoRenderPipelines.WORLD_COLORED_LINES, NekoRenderPipelines.WORLD_COLORED);
-        if (depthRenderer == null)
-            depthRenderer = new Renderer3D(NekoRenderPipelines.WORLD_COLORED_LINES_DEPTH, NekoRenderPipelines.WORLD_COLORED_DEPTH);
-        Render3DEvent event = Render3DEvent.get(bobStack, renderer, depthRenderer, worldPartialTicks, mainCamera.position().x, mainCamera.position().y, mainCamera.position().z);
+    // Render
 
-        // Update model view matrix
+    renderer.begin();
+    depthRenderer.begin();
+    NekoClient.EVENT_BUS.post(event);
+    renderer.render(bobStack);
+    depthRenderer.render(bobStack);
 
-        RenderSystem.getModelViewStack().pushMatrix().mul(modelViewMatrix);
+    // Revert model view matrix
 
-        matrices.pushPose();
-        bobHurt(this.gameRenderState.levelRenderState.cameraRenderState, matrices);
-        if (minecraft.options.bobView().get()) {
-            bobView(this.gameRenderState.levelRenderState.cameraRenderState, matrices);
-        }
+    RenderSystem.getModelViewStack().popMatrix();
 
-        Matrix4f inverseBob = new Matrix4f(matrices.last().pose()).invert();
-        RenderSystem.getModelViewStack().mul(inverseBob);
-        matrices.popPose();
+    Profiler.get().pop();
+  }
 
-        // Call utility classes (apply bob correction when Iris shaders are active)
+  @Inject(method = "renderLevel", at = @At("TAIL"))
+  private void onRenderLevelTail(CallbackInfo ci) {
+    NekoClient.EVENT_BUS.post(RenderAfterWorldEvent.get());
+  }
 
-        Matrix4fc correctedPosition = MixinPlugin.isIrisPresent && RenderUtils.isShaderPackInUse() ? new Matrix4f(modelViewMatrix).mul(inverseBob) : modelViewMatrix;
-        RenderUtils.updateScreenCenter(projectionMatrix, correctedPosition);
-        NametagUtils.onRender(modelViewMatrix);
-
-        // Render
-
-        renderer.begin();
-        depthRenderer.begin();
-        NekoClient.EVENT_BUS.post(event);
-        renderer.render(bobStack);
-        depthRenderer.render(bobStack);
-
-        // Revert model view matrix
-
-        RenderSystem.getModelViewStack().popMatrix();
-
-        Profiler.get().pop();
+  @Inject(method = "displayItemActivation", at = @At("HEAD"), cancellable = true)
+  private void onDisplayItemActivation(ItemStack itemStack, CallbackInfo ci) {
+    if (itemStack.getItem() == Items.TOTEM_OF_UNDYING && Modules.get().get(NoRender.class).noTotemAnimation()) {
+      ci.cancel();
     }
+  }
 
-    @Inject(method = "renderLevel", at = @At("TAIL"))
-    private void onRenderLevelTail(CallbackInfo ci) {
-        NekoClient.EVENT_BUS.post(RenderAfterWorldEvent.get());
-    }
+  @ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(FF)F", ordinal = 0))
+  private float applyCameraTransformationsMathHelperLerpProxy(float original) {
+    return Modules.get().get(NoRender.class).noNausea() ? 0 : original;
+  }
 
-    @Inject(method = "displayItemActivation", at = @At("HEAD"), cancellable = true)
-    private void onDisplayItemActivation(ItemStack itemStack, CallbackInfo ci) {
-        if (itemStack.getItem() == Items.TOTEM_OF_UNDYING && Modules.get().get(NoRender.class).noTotemAnimation()) {
-            ci.cancel();
-        }
+  @Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
+  private void renderItemInHand(CameraRenderState cameraState, float deltaPartialTick, Matrix4fc modelViewMatrix, CallbackInfo ci) {
+    if (!Modules.get().get(Freecam.class).renderHands() || !Modules.get().get(Zoom.class).renderHands()) {
+      ci.cancel();
     }
-
-    @ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(FF)F", ordinal = 0))
-    private float applyCameraTransformationsMathHelperLerpProxy(float original) {
-        return Modules.get().get(NoRender.class).noNausea() ? 0 : original;
-    }
-
-    @Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
-    private void renderItemInHand(CameraRenderState cameraState, float deltaPartialTick, Matrix4fc modelViewMatrix, CallbackInfo ci) {
-        if (!Modules.get().get(Freecam.class).renderHands() || !Modules.get().get(Zoom.class).renderHands()) {
-            ci.cancel();
-        }
-    }
+  }
 }

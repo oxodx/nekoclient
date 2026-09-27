@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(MapTextureManager.class)
 public interface MapTextureManagerAccessor {
-    @Invoker("getOrCreateMapInstance")
-    MapTextureManager.MapInstance neko$invokeGetOrCreateMapInstance(MapId id, MapItemSavedData state);
+  @Invoker("getOrCreateMapInstance")
+  MapTextureManager.MapInstance neko$invokeGetOrCreateMapInstance(MapId id, MapItemSavedData state);
 }

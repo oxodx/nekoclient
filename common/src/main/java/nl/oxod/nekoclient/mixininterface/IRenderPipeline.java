@@ -6,7 +6,7 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IRenderPipeline {
-    void neko$setLineSmooth(boolean lineSmooth);
+  void neko$setLineSmooth(boolean lineSmooth);
 
-    boolean neko$getLineSmooth();
+  boolean neko$getLineSmooth();
 }

@@ -24,55 +24,55 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public interface MinecraftAccessor {
-    @Accessor("fps")
-    static int neko$getFps() {
-        return 0;
-    }
+  @Accessor("fps")
+  static int neko$getFps() {
+    return 0;
+  }
 
-    @Mutable
-    @Accessor("user")
-    void neko$setUser(User session);
+  @Mutable
+  @Accessor("user")
+  void neko$setUser(User session);
 
-    @Accessor("reloadStateTracker")
-    ResourceLoadStateTracker neko$getReloadStateTracker();
+  @Accessor("reloadStateTracker")
+  ResourceLoadStateTracker neko$getReloadStateTracker();
 
-    @Accessor("missTime")
-    int neko$getMissTime();
+  @Accessor("missTime")
+  int neko$getMissTime();
 
-    @Accessor("missTime")
-    void neko$setMissTime(int attackCooldown);
+  @Accessor("missTime")
+  void neko$setMissTime(int attackCooldown);
 
-    @Invoker("startAttack")
-    boolean neko$leftClick();
+  @Invoker("startAttack")
+  boolean neko$leftClick();
 
-    @Mutable
-    @Accessor("profileKeyPairManager")
-    void neko$setProfileKeyPairManager(ProfileKeyPairManager keys);
+  @Mutable
+  @Accessor("profileKeyPairManager")
+  void neko$setProfileKeyPairManager(ProfileKeyPairManager keys);
 
-    @Mutable
-    @Accessor("userApiService")
-    void neko$setUserApiService(UserApiService apiService);
+  @Mutable
+  @Accessor("userApiService")
+  void neko$setUserApiService(UserApiService apiService);
 
-    @Mutable
-    @Accessor("skinManager")
-    void neko$setSkinManager(SkinManager skinProvider);
+  @Mutable
+  @Accessor("skinManager")
+  void neko$setSkinManager(SkinManager skinProvider);
 
-    @Mutable
-    @Accessor("playerSocialManager")
-    void neko$setPlayerSocialManager(PlayerSocialManager socialInteractionsManager);
+  @Mutable
+  @Accessor("playerSocialManager")
+  void neko$setPlayerSocialManager(PlayerSocialManager socialInteractionsManager);
 
-    @Mutable
-    @Accessor("reportingContext")
-    void neko$setReportingContext(ReportingContext abuseReportContext);
+  @Mutable
+  @Accessor("reportingContext")
+  void neko$setReportingContext(ReportingContext abuseReportContext);
 
-    @Mutable
-    @Accessor("profileFuture")
-    void neko$setProfileFuture(CompletableFuture<ProfileResult> future);
+  @Mutable
+  @Accessor("profileFuture")
+  void neko$setProfileFuture(CompletableFuture<ProfileResult> future);
 
-    @Mutable
-    @Accessor("services")
-    void neko$setServices(Services apiServices);
+  @Mutable
+  @Accessor("services")
+  void neko$setServices(Services apiServices);
 
-    @Invoker("handleKeybinds")
-    void neko$handleInputEvents();
+  @Invoker("handleKeybinds")
+  void neko$handleInputEvents();
 }

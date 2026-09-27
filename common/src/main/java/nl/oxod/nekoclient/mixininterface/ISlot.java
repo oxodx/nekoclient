@@ -6,7 +6,7 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface ISlot {
-    int neko$getIndex();
+  int neko$getIndex();
 
-    int neko$getSlot();
+  int neko$getSlot();
 }

@@ -21,8 +21,8 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(SlimeBlock.class)
 public abstract class SlimeBlockMixin {
-    @Inject(method = "stepOn", at = @At("HEAD"), cancellable = true)
-    private void onStepOn(Level level, BlockPos pos, BlockState onState, Entity entity, CallbackInfo ci) {
-        if (Modules.get().get(NoSlow.class).slimeBlock() && entity == mc.player) ci.cancel();
-    }
+  @Inject(method = "stepOn", at = @At("HEAD"), cancellable = true)
+  private void onStepOn(Level level, BlockPos pos, BlockState onState, Entity entity, CallbackInfo ci) {
+    if (Modules.get().get(NoSlow.class).slimeBlock() && entity == mc.player) ci.cancel();
+  }
 }

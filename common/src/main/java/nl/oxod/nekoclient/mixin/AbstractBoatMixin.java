@@ -15,17 +15,17 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(AbstractBoat.class)
 public abstract class AbstractBoatMixin {
-    @ModifyExpressionValue(method = "controlBoat", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;inputLeft:Z", opcode = Opcodes.GETFIELD))
-    private boolean modifyPressingLeft(boolean original) {
-        if (Modules.get().isActive(EntityControl.class) && Modules.get().get(EntityControl.class).lockYaw.get())
-            return false;
-        return original;
-    }
+  @ModifyExpressionValue(method = "controlBoat", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;inputLeft:Z", opcode = Opcodes.GETFIELD))
+  private boolean modifyPressingLeft(boolean original) {
+    if (Modules.get().isActive(EntityControl.class) && Modules.get().get(EntityControl.class).lockYaw.get())
+      return false;
+    return original;
+  }
 
-    @ModifyExpressionValue(method = "controlBoat", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;inputRight:Z", opcode = Opcodes.GETFIELD))
-    private boolean modifyPressingRight(boolean original) {
-        if (Modules.get().isActive(EntityControl.class) && Modules.get().get(EntityControl.class).lockYaw.get())
-            return false;
-        return original;
-    }
+  @ModifyExpressionValue(method = "controlBoat", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/vehicle/boat/AbstractBoat;inputRight:Z", opcode = Opcodes.GETFIELD))
+  private boolean modifyPressingRight(boolean original) {
+    if (Modules.get().isActive(EntityControl.class) && Modules.get().get(EntityControl.class).lockYaw.get())
+      return false;
+    return original;
+  }
 }

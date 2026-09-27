@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Entity.class)
 public interface EntityAccessor {
-    @Accessor("wasTouchingWater")
-    void neko$setInWater(boolean touchingWater);
+  @Accessor("wasTouchingWater")
+  void neko$setInWater(boolean touchingWater);
 
-    @Accessor("id")
-    int neko$getId();
+  @Accessor("id")
+  int neko$getId();
 
-    @Accessor("id")
-    void neko$setId(int id);
+  @Accessor("id")
+  void neko$setId(int id);
 }

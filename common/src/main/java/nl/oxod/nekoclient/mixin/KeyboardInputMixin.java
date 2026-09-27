@@ -18,17 +18,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(KeyboardInput.class)
 public abstract class KeyboardInputMixin extends ClientInput {
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void isPressed(CallbackInfo ci) {
-        if (Modules.get().get(Sneak.class).doVanilla() || Modules.get().get(Freecam.class).staySneaking())
-            keyPresses = new Input(
-                keyPresses.forward(),
-                keyPresses.backward(),
-                keyPresses.left(),
-                keyPresses.right(),
-                keyPresses.jump(),
-                true,
-                keyPresses.sprint()
-            );
-    }
+  @Inject(method = "tick", at = @At("TAIL"))
+  private void isPressed(CallbackInfo ci) {
+    if (Modules.get().get(Sneak.class).doVanilla() || Modules.get().get(Freecam.class).staySneaking())
+      keyPresses = new Input(
+        keyPresses.forward(),
+        keyPresses.backward(),
+        keyPresses.left(),
+        keyPresses.right(),
+        keyPresses.jump(),
+        true,
+        keyPresses.sprint()
+      );
+  }
 }

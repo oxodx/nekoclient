@@ -9,12 +9,12 @@ import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.gui.themes.catppuccin.CatppuccinWidget;
 
 public class WCatppuccinFavorite extends WFavorite implements CatppuccinWidget {
-    public WCatppuccinFavorite(boolean checked) {
-        super(checked);
-    }
+  public WCatppuccinFavorite(boolean checked) {
+    super(checked);
+  }
 
-    @Override
-    protected Color getColor() {
-        return theme().yellowColor();
-    }
+  @Override
+  protected Color getColor() {
+    return theme().yellowColor();
+  }
 }

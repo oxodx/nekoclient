@@ -8,5 +8,5 @@ package nl.oxod.nekoclient.mixininterface;
 import net.minecraft.world.item.ItemStack;
 
 public interface IAbstractFurnaceMenu {
-    boolean neko$canSmelt(ItemStack itemStack);
+  boolean neko$canSmelt(ItemStack itemStack);
 }

@@ -23,20 +23,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Lightmap.class)
 public abstract class LightmapMixin {
-    @Shadow
-    @Final
-    private GpuTexture texture;
+  @Shadow
+  @Final
+  private GpuTexture texture;
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void render$fullbright(LightmapRenderState renderState, CallbackInfo ci) {
-        if (Modules.get().get(Fullbright.class).getGamma() || Modules.get().isActive(Xray.class)) {
-            var profile = Profiler.get();
-            profile.push("lightmap");
+  @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+  private void render$fullbright(LightmapRenderState renderState, CallbackInfo ci) {
+    if (Modules.get().get(Fullbright.class).getGamma() || Modules.get().isActive(Xray.class)) {
+      var profile = Profiler.get();
+      profile.push("lightmap");
 
-            RenderSystem.getDevice().createCommandEncoder().clearColorTexture(texture, new Vector4f(1));
+      RenderSystem.getDevice().createCommandEncoder().clearColorTexture(texture, new Vector4f(1));
 
-            profile.pop();
-            ci.cancel();
-        }
+      profile.pop();
+      ci.cancel();
     }
+  }
 }

@@ -22,8 +22,8 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(WebBlock.class)
 public abstract class WebBlockMixin {
-    @Inject(method = "entityInside", at = @At("HEAD"), cancellable = true)
-    private void onEntityCollision(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise, CallbackInfo ci) {
-        if (entity == mc.player && Modules.get().get(NoSlow.class).cobweb()) ci.cancel();
-    }
+  @Inject(method = "entityInside", at = @At("HEAD"), cancellable = true)
+  private void onEntityCollision(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise, CallbackInfo ci) {
+    if (entity == mc.player && Modules.get().get(NoSlow.class).cobweb()) ci.cancel();
+  }
 }

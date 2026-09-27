@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(CrossbowItem.class)
 public interface CrossbowItemAccessor {
-    @Invoker("getShootingPower")
-    static float neko$getSpeed(ChargedProjectiles itemStack) {
-        return 0;
-    }
+  @Invoker("getShootingPower")
+  static float neko$getSpeed(ChargedProjectiles itemStack) {
+    return 0;
+  }
 }

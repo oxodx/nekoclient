@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(FishingHook.class)
 public interface FishingHookAccessor {
-    @Accessor("biting")
-    boolean neko$hasCaughtFish();
+  @Accessor("biting")
+  boolean neko$hasCaughtFish();
 }

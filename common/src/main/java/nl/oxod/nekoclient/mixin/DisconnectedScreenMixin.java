@@ -26,59 +26,59 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(DisconnectedScreen.class)
 public abstract class DisconnectedScreenMixin extends Screen {
-    @Shadow
-    @Final
-    private LinearLayout layout;
-    @Unique
-    private Button reconnectBtn;
-    @Unique
-    private double time = Modules.get().get(AutoReconnect.class).time.get() * 20;
+  @Shadow
+  @Final
+  private LinearLayout layout;
+  @Unique
+  private Button reconnectBtn;
+  @Unique
+  private double time = Modules.get().get(AutoReconnect.class).time.get() * 20;
 
-    protected DisconnectedScreenMixin(Component title) {
-        super(title);
+  protected DisconnectedScreenMixin(Component title) {
+    super(title);
+  }
+
+  @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;arrangeElements()V", shift = At.Shift.BEFORE))
+  private void addButtons(CallbackInfo ci) {
+    AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
+
+    if (autoReconnect.lastServerConnection != null && !autoReconnect.button.get()) {
+      reconnectBtn = new Button.Builder(Component.literal(getText()), _ -> tryConnecting()).build();
+      layout.addChild(reconnectBtn);
+
+      layout.addChild(
+        new Button.Builder(Component.literal("Toggle Auto Reconnect"), _ -> {
+          autoReconnect.toggle();
+          reconnectBtn.setMessage(Component.literal(getText()));
+          time = autoReconnect.time.get() * 20;
+        }).build()
+      );
     }
+  }
 
-    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;arrangeElements()V", shift = At.Shift.BEFORE))
-    private void addButtons(CallbackInfo ci) {
-        AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
+  @Override
+  public void tick() {
+    AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
+    if (!autoReconnect.isActive() || autoReconnect.lastServerConnection == null) return;
 
-        if (autoReconnect.lastServerConnection != null && !autoReconnect.button.get()) {
-            reconnectBtn = new Button.Builder(Component.literal(getText()), _ -> tryConnecting()).build();
-            layout.addChild(reconnectBtn);
-
-            layout.addChild(
-                new Button.Builder(Component.literal("Toggle Auto Reconnect"), _ -> {
-                    autoReconnect.toggle();
-                    reconnectBtn.setMessage(Component.literal(getText()));
-                    time = autoReconnect.time.get() * 20;
-                }).build()
-            );
-        }
+    if (time <= 0) {
+      tryConnecting();
+    } else {
+      time -= 1;
+      if (reconnectBtn != null) reconnectBtn.setMessage(Component.literal(getText()));
     }
+  }
 
-    @Override
-    public void tick() {
-        AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
-        if (!autoReconnect.isActive() || autoReconnect.lastServerConnection == null) return;
+  @Unique
+  private String getText() {
+    String reconnectText = "Reconnect";
+    if (Modules.get().isActive(AutoReconnect.class)) reconnectText += " " + String.format("(%.1f)", time / 20);
+    return reconnectText;
+  }
 
-        if (time <= 0) {
-            tryConnecting();
-        } else {
-            time -= 1;
-            if (reconnectBtn != null) reconnectBtn.setMessage(Component.literal(getText()));
-        }
-    }
-
-    @Unique
-    private String getText() {
-        String reconnectText = "Reconnect";
-        if (Modules.get().isActive(AutoReconnect.class)) reconnectText += " " + String.format("(%.1f)", time / 20);
-        return reconnectText;
-    }
-
-    @Unique
-    private void tryConnecting() {
-        var lastServer = Modules.get().get(AutoReconnect.class).lastServerConnection;
-        ConnectScreen.startConnecting(new TitleScreen(), mc, lastServer.left(), lastServer.right(), false, null);
-    }
+  @Unique
+  private void tryConnecting() {
+    var lastServer = Modules.get().get(AutoReconnect.class).lastServerConnection;
+    ConnectScreen.startConnecting(new TitleScreen(), mc, lastServer.left(), lastServer.right(), false, null);
+  }
 }

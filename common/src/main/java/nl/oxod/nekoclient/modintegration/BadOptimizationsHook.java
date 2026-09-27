@@ -17,16 +17,16 @@ import java.util.function.BooleanSupplier;
  */
 @SuppressWarnings("unused") // Used in fabric.mod.json
 public class BadOptimizationsHook implements BooleanSupplier {
-    private int lastState;
+  private int lastState;
 
-    @Override
-    public boolean getAsBoolean() {
-        Modules m = Modules.get();
-        if (m == null) return false;
+  @Override
+  public boolean getAsBoolean() {
+    Modules m = Modules.get();
+    if (m == null) return false;
 
-        int state = (m.get(Fullbright.class).getGamma() ? 1 : 0) | (m.isActive(Xray.class) ? 2 : 0);
-        boolean changed = state != lastState;
-        lastState = state;
-        return changed;
-    }
+    int state = (m.get(Fullbright.class).getGamma() ? 1 : 0) | (m.isActive(Xray.class) ? 2 : 0);
+    boolean changed = state != lastState;
+    lastState = state;
+    return changed;
+  }
 }

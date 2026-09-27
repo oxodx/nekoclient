@@ -6,5 +6,5 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IMultiPlayerGameMode {
-    void neko$syncSelected();
+  void neko$syncSelected();
 }

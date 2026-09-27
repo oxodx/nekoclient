@@ -6,9 +6,9 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface IClientboundExplodePacket {
-    void neko$setVelocityX(float velocity);
+  void neko$setVelocityX(float velocity);
 
-    void neko$setVelocityY(float velocity);
+  void neko$setVelocityY(float velocity);
 
-    void neko$setVelocityZ(float velocity);
+  void neko$setVelocityZ(float velocity);
 }

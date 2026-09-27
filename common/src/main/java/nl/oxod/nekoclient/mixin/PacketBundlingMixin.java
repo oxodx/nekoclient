@@ -16,9 +16,9 @@ import org.spongepowered.asm.mixin.injection.At;
  */
 @Mixin(targets = "net/minecraft/network/protocol/BundlerInfo$1$1")
 public abstract class PacketBundlingMixin {
-    @ModifyExpressionValue(method = "addPacket", at = @At(value = "CONSTANT", args = "intValue=4096"))
-    private int add(int value) {
-        if (Modules.get().get(AntiPacketKick.class).isActive()) return Integer.MAX_VALUE;
-        return value;
-    }
+  @ModifyExpressionValue(method = "addPacket", at = @At(value = "CONSTANT", args = "intValue=4096"))
+  private int add(int value) {
+    if (Modules.get().get(AntiPacketKick.class).isActive()) return Integer.MAX_VALUE;
+    return value;
+  }
 }

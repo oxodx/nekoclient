@@ -8,5 +8,5 @@ package nl.oxod.nekoclient.mixininterface;
 import net.minecraft.network.chat.Component;
 
 public interface IChatHud {
-    void neko$add(Component message, int id);
+  void neko$add(Component message, int id);
 }

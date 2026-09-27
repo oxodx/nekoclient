@@ -24,36 +24,36 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Block.class)
 public abstract class BlockMixin extends BlockBehaviour implements ItemLike {
-    public BlockMixin(Properties properties) {
-        super(properties);
+  public BlockMixin(Properties properties) {
+    super(properties);
+  }
+
+  @ModifyReturnValue(method = "getFriction", at = @At("RETURN"))
+  public float getFriction(float original) {
+    // Tweakeroo calls this method before NekoClient is initialized
+    if (Modules.get() == null) return original;
+
+    Slippy slippy = Modules.get().get(Slippy.class);
+    Block block = (Block) (Object) this;
+
+    boolean blockInList = (slippy.listMode.get() == ListMode.Whitelist ? slippy.allowedBlocks.get() : slippy.ignoredBlocks.get()).contains(block);
+    if (slippy.isActive() && slippy.listMode.get().allows(blockInList)) {
+      return slippy.friction.get().floatValue();
     }
 
-    @ModifyReturnValue(method = "getFriction", at = @At("RETURN"))
-    public float getFriction(float original) {
-        // Tweakeroo calls this method before NekoClient is initialized
-        if (Modules.get() == null) return original;
+    if (block == Blocks.SLIME_BLOCK && Modules.get().get(NoSlow.class).slimeBlock()) return 0.6F;
+    else return original;
+  }
 
-        Slippy slippy = Modules.get().get(Slippy.class);
-        Block block = (Block) (Object) this;
+  // For More Culling compatibility - runs before More Culling's inject to force-render whitelisted Xray blocks
+  @Inject(method = "shouldRenderFace", at = @At("HEAD"), cancellable = true)
+  private static void neko$forceXrayFace(BlockState state, BlockState neighborState, Direction direction, CallbackInfoReturnable<Boolean> cir) {
+    Modules modules = Modules.get();
+    if (modules == null) return;
 
-        boolean blockInList = (slippy.listMode.get() == ListMode.Whitelist ? slippy.allowedBlocks.get() : slippy.ignoredBlocks.get()).contains(block);
-        if (slippy.isActive() && slippy.listMode.get().allows(blockInList)) {
-            return slippy.friction.get().floatValue();
-        }
-
-        if (block == Blocks.SLIME_BLOCK && Modules.get().get(NoSlow.class).slimeBlock()) return 0.6F;
-        else return original;
+    Xray xray = modules.get(Xray.class);
+    if (xray.isActive() && !xray.isBlocked(state.getBlock(), null)) {
+      cir.setReturnValue(true);
     }
-
-    // For More Culling compatibility - runs before More Culling's inject to force-render whitelisted Xray blocks
-    @Inject(method = "shouldRenderFace", at = @At("HEAD"), cancellable = true)
-    private static void neko$forceXrayFace(BlockState state, BlockState neighborState, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-        Modules modules = Modules.get();
-        if (modules == null) return;
-
-        Xray xray = modules.get(Xray.class);
-        if (xray.isActive() && !xray.isBlocked(state.getBlock(), null)) {
-            cir.setReturnValue(true);
-        }
-    }
+  }
 }

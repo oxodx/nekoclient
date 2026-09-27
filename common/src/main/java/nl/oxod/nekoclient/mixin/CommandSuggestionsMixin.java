@@ -28,51 +28,51 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(CommandSuggestions.class)
 public abstract class CommandSuggestionsMixin {
-    @Shadow
-    private @Nullable ParseResults<ClientSuggestionProvider> currentParse;
+  @Shadow
+  private @Nullable ParseResults<ClientSuggestionProvider> currentParse;
 
-    @Shadow
-    @Final
-    private EditBox input;
+  @Shadow
+  @Final
+  private EditBox input;
 
-    @Shadow
-    private CommandSuggestions.SuggestionsList suggestions;
+  @Shadow
+  private CommandSuggestions.SuggestionsList suggestions;
 
-    @Shadow
-    private boolean keepSuggestions;
+  @Shadow
+  private boolean keepSuggestions;
 
-    @Shadow
-    private @Nullable CompletableFuture<Suggestions> pendingSuggestions;
+  @Shadow
+  private @Nullable CompletableFuture<Suggestions> pendingSuggestions;
 
-    @Shadow
-    protected abstract void updateUsageInfo(ParseResults<ClientSuggestionProvider> currentParse, Suggestions suggestions);
+  @Shadow
+  protected abstract void updateUsageInfo(ParseResults<ClientSuggestionProvider> currentParse, Suggestions suggestions);
 
-    @Inject(method = "updateCommandInfo",
-        at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/StringReader;canRead()Z", remap = false),
-        cancellable = true
-    )
-    public void onRefresh(CallbackInfo ci, @Local(name = "reader") StringReader reader) {
-        String prefix = Config.get().prefix.get();
-        int length = prefix.length();
+  @Inject(method = "updateCommandInfo",
+    at = @At(value = "INVOKE", target = "Lcom/mojang/brigadier/StringReader;canRead()Z", remap = false),
+    cancellable = true
+  )
+  public void onRefresh(CallbackInfo ci, @Local(name = "reader") StringReader reader) {
+    String prefix = Config.get().prefix.get();
+    int length = prefix.length();
 
-        if (reader.canRead(length) && reader.getString().startsWith(prefix, reader.getCursor())) {
-            reader.setCursor(reader.getCursor() + length);
+    if (reader.canRead(length) && reader.getString().startsWith(prefix, reader.getCursor())) {
+      reader.setCursor(reader.getCursor() + length);
 
-            if (this.currentParse == null) {
-                this.currentParse = Commands.DISPATCHER.parse(reader, mc.getConnection().getSuggestionsProvider());
-            }
+      if (this.currentParse == null) {
+        this.currentParse = Commands.DISPATCHER.parse(reader, mc.getConnection().getSuggestionsProvider());
+      }
 
-            int cursor = input.getCursorPosition();
-            if (cursor >= length && (this.suggestions == null || !this.keepSuggestions)) {
-                this.pendingSuggestions = Commands.DISPATCHER.getCompletionSuggestions(this.currentParse, cursor);
-                this.pendingSuggestions.thenAccept(suggestionResult -> {
-                    if (this.pendingSuggestions.isDone()) {
-                        this.updateUsageInfo(this.currentParse, suggestionResult);
-                    }
-                });
-            }
+      int cursor = input.getCursorPosition();
+      if (cursor >= length && (this.suggestions == null || !this.keepSuggestions)) {
+        this.pendingSuggestions = Commands.DISPATCHER.getCompletionSuggestions(this.currentParse, cursor);
+        this.pendingSuggestions.thenAccept(suggestionResult -> {
+          if (this.pendingSuggestions.isDone()) {
+            this.updateUsageInfo(this.currentParse, suggestionResult);
+          }
+        });
+      }
 
-            ci.cancel();
-        }
+      ci.cancel();
     }
+  }
 }

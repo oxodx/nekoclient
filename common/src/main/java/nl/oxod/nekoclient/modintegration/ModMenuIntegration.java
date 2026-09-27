@@ -11,8 +11,8 @@ import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.gui.screens.ModulesScreen;
 
 public class ModMenuIntegration implements ModMenuApi {
-    @Override
-    public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return _ -> new ModulesScreen(GuiThemes.get());
-    }
+  @Override
+  public ConfigScreenFactory<?> getModConfigScreenFactory() {
+    return _ -> new ModulesScreen(GuiThemes.get());
+  }
 }

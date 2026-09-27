@@ -27,27 +27,27 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(ItemStack.class)
 public abstract class ItemStackMixin {
-    @ModifyReturnValue(method = "getTooltipLines", at = @At("RETURN"))
-    private List<Component> onGetTooltipLines(List<Component> original) {
-        if (Utils.canUpdate()) {
-            ItemStackTooltipEvent event = NekoClient.EVENT_BUS.post(new ItemStackTooltipEvent((ItemStack) (Object) this, original));
-            return event.list();
-        }
-
-        return original;
+  @ModifyReturnValue(method = "getTooltipLines", at = @At("RETURN"))
+  private List<Component> onGetTooltipLines(List<Component> original) {
+    if (Utils.canUpdate()) {
+      ItemStackTooltipEvent event = NekoClient.EVENT_BUS.post(new ItemStackTooltipEvent((ItemStack) (Object) this, original));
+      return event.list();
     }
 
-    @Inject(method = "finishUsingItem", at = @At("HEAD"))
-    private void onFinishUsingItem(Level level, LivingEntity livingEntity, CallbackInfoReturnable<ItemStack> cir) {
-        if (livingEntity == mc.player) {
-            NekoClient.EVENT_BUS.post(FinishUsingItemEvent.get((ItemStack) (Object) this));
-        }
-    }
+    return original;
+  }
 
-    @Inject(method = "releaseUsing", at = @At("HEAD"))
-    private void onReleaseUsing(Level level, LivingEntity entity, int remainingTime, CallbackInfo ci) {
-        if (entity == mc.player) {
-            NekoClient.EVENT_BUS.post(StoppedUsingItemEvent.get((ItemStack) (Object) this));
-        }
+  @Inject(method = "finishUsingItem", at = @At("HEAD"))
+  private void onFinishUsingItem(Level level, LivingEntity livingEntity, CallbackInfoReturnable<ItemStack> cir) {
+    if (livingEntity == mc.player) {
+      NekoClient.EVENT_BUS.post(FinishUsingItemEvent.get((ItemStack) (Object) this));
     }
+  }
+
+  @Inject(method = "releaseUsing", at = @At("HEAD"))
+  private void onReleaseUsing(Level level, LivingEntity entity, int remainingTime, CallbackInfo ci) {
+    if (entity == mc.player) {
+      NekoClient.EVENT_BUS.post(StoppedUsingItemEvent.get((ItemStack) (Object) this));
+    }
+  }
 }

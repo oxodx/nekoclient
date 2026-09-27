@@ -35,12 +35,12 @@ import static nl.oxod.nekoclient.NekoClient.mc;
  */
 @Mixin(Entity.class)
 public abstract class EntityUpdateSwimmingMixin {
-    @ModifyExpressionValue(method = "updateSwimming", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isUnderWater()Z"))
-    private boolean isSubmergedInWater(boolean submerged) {
-        if ((Object) this != mc.player) return submerged;
+  @ModifyExpressionValue(method = "updateSwimming", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isUnderWater()Z"))
+  private boolean isSubmergedInWater(boolean submerged) {
+    if ((Object) this != mc.player) return submerged;
 
-        if (Modules.get().get(NoSlow.class).fluidDrag()) return false;
-        if (Modules.get().get(Flight.class).isActive()) return false;
-        return submerged;
-    }
+    if (Modules.get().get(NoSlow.class).fluidDrag()) return false;
+    if (Modules.get().get(Flight.class).isActive()) return false;
+    return submerged;
+  }
 }

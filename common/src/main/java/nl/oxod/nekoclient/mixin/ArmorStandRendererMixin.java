@@ -17,13 +17,13 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ArmorStandRenderer.class)
 public abstract class ArmorStandRendererMixin {
-    @Unique
-    private static ESP esp;
+  @Unique
+  private static ESP esp;
 
-    @ModifyExpressionValue(method = "getRenderType(Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;ZZZ)Lnet/minecraft/client/renderer/rendertype/RenderType;", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;isMarker:Z", opcode = Opcodes.GETFIELD))
-    private boolean modifyMarkerValue(boolean original) {
-        if (esp == null) esp = Modules.get().get(ESP.class);
+  @ModifyExpressionValue(method = "getRenderType(Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;ZZZ)Lnet/minecraft/client/renderer/rendertype/RenderType;", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/ArmorStandRenderState;isMarker:Z", opcode = Opcodes.GETFIELD))
+  private boolean modifyMarkerValue(boolean original) {
+    if (esp == null) esp = Modules.get().get(ESP.class);
 
-        return original && !(esp.isActive() && !esp.shouldSkip(EntityTypes.ARMOR_STAND));
-    }
+    return original && !(esp.isActive() && !esp.shouldSkip(EntityTypes.ARMOR_STAND));
+  }
 }

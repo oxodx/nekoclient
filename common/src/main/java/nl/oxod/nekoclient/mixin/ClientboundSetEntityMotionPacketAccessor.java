@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ClientboundSetEntityMotionPacket.class)
 public interface ClientboundSetEntityMotionPacketAccessor {
-    @Mutable
-    @Accessor("movement")
-    void neko$setMovement(Vec3 velocity);
+  @Mutable
+  @Accessor("movement")
+  void neko$setMovement(Vec3 velocity);
 }
 

@@ -17,9 +17,9 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 @Mixin(PowderSnowBlock.class)
 public abstract class PowderSnowBlockMixin {
-    @ModifyReturnValue(method = "canEntityWalkOnPowderSnow", at = @At("RETURN"))
-    private static boolean onCanWalkOnPowderSnow(boolean original, Entity entity) {
-        if (entity == mc.player && Modules.get().get(Jesus.class).canWalkOnPowderSnow()) return true;
-        return original;
-    }
+  @ModifyReturnValue(method = "canEntityWalkOnPowderSnow", at = @At("RETURN"))
+  private static boolean onCanWalkOnPowderSnow(boolean original, Entity entity) {
+    if (entity == mc.player && Modules.get().get(Jesus.class).canWalkOnPowderSnow()) return true;
+    return original;
+  }
 }

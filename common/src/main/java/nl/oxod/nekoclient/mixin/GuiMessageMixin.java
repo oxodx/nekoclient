@@ -16,36 +16,36 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(GuiMessage.class)
 public abstract class GuiMessageMixin implements IGuiMessage {
-    @Shadow
-    @Final
-    private Component content;
-    @Unique
-    private int id;
-    @Unique
-    private GameProfile sender;
+  @Shadow
+  @Final
+  private Component content;
+  @Unique
+  private int id;
+  @Unique
+  private GameProfile sender;
 
-    @Override
-    public String neko$getText() {
-        return content.getString();
-    }
+  @Override
+  public String neko$getText() {
+    return content.getString();
+  }
 
-    @Override
-    public int neko$getId() {
-        return id;
-    }
+  @Override
+  public int neko$getId() {
+    return id;
+  }
 
-    @Override
-    public void neko$setId(int id) {
-        this.id = id;
-    }
+  @Override
+  public void neko$setId(int id) {
+    this.id = id;
+  }
 
-    @Override
-    public GameProfile neko$getSender() {
-        return sender;
-    }
+  @Override
+  public GameProfile neko$getSender() {
+    return sender;
+  }
 
-    @Override
-    public void neko$setSender(GameProfile profile) {
-        sender = profile;
-    }
+  @Override
+  public void neko$setSender(GameProfile profile) {
+    sender = profile;
+  }
 }

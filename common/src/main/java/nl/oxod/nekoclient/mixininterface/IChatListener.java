@@ -12,8 +12,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MessageSignature;
 
 public interface IChatListener {
-    /**
-     * Only valid inside of {@link net.minecraft.client.gui.components.ChatComponent#addMessage(Component, MessageSignature, GuiMessageSource, GuiMessageTag)} call
-     */
-    GameProfile neko$getSender();
+  /**
+   * Only valid inside of {@link net.minecraft.client.gui.components.ChatComponent#addMessage(Component, MessageSignature, GuiMessageSource, GuiMessageTag)} call
+   */
+  GameProfile neko$getSender();
 }

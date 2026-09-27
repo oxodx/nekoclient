@@ -17,18 +17,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @NullMarked
 @Mixin(AddressCheck.class)
 public interface AddressCheckMixin {
-    @Inject(method = "createFromService", at = @At("HEAD"), cancellable = true)
-    private static void onCreateFromService(CallbackInfoReturnable<AddressCheck> cir) {
-        cir.setReturnValue(new AddressCheck() {
-            @Override
-            public boolean isAllowed(ResolvedServerAddress address) {
-                return true;
-            }
+  @Inject(method = "createFromService", at = @At("HEAD"), cancellable = true)
+  private static void onCreateFromService(CallbackInfoReturnable<AddressCheck> cir) {
+    cir.setReturnValue(new AddressCheck() {
+      @Override
+      public boolean isAllowed(ResolvedServerAddress address) {
+        return true;
+      }
 
-            @Override
-            public boolean isAllowed(ServerAddress address) {
-                return true;
-            }
-        });
-    }
+      @Override
+      public boolean isAllowed(ServerAddress address) {
+        return true;
+      }
+    });
+  }
 }

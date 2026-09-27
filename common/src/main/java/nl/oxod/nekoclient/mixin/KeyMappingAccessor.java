@@ -15,20 +15,20 @@ import java.util.Map;
 
 @Mixin(KeyMapping.class)
 public interface KeyMappingAccessor {
-    @Accessor("ALL")
-    static Map<String, KeyMapping> getKeysById() {
-        return null;
-    }
+  @Accessor("ALL")
+  static Map<String, KeyMapping> getKeysById() {
+    return null;
+  }
 
-    @Accessor("key")
-    InputConstants.Key neko$getKey();
+  @Accessor("key")
+  InputConstants.Key neko$getKey();
 
-    @Accessor("clickCount")
-    int neko$getClickCount();
+  @Accessor("clickCount")
+  int neko$getClickCount();
 
-    @Accessor("clickCount")
-    void neko$setClickCount(int timesPressed);
+  @Accessor("clickCount")
+  void neko$setClickCount(int timesPressed);
 
-    @Invoker("release")
-    void neko$invokeRelease();
+  @Invoker("release")
+  void neko$invokeRelease();
 }

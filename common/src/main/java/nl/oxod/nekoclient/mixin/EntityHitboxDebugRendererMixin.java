@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(EntityHitboxDebugRenderer.class)
 public abstract class EntityHitboxDebugRendererMixin {
-    @ModifyExpressionValue(method = "showHitboxes", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;", ordinal = 0))
-    private AABB neko$createHitbox(AABB original, Entity entity, float partialTicks, boolean isServerEntity) {
-        double v = Modules.get().get(Hitboxes.class).getEntityValue(entity);
-        if (v == 0) return original;
+  @ModifyExpressionValue(method = "showHitboxes", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;", ordinal = 0))
+  private AABB neko$createHitbox(AABB original, Entity entity, float partialTicks, boolean isServerEntity) {
+    double v = Modules.get().get(Hitboxes.class).getEntityValue(entity);
+    if (v == 0) return original;
 
-        return original.inflate(v);
-    }
+    return original.inflate(v);
+  }
 }

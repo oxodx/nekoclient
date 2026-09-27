@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractClientPlayer.class)
 public interface AbstractClientPlayerAccessor {
-    @Accessor("playerInfo")
-    void neko$setPlayerInfo(PlayerInfo entry);
+  @Accessor("playerInfo")
+  void neko$setPlayerInfo(PlayerInfo entry);
 }

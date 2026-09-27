@@ -8,17 +8,17 @@ package nl.oxod.nekoclient.mixininterface;
 import com.mojang.blaze3d.systems.RenderPassBackend;
 
 public interface IGpuDevice {
-    /**
-     * Currently there can only be a single scissor pushed at once.
-     */
-    void neko$pushScissor(int x, int y, int width, int height);
+  /**
+   * Currently there can only be a single scissor pushed at once.
+   */
+  void neko$pushScissor(int x, int y, int width, int height);
 
-    void neko$popScissor();
+  void neko$popScissor();
 
-    /**
-     * This is an *INTERNAL* method, it shouldn't be called.
-     */
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    void neko$onCreateRenderPass(RenderPassBackend backend);
+  /**
+   * This is an *INTERNAL* method, it shouldn't be called.
+   */
+  @Deprecated
+  @SuppressWarnings("DeprecatedIsStillUsed")
+  void neko$onCreateRenderPass(RenderPassBackend backend);
 }

@@ -13,17 +13,17 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(targets = "net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen$SlotWrapper")
 public abstract class CreativeSlotMixin implements ISlot {
-    @Shadow
-    @Final
-    private Slot target;
+  @Shadow
+  @Final
+  private Slot target;
 
-    @Override
-    public int neko$getIndex() {
-        return target.index;
-    }
+  @Override
+  public int neko$getIndex() {
+    return target.index;
+  }
 
-    @Override
-    public int neko$getSlot() {
-        return target.getContainerSlot();
-    }
+  @Override
+  public int neko$getSlot() {
+    return target.getContainerSlot();
+  }
 }

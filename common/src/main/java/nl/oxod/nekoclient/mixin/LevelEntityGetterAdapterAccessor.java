@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(LevelEntityGetterAdapter.class)
 public interface LevelEntityGetterAdapterAccessor {
-    @Accessor("sectionStorage")
-    <T extends EntityAccess> EntitySectionStorage<T> neko$getSectionStorage();
+  @Accessor("sectionStorage")
+  <T extends EntityAccess> EntitySectionStorage<T> neko$getSectionStorage();
 }

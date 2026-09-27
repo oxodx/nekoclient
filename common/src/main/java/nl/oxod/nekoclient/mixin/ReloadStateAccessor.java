@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ResourceLoadStateTracker.ReloadState.class)
 public interface ReloadStateAccessor {
-    @Accessor("finished")
-    boolean neko$isFinished();
+  @Accessor("finished")
+  boolean neko$isFinished();
 }

@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(CreativeModeTabs.class)
 public interface CreativeModeTabsAccessor {
-    @Accessor("INVENTORY")
-    static ResourceKey<CreativeModeTab> neko$getInventory() {
-        throw new AssertionError();
-    }
+  @Accessor("INVENTORY")
+  static ResourceKey<CreativeModeTab> neko$getInventory() {
+    throw new AssertionError();
+  }
 }

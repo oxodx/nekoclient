@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ResourceLoadStateTracker.class)
 public interface ResourceLoadStateTrackerAccessor {
-    @Accessor("reloadState")
-    ResourceLoadStateTracker.ReloadState neko$getReloadState();
+  @Accessor("reloadState")
+  ResourceLoadStateTracker.ReloadState neko$getReloadState();
 }

@@ -21,19 +21,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TitleScreen.class)
 public abstract class TitleScreenMixin extends Screen {
-    public TitleScreenMixin(Component title) {
-        super(title);
-    }
+  public TitleScreenMixin(Component title) {
+    super(title);
+  }
 
-    @Inject(method = "extractRenderState", at = @At("TAIL"))
-    private void onExtractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-        if (Config.get().titleScreenCredits.get()) TitleScreenCredits.render(graphics);
-    }
+  @Inject(method = "extractRenderState", at = @At("TAIL"))
+  private void onExtractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+    if (Config.get().titleScreenCredits.get()) TitleScreenCredits.render(graphics);
+  }
 
-    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void onMouseClicked(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.get().titleScreenCredits.get() && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
-            if (TitleScreenCredits.onClicked(event.x(), event.y())) cir.setReturnValue(true);
-        }
+  @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+  private void onMouseClicked(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
+    if (Config.get().titleScreenCredits.get() && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+      if (TitleScreenCredits.onClicked(event.x(), event.y())) cir.setReturnValue(true);
     }
+  }
 }

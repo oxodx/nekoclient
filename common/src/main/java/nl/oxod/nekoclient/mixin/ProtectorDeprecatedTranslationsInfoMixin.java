@@ -13,11 +13,14 @@ import java.util.Map;
 
 @Mixin(DeprecatedTranslationsInfo.class)
 public abstract class ProtectorDeprecatedTranslationsInfoMixin {
-    @Shadow public abstract List<String> removed();
-    @Shadow public abstract Map<String, String> renamed();
+  @Shadow
+  public abstract List<String> removed();
 
-    @Inject(method = "applyToMap", at = @At("HEAD"))
-    private void protector$trackDeprecatedTranslations(Map<String, String> translations, CallbackInfo ci) {
-        ProtectorTracker.applyDeprecatedTranslations(removed(), renamed());
-    }
+  @Shadow
+  public abstract Map<String, String> renamed();
+
+  @Inject(method = "applyToMap", at = @At("HEAD"))
+  private void protector$trackDeprecatedTranslations(Map<String, String> translations, CallbackInfo ci) {
+    ProtectorTracker.applyDeprecatedTranslations(removed(), renamed());
+  }
 }

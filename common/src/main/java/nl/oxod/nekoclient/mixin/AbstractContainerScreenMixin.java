@@ -37,103 +37,103 @@ import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin<T extends AbstractContainerMenu> extends Screen implements MenuAccess<T> {
-    @Shadow
-    protected Slot hoveredSlot;
+  @Shadow
+  protected Slot hoveredSlot;
 
-    @Shadow
-    protected int leftPos;
-    @Shadow
-    protected int topPos;
+  @Shadow
+  protected int leftPos;
+  @Shadow
+  protected int topPos;
 
-    @Shadow
-    @Nullable
-    protected abstract Slot getHoveredSlot(double x, double y);
+  @Shadow
+  @Nullable
+  protected abstract Slot getHoveredSlot(double x, double y);
 
-    @Shadow
-    public abstract @NonNull T getMenu();
+  @Shadow
+  public abstract @NonNull T getMenu();
 
-    @Shadow
-    private boolean doubleclick;
+  @Shadow
+  private boolean doubleclick;
 
-    @Shadow
-    protected abstract void slotClicked(Slot slot, int slotId, int buttonNum, ContainerInput containerInput);
+  @Shadow
+  protected abstract void slotClicked(Slot slot, int slotId, int buttonNum, ContainerInput containerInput);
 
-    @Shadow
-    public abstract void onClose();
+  @Shadow
+  public abstract void onClose();
 
-    public AbstractContainerScreenMixin(Component title) {
-        super(title);
+  public AbstractContainerScreenMixin(Component title) {
+    super(title);
+  }
+
+  @Inject(method = "init", at = @At("TAIL"))
+  private void onInit(CallbackInfo ci) {
+    InventoryTweaks invTweaks = Modules.get().get(InventoryTweaks.class);
+
+    if (invTweaks.isActive() && invTweaks.showButtons() && invTweaks.canSteal(getMenu())) {
+      addRenderableWidget(
+        new Button.Builder(Component.literal("Steal"), _ -> invTweaks.steal(getMenu()))
+          .pos(leftPos, topPos - 22)
+          .size(40, 20)
+          .build()
+      );
+
+      addRenderableWidget(
+        new Button.Builder(Component.literal("Dump"), _ -> invTweaks.dump(getMenu()))
+          .pos(leftPos + 42, topPos - 22)
+          .size(40, 20)
+          .build()
+      );
+    }
+  }
+
+  // Inventory Tweaks
+  @Inject(method = "mouseDragged", at = @At("TAIL"))
+  private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
+    if (event.button() != MOUSE_BUTTON_LEFT || doubleclick || !Modules.get().get(InventoryTweaks.class).mouseDragItemMove())
+      return;
+
+    Slot slot = getHoveredSlot(event.x(), event.y());
+    if (slot != null && slot.hasItem() && mc.hasShiftDown())
+      slotClicked(slot, slot.index, event.button(), ContainerInput.QUICK_MOVE);
+  }
+
+  // Middle click open
+  @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+  private void mouseClicked(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
+    BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
+
+    if (tooltips.shouldOpenContents(event) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && getMenu().getCarried().isEmpty()) {
+      if (tooltips.openContent(hoveredSlot.getItem())) {
+        cir.setReturnValue(true);
+      }
+    }
+  }
+
+  // Keyboard input for middle click open
+  @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+  private void keyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
+
+    if (tooltips.shouldOpenContents(event) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && getMenu().getCarried().isEmpty()) {
+      if (tooltips.openContent(hoveredSlot.getItem())) {
+        cir.setReturnValue(true);
+      }
+    }
+  }
+
+  // Item Highlight
+  @Inject(method = "extractSlot", at = @At("HEAD"))
+  private void onRenderSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
+    int color = Modules.get().get(ItemHighlight.class).getColor(slot.getItem());
+    if (color != -1) graphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, color);
+  }
+
+  @ModifyReturnValue(method = "showTooltipWithItemInHand", at = @At("RETURN"))
+  private boolean showTooltipWithItemInHand(boolean original, ItemStack item) {
+    if (item.getTooltipImage().orElse(null) instanceof ClientTooltipComponent component) {
+      return original || component.showTooltipWithItemInHand();
     }
 
-    @Inject(method = "init", at = @At("TAIL"))
-    private void onInit(CallbackInfo ci) {
-        InventoryTweaks invTweaks = Modules.get().get(InventoryTweaks.class);
-
-        if (invTweaks.isActive() && invTweaks.showButtons() && invTweaks.canSteal(getMenu())) {
-            addRenderableWidget(
-                new Button.Builder(Component.literal("Steal"), _ -> invTweaks.steal(getMenu()))
-                    .pos(leftPos, topPos - 22)
-                    .size(40, 20)
-                    .build()
-            );
-
-            addRenderableWidget(
-                new Button.Builder(Component.literal("Dump"), _ -> invTweaks.dump(getMenu()))
-                    .pos(leftPos + 42, topPos - 22)
-                    .size(40, 20)
-                    .build()
-            );
-        }
-    }
-
-    // Inventory Tweaks
-    @Inject(method = "mouseDragged", at = @At("TAIL"))
-    private void onMouseDragged(MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
-        if (event.button() != MOUSE_BUTTON_LEFT || doubleclick || !Modules.get().get(InventoryTweaks.class).mouseDragItemMove())
-            return;
-
-        Slot slot = getHoveredSlot(event.x(), event.y());
-        if (slot != null && slot.hasItem() && mc.hasShiftDown())
-            slotClicked(slot, slot.index, event.button(), ContainerInput.QUICK_MOVE);
-    }
-
-    // Middle click open
-    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void mouseClicked(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
-
-        if (tooltips.shouldOpenContents(event) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && getMenu().getCarried().isEmpty()) {
-            if (tooltips.openContent(hoveredSlot.getItem())) {
-                cir.setReturnValue(true);
-            }
-        }
-    }
-
-    // Keyboard input for middle click open
-    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    private void keyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
-        BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
-
-        if (tooltips.shouldOpenContents(event) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && getMenu().getCarried().isEmpty()) {
-            if (tooltips.openContent(hoveredSlot.getItem())) {
-                cir.setReturnValue(true);
-            }
-        }
-    }
-
-    // Item Highlight
-    @Inject(method = "extractSlot", at = @At("HEAD"))
-    private void onRenderSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
-        int color = Modules.get().get(ItemHighlight.class).getColor(slot.getItem());
-        if (color != -1) graphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, color);
-    }
-
-    @ModifyReturnValue(method = "showTooltipWithItemInHand", at = @At("RETURN"))
-    private boolean showTooltipWithItemInHand(boolean original, ItemStack item) {
-        if (item.getTooltipImage().orElse(null) instanceof ClientTooltipComponent component) {
-            return original || component.showTooltipWithItemInHand();
-        }
-
-        return original;
-    }
+    return original;
+  }
 }

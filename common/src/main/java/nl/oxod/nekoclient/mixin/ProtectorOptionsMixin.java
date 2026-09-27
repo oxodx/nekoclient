@@ -14,36 +14,36 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(Options.class)
 public class ProtectorOptionsMixin {
-    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;ILnet/minecraft/client/KeyMapping$Category;)Lnet/minecraft/client/KeyMapping;"))
-    private KeyMapping protector$keyMapping(String name, int key, KeyMapping.Category category, Operation<KeyMapping> original) {
-        ProtectorTracker.addVanillaKeybind(name);
-        return original.call(name, key, category);
-    }
+  @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;ILnet/minecraft/client/KeyMapping$Category;)Lnet/minecraft/client/KeyMapping;"))
+  private KeyMapping protector$keyMapping(String name, int key, KeyMapping.Category category, Operation<KeyMapping> original) {
+    ProtectorTracker.addVanillaKeybind(name);
+    return original.call(name, key, category);
+  }
 
-    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;)Lnet/minecraft/client/KeyMapping;"))
-    private KeyMapping protector$keyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category, Operation<KeyMapping> original) {
-        ProtectorTracker.addVanillaKeybind(name);
-        return original.call(name, type, key, category);
-    }
+  @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;)Lnet/minecraft/client/KeyMapping;"))
+  private KeyMapping protector$keyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category, Operation<KeyMapping> original) {
+    ProtectorTracker.addVanillaKeybind(name);
+    return original.call(name, type, key, category);
+  }
 
-    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;I)Lnet/minecraft/client/KeyMapping;"))
-    private KeyMapping protector$keyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category, int order, Operation<KeyMapping> original) {
-        ProtectorTracker.addVanillaKeybind(name);
-        return original.call(name, type, key, category, order);
-    }
+  @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;I)Lnet/minecraft/client/KeyMapping;"))
+  private KeyMapping protector$keyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category, int order, Operation<KeyMapping> original) {
+    ProtectorTracker.addVanillaKeybind(name);
+    return original.call(name, type, key, category, order);
+  }
 
-    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;ILnet/minecraft/client/KeyMapping$Category;Ljava/util/function/BooleanSupplier;Z)Lnet/minecraft/client/ToggleKeyMapping;"))
-    private ToggleKeyMapping protector$toggleKeyMapping(String name, int key, KeyMapping.Category category, BooleanSupplier needsToggle,
-                                                        boolean shouldRestore, Operation<ToggleKeyMapping> original) {
-        ProtectorTracker.addVanillaKeybind(name);
-        return original.call(name, key, category, needsToggle, shouldRestore);
-    }
+  @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;ILnet/minecraft/client/KeyMapping$Category;Ljava/util/function/BooleanSupplier;Z)Lnet/minecraft/client/ToggleKeyMapping;"))
+  private ToggleKeyMapping protector$toggleKeyMapping(String name, int key, KeyMapping.Category category, BooleanSupplier needsToggle,
+                                                      boolean shouldRestore, Operation<ToggleKeyMapping> original) {
+    ProtectorTracker.addVanillaKeybind(name);
+    return original.call(name, key, category, needsToggle, shouldRestore);
+  }
 
-    @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;Ljava/util/function/BooleanSupplier;Z)Lnet/minecraft/client/ToggleKeyMapping;"))
-    private ToggleKeyMapping protector$toggleKeyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category,
-                                                        BooleanSupplier needsToggle, boolean shouldRestore,
-                                                        Operation<ToggleKeyMapping> original) {
-        ProtectorTracker.addVanillaKeybind(name);
-        return original.call(name, type, key, category, needsToggle, shouldRestore);
-    }
+  @WrapOperation(method = "<init>", at = @At(value = "NEW", target = "(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILnet/minecraft/client/KeyMapping$Category;Ljava/util/function/BooleanSupplier;Z)Lnet/minecraft/client/ToggleKeyMapping;"))
+  private ToggleKeyMapping protector$toggleKeyMapping(String name, InputConstants.Type type, int key, KeyMapping.Category category,
+                                                      BooleanSupplier needsToggle, boolean shouldRestore,
+                                                      Operation<ToggleKeyMapping> original) {
+    ProtectorTracker.addVanillaKeybind(name);
+    return original.call(name, type, key, category, needsToggle, shouldRestore);
+  }
 }

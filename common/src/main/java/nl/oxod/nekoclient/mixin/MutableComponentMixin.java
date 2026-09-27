@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(MutableComponent.class)
 public abstract class MutableComponentMixin implements IComponent {
-    @Shadow
-    private @Nullable Language decomposedWith;
+  @Shadow
+  private @Nullable Language decomposedWith;
 
-    @Override
-    public void neko$invalidateCache() {
-        this.decomposedWith = null;
-    }
+  @Override
+  public void neko$invalidateCache() {
+    this.decomposedWith = null;
+  }
 }

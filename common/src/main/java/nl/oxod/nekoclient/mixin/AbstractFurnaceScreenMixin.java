@@ -17,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(AbstractFurnaceScreen.class)
 public abstract class AbstractFurnaceScreenMixin<T extends AbstractFurnaceMenu> extends AbstractContainerScreen<T> implements RecipeUpdateListener {
-    public AbstractFurnaceScreenMixin(T container, Inventory playerInventory, Component name) {
-        super(container, playerInventory, name);
-    }
+  public AbstractFurnaceScreenMixin(T container, Inventory playerInventory, Component name) {
+    super(container, playerInventory, name);
+  }
 
-    @Override
-    public void containerTick() {
-        super.containerTick();
+  @Override
+  public void containerTick() {
+    super.containerTick();
 
-        if (Modules.get().isActive(AutoSmelter.class)) Modules.get().get(AutoSmelter.class).tick(menu);
-    }
+    if (Modules.get().isActive(AutoSmelter.class)) Modules.get().get(AutoSmelter.class).tick(menu);
+  }
 }

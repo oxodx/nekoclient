@@ -24,15 +24,15 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = ChunkAwareBlockCollisionSweeperVoxelShape.class)
 public abstract class ChunkAwareBlockCollisionSweeperMixin extends ChunkAwareBlockCollisionSweeper<VoxelShape> {
-    public ChunkAwareBlockCollisionSweeperMixin(Level world, @Nullable Entity entity, AABB box, boolean hideLastCollision) {
-        super(world, entity, box, hideLastCollision);
-    }
+  public ChunkAwareBlockCollisionSweeperMixin(Level world, @Nullable Entity entity, AABB box, boolean hideLastCollision) {
+    super(world, entity, box, hideLastCollision);
+  }
 
-    @ModifyExpressionValue(method = "computeNext()Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/shapes/CollisionContext;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/CollisionGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
-    private VoxelShape modifyCollisionShape(VoxelShape original, @Local(name = "state") BlockState state) {
-        if (world != Minecraft.getInstance().level) return original;
+  @ModifyExpressionValue(method = "computeNext()Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/shapes/CollisionContext;getCollisionShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/CollisionGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
+  private VoxelShape modifyCollisionShape(VoxelShape original, @Local(name = "state") BlockState state) {
+    if (world != Minecraft.getInstance().level) return original;
 
-        CollisionShapeEvent event = NekoClient.EVENT_BUS.post(CollisionShapeEvent.get(state, pos, original));
-        return event.isCancelled() ? Shapes.empty() : event.shape;
-    }
+    CollisionShapeEvent event = NekoClient.EVENT_BUS.post(CollisionShapeEvent.get(state, pos, original));
+    return event.isCancelled() ? Shapes.empty() : event.shape;
+  }
 }

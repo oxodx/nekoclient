@@ -17,10 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = LithiumEntityCollisions.class)
 public abstract class LithiumEntityCollisionsMixin {
-    @Inject(method = "isWithinWorldBorder", at = @At("HEAD"), cancellable = true)
-    private static void onIsWithinWorldBorder(WorldBorder border, AABB box, CallbackInfoReturnable<Boolean> cir) {
-        if (Modules.get().get(Collisions.class).ignoreBorder()) {
-            cir.setReturnValue(true);
-        }
+  @Inject(method = "isWithinWorldBorder", at = @At("HEAD"), cancellable = true)
+  private static void onIsWithinWorldBorder(WorldBorder border, AABB box, CallbackInfoReturnable<Boolean> cir) {
+    if (Modules.get().get(Collisions.class).ignoreBorder()) {
+      cir.setReturnValue(true);
     }
+  }
 }

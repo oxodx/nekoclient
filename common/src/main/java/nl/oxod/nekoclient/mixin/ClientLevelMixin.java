@@ -37,53 +37,53 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Mixin(ClientLevel.class)
 public abstract class ClientLevelMixin extends Level {
-    @Unique
-    private static final AtomicInteger NEXT_ENTITY_ID = new AtomicInteger(-1);
+  @Unique
+  private static final AtomicInteger NEXT_ENTITY_ID = new AtomicInteger(-1);
 
-    protected ClientLevelMixin(WritableLevelData levelData, ResourceKey<Level> dimension, RegistryAccess registryAccess, Holder<DimensionType> dimensionTypeRegistration, boolean isClientSide, boolean isDebug, long biomeZoomSeed, int maxChainedNeighborUpdates) {
-        super(levelData, dimension, registryAccess, dimensionTypeRegistration, isClientSide, isDebug, biomeZoomSeed, maxChainedNeighborUpdates);
+  protected ClientLevelMixin(WritableLevelData levelData, ResourceKey<Level> dimension, RegistryAccess registryAccess, Holder<DimensionType> dimensionTypeRegistration, boolean isClientSide, boolean isDebug, long biomeZoomSeed, int maxChainedNeighborUpdates) {
+    super(levelData, dimension, registryAccess, dimensionTypeRegistration, isClientSide, isDebug, biomeZoomSeed, maxChainedNeighborUpdates);
+  }
+
+  @Shadow
+  @Nullable
+  public abstract Entity getEntity(int id);
+
+  @Inject(method = "addEntity", at = @At("TAIL"))
+  private void onAddEntity(Entity entity, CallbackInfo ci) {
+    if (entity != null) NekoClient.EVENT_BUS.post(EntityAddedEvent.get(entity));
+  }
+
+  @Inject(method = "removeEntity", at = @At("HEAD"))
+  private void onRemoveEntity(int id, Entity.RemovalReason reason, CallbackInfo ci) {
+    if (getEntity(id) != null)
+      NekoClient.EVENT_BUS.post(EntityRemovedEvent.get(getEntity(id)));
+  }
+
+  @Inject(method = "addDestroyBlockEffect", at = @At("HEAD"), cancellable = true)
+  private void onAddDestroyBlockEffect(BlockPos pos, BlockState blockState, CallbackInfo ci) {
+    if (Modules.get().get(NoRender.class).noParticle(ParticleTypes.BLOCK)) ci.cancel();
+  }
+
+  @Inject(method = "addBreakingBlockEffect", at = @At("HEAD"), cancellable = true)
+  private void onAddBlockBreakingParticles(BlockPos pos, Direction direction, CallbackInfo ci) {
+    if (Modules.get().get(NoRender.class).noParticle(ParticleTypes.BLOCK)) ci.cancel();
+  }
+
+  @ModifyArgs(method = "animateTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;doAnimateTick(IIIILnet/minecraft/util/RandomSource;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos$MutableBlockPos;)V"))
+  private void doRandomBlockDisplayTicks(Args args) {
+    if (Modules.get().get(NoRender.class).noBarrierInvis()) {
+      args.set(5, Blocks.BARRIER);
     }
+  }
 
-    @Shadow
-    @Nullable
-    public abstract Entity getEntity(int id);
+  @Override
+  public int getNextEntityId() {
+    int id;
 
-    @Inject(method = "addEntity", at = @At("TAIL"))
-    private void onAddEntity(Entity entity, CallbackInfo ci) {
-        if (entity != null) NekoClient.EVENT_BUS.post(EntityAddedEvent.get(entity));
-    }
+    do {
+      id = NEXT_ENTITY_ID.getAndDecrement();
+    } while (getEntity(id) != null);
 
-    @Inject(method = "removeEntity", at = @At("HEAD"))
-    private void onRemoveEntity(int id, Entity.RemovalReason reason, CallbackInfo ci) {
-        if (getEntity(id) != null)
-            NekoClient.EVENT_BUS.post(EntityRemovedEvent.get(getEntity(id)));
-    }
-
-    @Inject(method = "addDestroyBlockEffect", at = @At("HEAD"), cancellable = true)
-    private void onAddDestroyBlockEffect(BlockPos pos, BlockState blockState, CallbackInfo ci) {
-        if (Modules.get().get(NoRender.class).noParticle(ParticleTypes.BLOCK)) ci.cancel();
-    }
-
-    @Inject(method = "addBreakingBlockEffect", at = @At("HEAD"), cancellable = true)
-    private void onAddBlockBreakingParticles(BlockPos pos, Direction direction, CallbackInfo ci) {
-        if (Modules.get().get(NoRender.class).noParticle(ParticleTypes.BLOCK)) ci.cancel();
-    }
-
-    @ModifyArgs(method = "animateTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;doAnimateTick(IIIILnet/minecraft/util/RandomSource;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/core/BlockPos$MutableBlockPos;)V"))
-    private void doRandomBlockDisplayTicks(Args args) {
-        if (Modules.get().get(NoRender.class).noBarrierInvis()) {
-            args.set(5, Blocks.BARRIER);
-        }
-    }
-
-    @Override
-    public int getNextEntityId() {
-        int id;
-
-        do {
-            id = NEXT_ENTITY_ID.getAndDecrement();
-        } while (getEntity(id) != null);
-
-        return id;
-    }
+    return id;
+  }
 }

@@ -27,16 +27,16 @@ import org.spongepowered.asm.mixin.injection.At;
  */
 @Mixin(ModelBlockRenderer.class)
 public abstract class ModelBlockRendererXrayMixin {
-    @ModifyReturnValue(
-        method = "shouldRenderFace(Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
-        at = @At("RETURN"))
-    private static boolean shouldRenderFace$xray(boolean original, BlockAndTintGetter level, BlockState state, Direction direction, BlockPos neighborPos) {
-        Xray xray = Modules.get().get(Xray.class);
+  @ModifyReturnValue(
+    method = "shouldRenderFace(Lnet/minecraft/client/renderer/block/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
+    at = @At("RETURN"))
+  private static boolean shouldRenderFace$xray(boolean original, BlockAndTintGetter level, BlockState state, Direction direction, BlockPos neighborPos) {
+    Xray xray = Modules.get().get(Xray.class);
 
-        if (xray.isActive()) {
-            return xray.modifyDrawSide(state, level, neighborPos.relative(direction.getOpposite()), direction, original);
-        }
-
-        return original;
+    if (xray.isActive()) {
+      return xray.modifyDrawSide(state, level, neighborPos.relative(direction.getOpposite()), direction, original);
     }
+
+    return original;
+  }
 }

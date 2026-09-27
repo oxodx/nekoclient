@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(BlockEntityRenderState.class)
 public interface BlockEntityRenderStateAccessor {
-    @Accessor("blockState")
-    BlockState neko$getBlockState();
+  @Accessor("blockState")
+  BlockState neko$getBlockState();
 }

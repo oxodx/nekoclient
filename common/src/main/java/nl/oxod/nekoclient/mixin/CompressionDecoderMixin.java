@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(CompressionDecoder.class)
 public abstract class CompressionDecoderMixin {
-    @ModifyExpressionValue(method = "decode", at = @At(value = "CONSTANT", args = "intValue=8388608"))
-    private int neko$maximizeUncompressedPacketLimit(int original) {
-        return Modules.get().isActive(AntiPacketKick.class) ? Integer.MAX_VALUE : original;
-    }
+  @ModifyExpressionValue(method = "decode", at = @At(value = "CONSTANT", args = "intValue=8388608"))
+  private int neko$maximizeUncompressedPacketLimit(int original) {
+    return Modules.get().isActive(AntiPacketKick.class) ? Integer.MAX_VALUE : original;
+  }
 }

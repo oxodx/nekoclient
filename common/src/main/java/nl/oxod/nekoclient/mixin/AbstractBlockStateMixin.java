@@ -17,10 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class AbstractBlockStateMixin {
-    @Inject(method = "getOffset", at = @At("HEAD"), cancellable = true)
-    private void modifyPos(BlockPos pos, CallbackInfoReturnable<Vec3> cir) {
-        if (Modules.get() == null) return;
+  @Inject(method = "getOffset", at = @At("HEAD"), cancellable = true)
+  private void modifyPos(BlockPos pos, CallbackInfoReturnable<Vec3> cir) {
+    if (Modules.get() == null) return;
 
-        if (Modules.get().get(NoRender.class).noTextureRotations()) cir.setReturnValue(Vec3.ZERO);
-    }
+    if (Modules.get().get(NoRender.class).noTextureRotations()) cir.setReturnValue(Vec3.ZERO);
+  }
 }

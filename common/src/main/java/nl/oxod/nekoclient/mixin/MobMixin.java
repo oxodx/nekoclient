@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(Mob.class)
 public abstract class MobMixin {
-    @ModifyReturnValue(method = "isSaddled", at = @At("RETURN"))
-    private boolean isSaddled(boolean original) {
-        return Modules.get().get(EntityControl.class).spoofSaddle() || original;
-    }
+  @ModifyReturnValue(method = "isSaddled", at = @At("RETURN"))
+  private boolean isSaddled(boolean original) {
+    return Modules.get().get(EntityControl.class).spoofSaddle() || original;
+  }
 }

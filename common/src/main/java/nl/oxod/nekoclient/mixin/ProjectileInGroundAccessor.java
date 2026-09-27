@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(AbstractArrow.class)
 public interface ProjectileInGroundAccessor {
-    @Invoker("isInGround")
-    boolean neko$invokeIsInGround();
+  @Invoker("isInGround")
+  boolean neko$invokeIsInGround();
 }

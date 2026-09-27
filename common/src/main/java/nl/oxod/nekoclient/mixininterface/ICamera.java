@@ -6,5 +6,5 @@
 package nl.oxod.nekoclient.mixininterface;
 
 public interface ICamera {
-    void neko$setRot(double yaw, double pitch);
+  void neko$setRot(double yaw, double pitch);
 }

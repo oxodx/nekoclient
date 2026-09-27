@@ -1,5 +1,5 @@
 plugins {
-    id("minecraft-conventions")
+  id("minecraft-conventions")
 }
 
 apply(plugin = "net.ltgt.errorprone")

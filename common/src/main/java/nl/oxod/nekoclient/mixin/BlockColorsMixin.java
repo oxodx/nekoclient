@@ -18,43 +18,43 @@ import java.util.List;
 
 @Mixin(BlockColors.class)
 public abstract class BlockColorsMixin {
-    // Ambience - Custom Foliage Color
+  // Ambience - Custom Foliage Color
 
-    @ModifyArg(
-        method = "createDefault",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/color/block/BlockColors;register(Ljava/util/List;[Lnet/minecraft/world/level/block/Block;)V",
-            ordinal = 4
-        ),
-        index = 0
-    )
-    private static List<BlockTintSource> modifySpruceLeavesColor(List<BlockTintSource> layers) {
-        return List.of(_ -> getModifiedColor(-10380959));
+  @ModifyArg(
+    method = "createDefault",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/client/color/block/BlockColors;register(Ljava/util/List;[Lnet/minecraft/world/level/block/Block;)V",
+      ordinal = 4
+    ),
+    index = 0
+  )
+  private static List<BlockTintSource> modifySpruceLeavesColor(List<BlockTintSource> layers) {
+    return List.of(_ -> getModifiedColor(-10380959));
+  }
+
+  @ModifyArg(
+    method = "createDefault",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/client/color/block/BlockColors;register(Ljava/util/List;[Lnet/minecraft/world/level/block/Block;)V",
+      ordinal = 5
+    ),
+    index = 0
+  )
+  private static List<BlockTintSource> modifyBirchLeavesColor(List<BlockTintSource> layers) {
+    return List.of(_ -> getModifiedColor(-8345771));
+  }
+
+  @Unique
+  private static int getModifiedColor(int original) {
+    if (Modules.get() == null) return original;
+
+    Ambience ambience = Modules.get().get(Ambience.class);
+    if (ambience.isActive() && ambience.customFoliageColor.get()) {
+      return ambience.foliageColor.get().getPacked();
     }
 
-    @ModifyArg(
-        method = "createDefault",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/color/block/BlockColors;register(Ljava/util/List;[Lnet/minecraft/world/level/block/Block;)V",
-            ordinal = 5
-        ),
-        index = 0
-    )
-    private static List<BlockTintSource> modifyBirchLeavesColor(List<BlockTintSource> layers) {
-        return List.of(_ -> getModifiedColor(-8345771));
-    }
-
-    @Unique
-    private static int getModifiedColor(int original) {
-        if (Modules.get() == null) return original;
-
-        Ambience ambience = Modules.get().get(Ambience.class);
-        if (ambience.isActive() && ambience.customFoliageColor.get()) {
-            return ambience.foliageColor.get().getPacked();
-        }
-
-        return original;
-    }
+    return original;
+  }
 }

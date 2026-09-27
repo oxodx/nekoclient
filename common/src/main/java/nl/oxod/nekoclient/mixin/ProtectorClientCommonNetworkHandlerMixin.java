@@ -17,17 +17,17 @@ import java.util.UUID;
 @Mixin(ClientCommonPacketListenerImpl.class)
 public abstract class ProtectorClientCommonNetworkHandlerMixin {
 
-    @Inject(method = "handleResourcePackPush", at = @At("HEAD"))
-    private void protector$onPackPush(ClientboundResourcePackPushPacket packet, CallbackInfo ci) {
-        ProtectorPackStrip.onPackPush(packet.id());
-    }
+  @Inject(method = "handleResourcePackPush", at = @At("HEAD"))
+  private void protector$onPackPush(ClientboundResourcePackPushPacket packet, CallbackInfo ci) {
+    ProtectorPackStrip.onPackPush(packet.id());
+  }
 
-    @Inject(method = "handleResourcePackPop", at = @At("HEAD"))
-    private void protector$onPackPop(ClientboundResourcePackPopPacket packet, CallbackInfo ci) {
-        Optional<UUID> id = packet.id();
-        ProtectorPackStrip.onPop(id.orElse(null));
-        ResourcePackTruthGuard.onPop(id.orElse(null));
+  @Inject(method = "handleResourcePackPop", at = @At("HEAD"))
+  private void protector$onPackPop(ClientboundResourcePackPopPacket packet, CallbackInfo ci) {
+    Optional<UUID> id = packet.id();
+    ProtectorPackStrip.onPop(id.orElse(null));
+    ResourcePackTruthGuard.onPop(id.orElse(null));
 
-        ProtectorPackResponseScheduler.cancel(id.orElse(null));
-    }
+    ProtectorPackResponseScheduler.cancel(id.orElse(null));
+  }
 }

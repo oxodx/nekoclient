@@ -17,25 +17,25 @@ import java.util.Objects;
 @Mixin(OptionInstance.class)
 public abstract class OptionInstanceMixin<T> implements IOptionInstance {
 
-    @Shadow
-    private T value;
+  @Shadow
+  private T value;
 
-    @Shadow
-    @Final
-    private OptionInstance.ValueUpdateListener<? super T> onValueUpdate;
+  @Shadow
+  @Final
+  private OptionInstance.ValueUpdateListener<? super T> onValueUpdate;
 
-    @Override
-    public void neko$set(Object value) {
-        @SuppressWarnings("unchecked")
-        T cast = (T) value;
+  @Override
+  public void neko$set(Object value) {
+    @SuppressWarnings("unchecked")
+    T cast = (T) value;
 
-        if (!Minecraft.getInstance().isRunning()) {
-            this.value = cast;
-        } else {
-            if (!Objects.equals(this.value, cast)) {
-                this.value = cast;
-                this.onValueUpdate.valueChanged(cast);
-            }
-        }
+    if (!Minecraft.getInstance().isRunning()) {
+      this.value = cast;
+    } else {
+      if (!Objects.equals(this.value, cast)) {
+        this.value = cast;
+        this.onValueUpdate.valueChanged(cast);
+      }
     }
+  }
 }

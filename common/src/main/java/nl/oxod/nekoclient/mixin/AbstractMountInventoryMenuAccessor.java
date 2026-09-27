@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractMountInventoryMenu.class)
 public interface AbstractMountInventoryMenuAccessor {
-    @Accessor("mount")
-    LivingEntity neko$getMount();
+  @Accessor("mount")
+  LivingEntity neko$getMount();
 }
