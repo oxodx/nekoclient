@@ -26,7 +26,10 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class MeshBuilder {
-  private static final boolean DEBUG = Platform.get().isDevelopmentEnvironment() || Boolean.getBoolean("meteor.render.debug");
+  // A static initialiser runs as soon as the class is touched, which can happen while mixins are
+  // still being applied -- before the loader module has installed the platform.
+  private static final boolean DEBUG = (Platform.isInstalled() && Platform.get().isDevelopmentEnvironment())
+    || Boolean.getBoolean("meteor.render.debug");
 
   public double alpha = 1;
 

@@ -37,7 +37,11 @@ public final class ProtectorModResolver {
 
   public static Set<String> dependenciesFor(String modId) {
     if (modId == null || modId.isBlank()) return new HashSet<>();
-    Set<String> dependencies = new HashSet<>(Platform.get().declaredDependencies(modId));
+    Set<String> dependencies = new HashSet<>();
+    // Fabric API resource and language hooks fire from whichever mod's client entrypoint runs
+    // first, which need not be ours, so the platform may not be installed yet. Without it we
+    // simply know no declared dependencies, which only makes the tracking less strict.
+    if (Platform.isInstalled()) dependencies.addAll(Platform.get().declaredDependencies(modId));
     dependencies.remove(modId);
     dependencies.removeIf(ProtectorModResolver::isCore);
     return dependencies;
@@ -103,6 +107,8 @@ public final class ProtectorModResolver {
    */
   private static String rootModId(String modId) {
     if (modId == null || modId.isBlank()) return null;
+    // Reachable before the platform is installed; pass the id through unresolved.
+    if (!Platform.isInstalled()) return modId;
     if (!Platform.get().isModLoaded(modId)) return modId;
     String root = Platform.get().rootModId(modId);
     return root == null || root.isBlank() ? modId : root;
