@@ -16,3 +16,7 @@ logs
 .idea/*
 !.idea/copyright/*
 !.idea/scopes/*
+
+# NeoForge/ModDevGradle dev-run artifacts
+.cache
+config

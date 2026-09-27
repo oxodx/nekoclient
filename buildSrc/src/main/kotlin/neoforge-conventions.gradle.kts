@@ -1,5 +1,5 @@
 plugins {
-    id("common-conventions")
+    id("base-conventions")
 }
 
 apply(plugin = "net.neoforged.moddev")

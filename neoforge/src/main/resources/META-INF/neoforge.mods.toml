@@ -5,10 +5,40 @@ issueTrackerURL = "https://github.com/oxodx/nekoclient/issues"
 
 [[mods]]
 modId = "nekoclient"
-version = "26.2.0.84"
+version = "${version}"
 displayName = "NekoClient"
-authors = "oxod_"
-description = "Based utility mod."
+displayURL = "https://github.com/oxodx/nekoclient"
+iconFile = "assets/nekoclient/icon.png"
+description = '''
+Based utility mod.
+'''
+
+# NeoForge's IModInfo does not expose the `authors` list from the mod metadata, so the same
+# values are declared here as a mod property and read back by NekoClientNeoForge.
+[mods.properties]
+"nekoclient:authors" = [
+    "oxod_",
+    "MineGame159",
+    "squidoodly",
+    "seasnail"
+]
+"nekoclient:color" = "145,61,226"
+"nekoclient:commit" = "${commit}"
+
+[[mixins]]
+config = "nekoclient.mixins.json"
+
+[[mixins]]
+config = "meteor-client.mixins.json"
+
+# NeoForge uses the AccessTransformers library rather than Fabric's class tweaker, so the
+# widened members the shared code relies on are declared here instead. This must stay in sync
+# with common/src/main/resources/nekoclient.classtweaker.
+[[accessTransformers]]
+file = "META-INF/accesstransformer.cfg"
+
+# Loader-specific compat: sodium/lithium/iris/indigo/viafabricplus/modmenu are Fabric mods, so
+# those configs are registered by the fabric module only and are intentionally absent here.
 
 [[dependencies.nekoclient]]
 modId = "neoforge"

@@ -69,7 +69,8 @@ dependencies {
     compileOnly(libs.baritone)
     compileOnly(libs.modmenu)
 
-    // Shared module
+    // Shared module. The loader-neutral libraries come across as `api` dependencies, so
+    // they are bundled through the jij configuration below rather than declared twice.
     implementation(project(":common"))
 
     // Libraries (JAR-in-JAR)
@@ -84,6 +85,12 @@ dependencies {
         exclude("com.google.code.gson")
         exclude("com.google.errorprone")
     }
+
+    // Fabric API internals referenced by this module's own mixins and platform class
+    compileOnly("net.fabricmc.fabric-api:fabric-networking-api-v1:$fapiVersion")
+    compileOnly("net.fabricmc.fabric-api:fabric-resource-loader-v1:$fapiVersion")
+    compileOnly(fabricApi.module("fabric-api-base", fapiVersion) as ModuleDependency)
+    compileOnly("io.github.llamalad7:mixinextras-fabric:0.4.1")
 
     // Error Prone
     errorprone(libs.errorprone.core)
@@ -112,8 +119,24 @@ listOf("api", "implementation", "include").forEach { configName ->
     }
 }
 
+// The class tweaker and the mixin configs live in :common, since both loaders need them, and the
+// shared assets are merged into the shadow jar below. The class tweaker additionally has to be
+// part of this module's own output, because fabric.mod.json's `accessWidener` entry is resolved
+// against the dev run's mod folder rather than against the shadow jar.
+val commonResources = rootProject.file("common/src/main/resources")
+
+// The `sourceSets` accessor is not generated here because the java plugin arrives via the
+// convention plugin, so the container is looked up explicitly.
+extensions.getByType<SourceSetContainer>().named("main").configure {
+    val shared = resources.srcDir(commonResources)
+    // These belong to the NeoForge module and have no place in a Fabric jar.
+    shared.exclude("META-INF/neoforge.mods.toml")
+    shared.exclude("META-INF/accesstransformer.cfg")
+}
+
 loom {
-    accessWidenerPath = file("src/main/resources/meteor-client.classtweaker")
+    // Shared with :common, which compiles the code that actually relies on the widened members.
+    accessWidenerPath = rootProject.file("common/src/main/resources/nekoclient.classtweaker")
 }
 
 fun toMinecraftCompat(version: String): String {
@@ -160,6 +183,12 @@ tasks {
         dependsOn(jar)
         configurations = listOf(project.configurations.shadow.get())
         from(zipTree(jar.get().archiveFile))
+
+        // Merge the shared module's classes into this jar: mixin configs resolve mixin classes by
+        // package, so they have to sit alongside the classes. Its resources are already part of
+        // this module's own output via the srcDir above, and its libraries are still nested
+        // individually through the jij configuration.
+        from(project(":common").sourceSets.main.get().output.classesDirs)
 
         inputs.property("archivesName", project.base.archivesName.get())
 

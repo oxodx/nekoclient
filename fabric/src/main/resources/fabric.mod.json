@@ -20,7 +20,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "meteordevelopment.meteorclient.MeteorClient"
+      "nl.oxod.nekoclient.NekoClientFabric"
     ],
     "modmenu": [
       "meteordevelopment.meteorclient.modintegration.ModMenuIntegration"
@@ -29,13 +29,14 @@
   "mixins": [
     "meteor-client.mixins.json",
     "nekoclient.mixins.json",
+    "nekoclient-fabric.mixins.json",
     "meteor-client-baritone.mixins.json",
     "meteor-client-indigo.mixins.json",
     "meteor-client-sodium.mixins.json",
     "meteor-client-lithium.mixins.json",
     "meteor-client-viafabricplus.mixins.json"
   ],
-  "accessWidener": "meteor-client.classtweaker",
+  "accessWidener": "nekoclient.classtweaker",
   "custom": {
     "nekoclient:build_number": "${build_number}",
     "nekoclient:color": "145,61,226",

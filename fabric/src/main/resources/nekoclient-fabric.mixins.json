@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "nl.oxod.nekoclient.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ProtectorClientLanguageMixin",
+    "ProtectorKeyMappingRegistryImplMixin",
+    "ProtectorPayloadTypeRegistryImplMixin",
+    "ProtectorResourceLoaderImplMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

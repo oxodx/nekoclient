@@ -3,19 +3,13 @@
  * Copyright (c) Meteor Development.
  */
 
-package nl.oxod.nekoclient.modintegration;
+package meteordevelopment.meteorclient.modintegration;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import meteordevelopment.meteorclient.gui.GuiThemes;
 import meteordevelopment.meteorclient.gui.screens.ModulesScreen;
 
-/**
- * ModMenu entry point.
- *
- * <p>Fabric-only: ModMenu is a Fabric mod, so this class is compiled and shipped by the
- * {@code fabric} module. NeoForge surfaces the same screen through its own mod list UI.
- */
 public class ModMenuIntegration implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
