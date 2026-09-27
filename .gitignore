@@ -17,9 +17,12 @@ logs
 !.idea/copyright/*
 !.idea/scopes/*
 
-# NeoForge/ModDevGradle dev-run artifacts
-.cache
-config
+# NeoForge/ModDevGradle dev-run artifacts.
+# These must stay anchored to the repository root: an unanchored "config" also
+# matches any directory named config at any depth, which silently excluded
+# common/src/main/java/nl/oxod/nekoclient/systems/config/ (the Config class)
+/.cache/
+/config/
 
 # buildSrc Kotlin build artifacts
 buildSrc/.kotlin
