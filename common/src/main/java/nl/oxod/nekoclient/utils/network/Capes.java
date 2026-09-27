@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static nl.oxod.nekoclient.NekoClient.mc;
@@ -25,9 +26,13 @@ public class Capes {
   private static final String CAPE_OWNERS_URL = "https://meteorclient.com/api/capeowners";
   private static final String CAPES_URL = "https://meteorclient.com/api/capes";
 
-  private static final Map<UUID, String> OWNERS = new HashMap<>();
-  private static final Map<String, String> URLS = new HashMap<>();
-  private static final Map<String, Cape> TEXTURES = new HashMap<>();
+  // These are populated on a NekoExecutor worker thread in init() but read on the render thread
+  // from get(), which CapeLayerMixin calls during CapeLayer.submit(). Plain HashMap is not safe
+  // for that: concurrent get/put during a resize can spin, return a stale or half-built entry, or
+  // hand the renderer an object whose fields have not been published yet.
+  private static final Map<UUID, String> OWNERS = new ConcurrentHashMap<>();
+  private static final Map<String, String> URLS = new ConcurrentHashMap<>();
+  private static final Map<String, Cape> TEXTURES = new ConcurrentHashMap<>();
 
   private static final List<Cape> TO_REGISTER = new ArrayList<>();
   private static final List<Cape> TO_RETRY = new ArrayList<>();
@@ -119,10 +124,13 @@ public class Capes {
     private final String name;
     private final Identifier identifier;
 
-    private boolean downloaded;
-    private boolean downloading;
+    // Written by the download worker thread, read by the render thread via isDownloaded() and
+    // consumed by register(). volatile so the NativeImage reference and the flags are published
+    // in order; without it the renderer can see downloaded == true before img is visible.
+    private volatile boolean downloaded;
+    private volatile boolean downloading;
 
-    private NativeImage img;
+    private volatile NativeImage img;
 
     private int retryTimer;
 
@@ -150,17 +158,18 @@ public class Capes {
             }
           }
 
-          InputStream in = Http.get(url).sendInputStream();
-          if (in == null) {
-            synchronized (TO_RETRY) {
-              TO_RETRY.add(this);
-              retryTimer = 10 * 20;
-              downloading = false;
-              return;
+          try (InputStream in = Http.get(url).sendInputStream()) {
+            if (in == null) {
+              synchronized (TO_RETRY) {
+                TO_RETRY.add(this);
+                retryTimer = 10 * 20;
+                downloading = false;
+                return;
+              }
             }
-          }
 
-          img = NativeImage.read(in);
+            img = NativeImage.read(in);
+          }
 
           synchronized (TO_REGISTER) {
             TO_REGISTER.add(this);
@@ -172,10 +181,12 @@ public class Capes {
     }
 
     public void register() {
-      mc.getTextureManager().register(identifier, new DynamicTexture(null, img));
+      NativeImage image = img;
       img = null;
-
       downloading = false;
+
+      if (image == null) return;
+      mc.getTextureManager().register(identifier, new DynamicTexture(null, image));
       downloaded = true;
     }
 
