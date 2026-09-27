@@ -14,16 +14,14 @@ Based utility mod.
 '''
 
 # NeoForge's IModInfo does not expose the `authors` list from the mod metadata, so the same
-# values are declared here as a mod property and read back by NekoClientNeoForge.
-[mods.properties]
-"nekoclient:authors" = [
-    "oxod_",
-    "MineGame159",
-    "squidoodly",
-    "seasnail"
-]
-"nekoclient:color" = "145,61,226"
-"nekoclient:commit" = "${commit}"
+# values are declared here as a mod property and read back by NekoClientNeoForge. NeoForge reads
+# this table as `modproperties.<modId>` and stores entries under the names written here, so the
+# keys must be bare rather than `nekoclient:`-prefixed, and the authors are comma-separated
+# because only scalar values are guaranteed to survive the TOML round-trip.
+[modproperties.nekoclient]
+authors = "oxod_,MineGame159,squidoodly,seasnail"
+color = "145,61,226"
+commit = "${commit}"
 
 [[mixins]]
 config = "nekoclient.mixins.json"

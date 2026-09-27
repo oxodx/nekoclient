@@ -50,6 +50,17 @@ public class AddonManager {
             MeteorClient.ADDON.name = self.name();
             MeteorClient.ADDON.authors = self.authors().toArray(String[]::new);
 
+            // An empty author list is not fatal -- TitleScreenCredits still renders, it just
+            // produces "NekoClient by " with nobody after it. Say so, because the usual cause is a
+            // loader-specific metadata declaration drifting out of sync with fabric.mod.json.
+            if (self.authors().isEmpty()) {
+                MeteorClient.LOG.warn(
+                    "No authors found in mod metadata, so the title screen credit will list none. "
+                        + "NeoForge reads these from the [modproperties.{}] table in neoforge.mods.toml, "
+                        + "while Fabric reads the authors array in fabric.mod.json.",
+                    MeteorClient.MOD_ID);
+            }
+
             // NekoClient is the only mod declaring this key; third-party addons may omit it.
             applyColor(MeteorClient.ADDON, Platform.get().color());
 

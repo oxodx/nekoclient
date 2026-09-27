@@ -63,12 +63,12 @@ public class NekoClientNeoForge implements NekoPlatform {
 
     @Override
     public String commit() {
-        return modProperty(MeteorClient.MOD_ID + ":commit", "");
+        return modProperty("commit", "");
     }
 
     @Override
     public String color() {
-        return modProperty(MeteorClient.MOD_ID + ":color", null);
+        return modProperty("color", null);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class NekoClientNeoForge implements NekoPlatform {
                     modId,
                     modInfo(modId),
                     value,
-                    modPropertyOf(modId, MeteorClient.MOD_ID + ":color", null)
+                    modPropertyOf(modId, "color", null)
                 ));
             }
         }
@@ -191,7 +191,7 @@ public class NekoClientNeoForge implements NekoPlatform {
      * parsing the toml) means addons get the same treatment without any file reading at startup.
      */
     private static List<String> readAuthors(IModInfo info) {
-        Object authors = info.getModProperties().get(MeteorClient.MOD_ID + ":authors");
+        Object authors = info.getModProperties().get("authors");
         if (authors == null) return List.of();
 
         if (authors instanceof List<?> list) {

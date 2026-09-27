@@ -20,3 +20,7 @@ logs
 # NeoForge/ModDevGradle dev-run artifacts
 .cache
 config
+
+# buildSrc Kotlin build artifacts
+buildSrc/.kotlin
+buildSrc/build
