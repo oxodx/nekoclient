@@ -34,7 +34,7 @@ jobs:
           java-version: '25'
 
       - name: Build
-        run: gradle build -Pcommit=${{ github.sha }}
+        run: gradle build -PreleaseVersion=$(TZ=Europe/Amsterdam date +%Y.%m.%d)
 
       - name: Release
         env:
@@ -55,6 +55,5 @@ jobs:
 
           gh release create "$tag" $jars \
             --title "$tag" \
-            --notes "Automated build of $GITHUB_SHA." \
             --latest=false
           echo "Released $tag"
