@@ -55,5 +55,6 @@ jobs:
 
           gh release create "$tag" $jars \
             --title "$tag" \
+            --generate-notes \
             --latest=false
           echo "Released $tag"
