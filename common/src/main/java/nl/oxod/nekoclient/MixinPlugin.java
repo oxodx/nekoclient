@@ -41,12 +41,12 @@ public class MixinPlugin implements IMixinConfigPlugin {
     // Upstream reads this through FabricLoader; LoaderDetection does the equivalent on
     // whichever loader is active, which is required because MixinPlugin lives in common.
     isBaritonePresent = LoaderDetection.isModLoaded("baritone") || LoaderDetection.isModLoaded("baritone-meteor");
-    // The Baritone mixin hooks baritone.command.defaults.ComeCommand, which is not present in
-    // every Baritone build: official Baritone 1.19.0 does not have it, baritone-meteor does.
-    // Gating on the mod id alone applied the mixin against a missing class and logged a warning
-    // on every launch, so the presence of the target class is what decides.
+    // The Baritone mixin hooks baritone.command.defaults.ComeCommand, which the ProGuard-processed
+    // baritone-api-fabric build does not ship. This must be a resource lookup, not a class load:
+    // this plugin runs while mixin configs are prepared, and loading the target here fails the
+    // boot with MixinTargetAlreadyLoadedException.
     isBaritoneMixinTargetPresent = isBaritonePresent
-      && LoaderDetection.classExists("baritone.command.defaults.ComeCommand");
+      && LoaderDetection.classPresent("baritone.command.defaults.ComeCommand");
 
     loaded = true;
   }

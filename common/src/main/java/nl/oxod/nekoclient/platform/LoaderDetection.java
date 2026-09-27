@@ -26,6 +26,27 @@ public final class LoaderDetection {
     }
   }
 
+  /**
+   * Whether a class is on the classpath <em>without loading it</em>.
+   *
+   * <p>Use this, not {@link #classExists}, when the class being probed is also the target of a
+   * mixin. A mixin config plugin runs during config preparation; loading its target there makes
+   * Mixin fail the boot with {@code MixinTargetAlreadyLoadedException}, because the class is now
+   * loaded before the mixin can be applied to it. A resource lookup answers the same question
+   * without triggering class loading.
+   *
+   * @param binaryName dotted class name, e.g. {@code baritone.command.defaults.ComeCommand}
+   */
+  public static boolean classPresent(String binaryName) {
+    if (binaryName == null || binaryName.isBlank()) return false;
+    try {
+      return LoaderDetection.class.getClassLoader()
+        .getResource(binaryName.replace('.', '/') + ".class") != null;
+    } catch (Throwable ignored) {
+      return false;
+    }
+  }
+
   public static boolean isFabric() {
     return classExists(FABRIC_LOADER);
   }
