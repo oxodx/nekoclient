@@ -1,37 +1,21 @@
 name: Build Pull Request
 
-on: [ pull_request ]
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+# Superseded runs are cancelled: pushing a second commit to a PR makes the first
+# run's result irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: current
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-
-      - name: Build
-        run: gradle build -Pcommit=${{ github.sha }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: Release Build
-          path: |
-            fabric/build/libs/
-            neoforge/build/libs/
-          if-no-files-found: error
-          retention-days: 14
+    # Reuses the exact build used for master, so a green PR means the same thing a
+    # post-merge build will. Secrets are not passed through: forks can open PRs
+    # against this repository, and a reusable-workflow call would otherwise
+    # expose them.
+    uses: ./.github/workflows/build.yml

@@ -1,17 +1,29 @@
-name: Dev Build
+name: Build
 
-concurrency:
-  group: "build"
-  cancel-in-progress: false
-
+# Single source of truth for building the mod. Both the post-merge build on master
+# and pull_request.yml call this, so the two paths cannot drift apart.
 on:
+  workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - master
 
+# Least privilege: this workflow only ever reads the repository.
+permissions:
+  contents: read
+
+# One run per branch, newest wins. A dev build for a commit that has already been
+# superseded is not worth the runner minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # NeoForm/Minecraft decompilation is slow; fail loudly rather than burn six hours.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout Repository
@@ -22,6 +34,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
+          # This repository has no gradlew launcher, so the runner's Gradle comes
+          # from here rather than from the wrapper.
           gradle-version: current
 
       - name: Set up Java
@@ -31,14 +45,33 @@ jobs:
           java-version: '25'
 
       - name: Build
-        run: gradle build -Pcommit=${{ github.sha }}
+        run: gradle build -Pcommit=${{ github.sha }} --stacktrace
 
-      - name: Upload Artifacts
+      # The mod ships as one jar per loader. The build also emits -sources and
+      # -javadoc jars, which are not useful as a downloadable artifact, so they
+      # are filtered out rather than shipped alongside the real thing.
+      - name: Verify both loaders produced a jar
+        run: |
+          set -euo pipefail
+          missing=0
+          for loader in fabric neoforge; do
+            if ! compgen -G "$loader/build/libs/nekoclient-$loader-*.jar" > /dev/null; then
+              echo "::error::No jar produced for the $loader loader"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Upload Mod Jars
         uses: actions/upload-artifact@v7
         with:
-          name: Release Build
+          name: nekoclient-jars-${{ github.sha }}
           path: |
-            fabric/build/libs/
-            neoforge/build/libs/
+            fabric/build/libs/nekoclient-fabric-*.jar
+            neoforge/build/libs/nekoclient-neoforge-*.jar
+            !fabric/build/libs/*-sources.jar
+            !fabric/build/libs/*-javadoc.jar
+            !neoforge/build/libs/*-sources.jar
+            !neoforge/build/libs/*-javadoc.jar
           if-no-files-found: error
           retention-days: 14
