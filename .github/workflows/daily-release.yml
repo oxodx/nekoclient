@@ -1,31 +1,16 @@
 name: Daily Release
 
-# Publishes a dated GitHub Release containing both loader jars, once a day at
-# 00:00 Europe/Amsterdam.
 on:
   schedule:
-    # GitHub cron schedules are always UTC, but Amsterdam is UTC+1 (CET) in
-    # winter and UTC+2 (CEST) in summer. Midnight local is therefore 23:00 UTC
-    # under CET and 22:00 UTC under CEST. Both instants are scheduled and the
-    # gate below runs the release only at whichever one is actually local
-    # midnight, so the release lands at 00:00 Amsterdam year round instead of
-    # drifting by an hour across the DST boundary.
-    - cron: "0 22 * * *"
+    # 23:00 UTC = 00:00 in Amsterdam (CET). During CEST it lands an hour later.
     - cron: "0 23 * * *"
   workflow_dispatch:
-    inputs:
-      force:
-        description: Publish even when it is not midnight in Amsterdam
-        type: boolean
-        default: false
 
-# Creating a release and pushing a tag both write to the repository.
 permissions:
   contents: write
 
 concurrency:
   group: daily-release
-  # Never cancel: a half-finished release is worse than a late one.
   cancel-in-progress: false
 
 jobs:
@@ -34,117 +19,44 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v5
         with:
-          # This repository has no gradlew launcher, so the runner's Gradle comes
-          # from here rather than from the wrapper.
           gradle-version: current
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
-      # One of the two scheduled runs is always a no-op. Decide which, before
-      # spending any build time.
-      - name: Check whether it is midnight in Amsterdam
-        id: gate
-        run: |
-          set -euo pipefail
-          local_hour=$(TZ=Europe/Amsterdam date +%H)
-          forced='${{ inputs.force }}'
-          if [ "$local_hour" = "00" ] || [ "$forced" = "true" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "Publishing: local hour in Amsterdam is $local_hour"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Not midnight in Amsterdam (local hour $local_hour); nothing to do."
-          fi
-
       - name: Build
-        if: steps.gate.outputs.run == 'true'
-        run: gradle build -Pcommit=${{ github.sha }} --stacktrace
+        run: gradle build -Pcommit=${{ github.sha }}
 
-      - name: Collect the mod jars
-        if: steps.gate.outputs.run == 'true'
-        id: jars
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          jars=(
-            fabric/build/libs/nekoclient-fabric-*.jar
-            neoforge/build/libs/nekoclient-neoforge-*.jar
-          )
-          # Drop the -sources and -javadoc byproducts; the release ships the mod.
-          keep=()
-          for jar in "${jars[@]}"; do
-            case "$jar" in
-              *-sources.jar|*-javadoc.jar) continue ;;
-            esac
-            keep+=("$jar")
-          done
-          if [ "${#keep[@]}" -eq 0 ]; then
-            echo "::error::No mod jars were produced"
-            exit 1
-          fi
-          printf '%s\n' "${keep[@]}" | while read -r jar; do echo "$jar"; done > jars.txt
-          echo "Publishing $(wc -l < jars.txt) jar(s):"
-          cat jars.txt
-
-      - name: Create the release
-        if: steps.gate.outputs.run == 'true'
+      - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Date the release by the Amsterdam calendar day, not the UTC one, so
-          # the tag matches the midnight the schedule was aiming at.
-          tag="daily-$(TZ=Europe/Amsterdam date +%Y-%m-%d)"
 
-          if gh release view "$tag" > /dev/null 2>&1; then
-            echo "Release $tag already exists; leaving it untouched."
+          # Nothing new since the last release means no new version.
+          last=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // ""')
+          last_sha=$(git rev-list -n 1 "$last" 2>/dev/null || true)
+          if [ -n "$last_sha" ] && [ "$last_sha" = "$GITHUB_SHA" ]; then
+            echo "$GITHUB_SHA is already released as $last; nothing to do."
             exit 0
           fi
 
-          mapfile -t files < jars.txt
-          notes=$(cat <<EOF
-          Automated build of \`${{ github.sha }}\`.
+          tag=$(TZ=Europe/Amsterdam date +%y.%m.%d)
+          jars=$(ls fabric/build/libs/nekoclient-fabric-*.jar \
+                    neoforge/build/libs/nekoclient-neoforge-*.jar \
+                | grep -vE -- '-(sources|javadoc)\.jar$')
 
-          Commit: ${{ github.sha }}
-          Built:  $(TZ=Europe/Amsterdam date '+%Y-%m-%d %H:%M %Z')
-
-          One jar per loader: \`nekoclient-fabric\` and \`nekoclient-neoforge\`.
-          EOF
-          )
-
-          # A daily build should not displace a real versioned release as
-          # "Latest release", so opt out where the CLI supports it.
-          latest=()
-          if gh release create --help 2>&1 | grep -q -- '--latest'; then
-            latest=(--latest=false)
-          fi
-
-          gh release create "$tag" "${files[@]}" \
-            --title "Daily build $tag" \
-            --notes "$notes" \
-            "${latest[@]}"
-          echo "Created release $tag"
-
-      - name: Summary
-        if: always() && steps.gate.outputs.run == 'true'
-        run: |
-          {
-            echo "### Daily release"
-            echo
-            echo "- Tag: \`daily-$(TZ=Europe/Amsterdam date +%Y-%m-%d)\`"
-            echo "- Commit: \`${{ github.sha }}\`"
-            echo "- Built at $(TZ=Europe/Amsterdam date '+%Y-%m-%d %H:%M %Z')"
-          } >> "$GITHUB_STEP_SUMMARY"
+          gh release create "$tag" $jars \
+            --title "$tag" \
+            --notes "Automated build of $GITHUB_SHA." \
+            --latest=false
+          echo "Released $tag"
