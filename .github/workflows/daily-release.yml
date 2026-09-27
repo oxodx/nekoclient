@@ -50,7 +50,7 @@ jobs:
             exit 0
           fi
 
-          tag=$(TZ=Europe/Amsterdam date +%y.%m.%d)
+          tag=$(TZ=Europe/Amsterdam date +%Y.%m.%d)
           jars=$(ls fabric/build/libs/*.jar neoforge/build/libs/*.jar)
 
           gh release create "$tag" $jars \
