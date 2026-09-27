@@ -25,6 +25,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
   private static boolean isLithiumPresent;
   public static boolean isIrisPresent;
   private static boolean isVFPPresent;
+  private static boolean isBaritoneMixinTargetPresent;
   private static boolean isBaritonePresent;
 
   @Override
@@ -40,6 +41,12 @@ public class MixinPlugin implements IMixinConfigPlugin {
     // Upstream reads this through FabricLoader; LoaderDetection does the equivalent on
     // whichever loader is active, which is required because MixinPlugin lives in common.
     isBaritonePresent = LoaderDetection.isModLoaded("baritone") || LoaderDetection.isModLoaded("baritone-meteor");
+    // The Baritone mixin hooks baritone.command.defaults.ComeCommand, which is not present in
+    // every Baritone build: official Baritone 1.19.0 does not have it, baritone-meteor does.
+    // Gating on the mod id alone applied the mixin against a missing class and logged a warning
+    // on every launch, so the presence of the target class is what decides.
+    isBaritoneMixinTargetPresent = isBaritonePresent
+      && LoaderDetection.classExists("baritone.command.defaults.ComeCommand");
 
     loaded = true;
   }
@@ -64,7 +71,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
     } else if (mixinClassName.startsWith(mixinPackage + ".viafabricplus")) {
       return isVFPPresent;
     } else if (mixinClassName.startsWith(mixinPackage + ".baritone")) {
-      return isBaritonePresent;
+      return isBaritoneMixinTargetPresent;
     }
 
     return LoaderSpecificMixins.shouldApply(mixinClassName);
