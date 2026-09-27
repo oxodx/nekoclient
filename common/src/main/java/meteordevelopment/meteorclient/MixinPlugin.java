@@ -62,6 +62,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
     private static boolean isLithiumPresent;
     public static boolean isIrisPresent;
     private static boolean isVFPPresent;
+    private static boolean isBaritonePresent;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -73,6 +74,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
         isLithiumPresent = LoaderDetection.isModLoaded("lithium");
         isIrisPresent = LoaderDetection.isModLoaded("iris");
         isVFPPresent = LoaderDetection.isModLoaded("viafabricplus");
+        // Upstream reads this through FabricLoader; LoaderDetection does the equivalent on
+        // whichever loader is active, which is required because MixinPlugin lives in common.
+        isBaritonePresent = LoaderDetection.isModLoaded("baritone") || LoaderDetection.isModLoaded("baritone-meteor");
 
         loaded = true;
     }
@@ -96,6 +100,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             return isLithiumPresent;
         } else if (mixinClassName.startsWith(mixinPackage + ".viafabricplus")) {
             return isVFPPresent;
+        } else if (mixinClassName.startsWith(mixinPackage + ".baritone")) {
+            return isBaritonePresent;
         } else if (fabricOnlyMixins.contains(mixinClassName)) {
             // See fabricOnlyMixins for why these cannot apply on NeoForge.
             return LoaderDetection.isFabric();
