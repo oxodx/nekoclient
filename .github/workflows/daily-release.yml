@@ -51,9 +51,7 @@ jobs:
           fi
 
           tag=$(TZ=Europe/Amsterdam date +%y.%m.%d)
-          jars=$(ls fabric/build/libs/nekoclient-fabric-*.jar \
-                    neoforge/build/libs/nekoclient-neoforge-*.jar \
-                | grep -vE -- '-(sources|javadoc)\.jar$')
+          jars=$(ls fabric/build/libs/*.jar neoforge/build/libs/*.jar)
 
           gh release create "$tag" $jars \
             --title "$tag" \
