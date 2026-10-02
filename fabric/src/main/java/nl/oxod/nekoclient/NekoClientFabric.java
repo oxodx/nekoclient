@@ -5,13 +5,13 @@
 
 package nl.oxod.nekoclient;
 
-import nl.oxod.nekoclient.gui.GuiThemes;
-import nl.oxod.nekoclient.gui.screens.ModulesScreen;
+import java.lang.reflect.Constructor;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import net.fabricmc.api.ClientModInitializer;
-import nl.oxod.nekoclient.platform.ModInfo;
-import nl.oxod.nekoclient.platform.NekoPlatform;
-import nl.oxod.nekoclient.platform.Platform;
-import nl.oxod.nekoclient.platform.RegistrationPayloadAdapter;
 import net.fabricmc.fabric.impl.networking.RegistrationPayload;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -21,13 +21,12 @@ import net.fabricmc.loader.api.metadata.Person;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-
-import java.lang.reflect.Constructor;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import nl.oxod.nekoclient.gui.GuiThemes;
+import nl.oxod.nekoclient.gui.screens.ModulesScreen;
+import nl.oxod.nekoclient.platform.ModInfo;
+import nl.oxod.nekoclient.platform.NekoPlatform;
+import nl.oxod.nekoclient.platform.Platform;
+import nl.oxod.nekoclient.platform.RegistrationPayloadAdapter;
 
 /**
  * Fabric implementation of the platform seam, plus the Fabric mod entry point.
@@ -36,6 +35,7 @@ import java.util.Set;
  * {@code NekoClient}'s static initialiser can rely on {@link Platform#get()}.
  */
 public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
+
   private static final ModInfo SELF = readSelfMetadata();
 
   @Override
@@ -48,7 +48,6 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
   }
 
   // --- NekoPlatform ---
-
   @Override
   public String loader() {
     return "fabric";
@@ -96,16 +95,20 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
   @Override
   public Set<String> declaredDependencies(String modId) {
     Set<String> dependencies = new LinkedHashSet<>();
-    FabricLoader.getInstance().getModContainer(modId).ifPresent(container -> {
-      for (ModContainer contained : container.getContainedMods()) {
-        dependencies.add(contained.getMetadata().getId());
-      }
-      for (ModDependency dependency : container.getMetadata().getDependencies()) {
-        if (dependency.getKind() != ModDependency.Kind.BREAKS) {
-          dependencies.add(dependency.getModId());
+    FabricLoader.getInstance()
+      .getModContainer(modId)
+      .ifPresent(container -> {
+        for (ModContainer contained : container.getContainedMods()) {
+          dependencies.add(contained.getMetadata().getId());
         }
-      }
-    });
+        for (ModDependency dependency : container
+          .getMetadata()
+          .getDependencies()) {
+          if (dependency.getKind() != ModDependency.Kind.BREAKS) {
+            dependencies.add(dependency.getModId());
+          }
+        }
+      });
     return dependencies;
   }
 
@@ -123,16 +126,26 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
   }
 
   @Override
-  public <T> List<Entrypoint<? extends T>> entrypoints(String key, Class<T> type) {
+  public <T> List<Entrypoint<? extends T>> entrypoints(
+    String key,
+    Class<T> type
+  ) {
     List<Entrypoint<? extends T>> entrypoints = new ArrayList<>();
-    for (var container : FabricLoader.getInstance().getEntrypointContainers(key, type)) {
+    for (var container : FabricLoader.getInstance().getEntrypointContainers(
+      key,
+      type
+    )) {
       ModMetadata metadata = container.getProvider().getMetadata();
-      entrypoints.add(new Entrypoint<>(
-        metadata.getId(),
-        toModInfo(metadata),
-        container.getEntrypoint(),
-        optionalCustomValue(metadata, NekoClient.MOD_ID + ":color").orElse(null)
-      ));
+      entrypoints.add(
+        new Entrypoint<>(
+          metadata.getId(),
+          toModInfo(metadata),
+          container.getEntrypoint(),
+          optionalCustomValue(metadata, NekoClient.MOD_ID + ":color").orElse(
+            null
+          )
+        )
+      );
     }
     return entrypoints;
   }
@@ -151,8 +164,14 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
       }
 
       @Override
-      public java.util.Optional<CustomPacketPayload> rebuild(CustomPacketPayload original, List<Identifier> kept) {
-        RegistrationPayload rebuilt = newRegistrationPayload((RegistrationPayload) original, kept);
+      public java.util.Optional<CustomPacketPayload> rebuild(
+        CustomPacketPayload original,
+        List<Identifier> kept
+      ) {
+        RegistrationPayload rebuilt = newRegistrationPayload(
+          (RegistrationPayload) original,
+          kept
+        );
         return java.util.Optional.ofNullable(rebuilt);
       }
     };
@@ -166,22 +185,33 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
   // --- helpers ---
 
   private static ModInfo readSelfMetadata() {
-    return FabricLoader.getInstance().getModContainer(NekoClient.MOD_ID)
+    return FabricLoader.getInstance()
+      .getModContainer(NekoClient.MOD_ID)
       .map(container -> toModInfo(container.getMetadata()))
-      .orElseGet(() -> new ModInfo(NekoClient.MOD_ID, "NekoClient", "0.0.0", List.of()));
+      .orElseGet(() ->
+        new ModInfo(NekoClient.MOD_ID, "NekoClient", "0.0.0", List.of())
+      );
   }
 
   private static ModInfo toModInfo(ModMetadata metadata) {
     List<String> authors = new ArrayList<>(metadata.getAuthors().size());
     for (Person author : metadata.getAuthors()) authors.add(author.getName());
-    return new ModInfo(metadata.getId(), metadata.getName(), metadata.getVersion().getFriendlyString(), authors);
+    return new ModInfo(
+      metadata.getId(),
+      metadata.getName(),
+      metadata.getVersion().getFriendlyString(),
+      authors
+    );
   }
 
   private String customValue(String key, String fallback) {
     return optionalCustomValue(selfMetadata(), key).orElse(fallback);
   }
 
-  private static java.util.Optional<String> optionalCustomValue(ModMetadata metadata, String key) {
+  private static java.util.Optional<String> optionalCustomValue(
+    ModMetadata metadata,
+    String key
+  ) {
     if (!metadata.containsCustomValue(key)) return java.util.Optional.empty();
     try {
       return java.util.Optional.of(metadata.getCustomValue(key).getAsString());
@@ -196,7 +226,10 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
    * <p>The constructor signature is not stable across Fabric API versions, so both plausible
    * argument orders are attempted reflectively.
    */
-  private static RegistrationPayload newRegistrationPayload(RegistrationPayload original, List<Identifier> channels) {
+  private static RegistrationPayload newRegistrationPayload(
+    RegistrationPayload original,
+    List<Identifier> channels
+  ) {
     for (Constructor<?> ctor : RegistrationPayload.class.getDeclaredConstructors()) {
       if (ctor.getParameterCount() != 2) continue;
       try {
@@ -205,22 +238,35 @@ public class NekoClientFabric implements ClientModInitializer, NekoPlatform {
         continue;
       }
       try {
-        return (RegistrationPayload) ctor.newInstance(original.type(), channels);
+        return (RegistrationPayload) ctor.newInstance(
+          original.type(),
+          channels
+        );
       } catch (Throwable ignored) {
         try {
-          return (RegistrationPayload) ctor.newInstance(channels, original.type());
+          return (RegistrationPayload) ctor.newInstance(
+            channels,
+            original.type()
+          );
         } catch (Throwable ignored2) {
           // Try the next candidate.
         }
       }
     }
-    NekoClient.LOG.warn("[Protector] No compatible RegistrationPayload constructor; dropping packet.");
+    NekoClient.LOG.warn(
+      "[Protector] No compatible RegistrationPayload constructor; dropping packet."
+    );
     return null;
   }
 
   private static ModMetadata selfMetadata() {
-    return FabricLoader.getInstance().getModContainer(NekoClient.MOD_ID)
+    return FabricLoader.getInstance()
+      .getModContainer(NekoClient.MOD_ID)
       .map(ModContainer::getMetadata)
-      .orElseThrow(() -> new IllegalStateException("NekoClient is not registered with the Fabric loader"));
+      .orElseThrow(() ->
+        new IllegalStateException(
+          "NekoClient is not registered with the Fabric loader"
+        )
+      );
   }
 }
