@@ -23,6 +23,8 @@ import nl.oxod.nekoclient.utils.GuiDupeState;
 import com.mojang.serialization.JsonOps;
 
 public class GuiDupe extends Module {
+  private final boolean[] pressedActions = new boolean[8];
+
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
   private final SettingGroup sgActions = settings.createGroup("Actions");
 
@@ -138,17 +140,17 @@ public class GuiDupe extends Module {
   public void onDeactivate() {
     GuiDupeState.setSendGuiPackets(true);
     GuiDupeState.setDelayGuiPackets(false);
-    GuiDupeState.clearDelayed();
+    resetSession();
   }
 
   @EventHandler
   private void onSendPacket(PacketEvent.Send event) {
     if (event.packet instanceof ServerboundContainerClickPacket
       || event.packet instanceof ServerboundContainerButtonClickPacket) {
-      if (delayPackets.get()) {
-        GuiDupeState.enqueueDelayed(event.packet);
+      if (!sendPackets.get()) {
         event.cancel();
-      } else if (!sendPackets.get()) {
+      } else if (delayPackets.get()) {
+        GuiDupeState.enqueueDelayed(event.packet);
         event.cancel();
       }
       return;
@@ -166,17 +168,28 @@ public class GuiDupe extends Module {
 
   @EventHandler
   private void onTick(TickEvent.Post event) {
-    if (flushKey.get().isPressed()) flush();
-    if (flushAndQuitKey.get().isPressed()) {
-      flush();
-      closeScreen(true);
+    Setting<?>[] keys = {flushKey, flushAndQuitKey, desyncKey, closeWithoutPacketKey,
+      copyWindowDataKey, fabricateKey, saveGuiKey, restoreGuiKey};
+    Runnable[] actions = {this::flush, () -> { flush(); closeScreen(true); }, this::desync,
+      this::closeWithoutPacket, this::copyWindowData, this::fabricate, this::saveGui, this::restoreGui};
+    for (int i = 0; i < keys.length; i++) {
+      boolean pressed = ((Keybind) keys[i].get()).isPressed();
+      if (pressed && !pressedActions[i] && !(mc.gui.screen() instanceof AbstractContainerScreen<?> screen
+        && nl.oxod.nekoclient.gui.GuiDupePanel.isTyping(screen))) actions[i].run();
+      pressedActions[i] = pressed;
     }
-    if (desyncKey.get().isPressed()) desync();
-    if (closeWithoutPacketKey.get().isPressed()) closeWithoutPacket();
-    if (copyWindowDataKey.get().isPressed()) copyWindowData();
-    if (fabricateKey.get().isPressed()) fabricate();
-    if (saveGuiKey.get().isPressed()) saveGui();
-    if (restoreGuiKey.get().isPressed()) restoreGui();
+  }
+
+  @EventHandler
+  private void onGameLeft(nl.oxod.nekoclient.events.game.GameLeftEvent event) {
+    resetSession();
+  }
+
+  private void resetSession() {
+    GuiDupeState.clearDelayed();
+    GuiDupeState.clearStored();
+    GuiDupeState.setSuppressNextContainerClosePacket(false);
+    java.util.Arrays.fill(pressedActions, false);
   }
 
   private void flush() {
@@ -191,7 +204,7 @@ public class GuiDupe extends Module {
   }
 
   private void desync() {
-    if (mc.player == null || mc.player.containerMenu == null) return;
+    if (!hasContainer()) return;
     if (mc.player.containerMenu == mc.player.inventoryMenu) {
       error("Inventory GUI can't be desynced.");
       return;
@@ -206,16 +219,20 @@ public class GuiDupe extends Module {
   }
 
   private void closeScreen(boolean sendPacket) {
-    if (mc.gui.screen() == null) return;
-
-    if (!sendPacket) {
-      GuiDupeState.setSuppressNextContainerClosePacket(true);
-      mc.gui.setScreen(null);
+    if (!hasContainer()) return;
+    GuiDupeState.setSuppressNextContainerClosePacket(!sendPacket);
+    try {
+      mc.player.closeContainer();
+    } finally {
       GuiDupeState.setSuppressNextContainerClosePacket(false);
-      info("GUI closed without packet.");
-    } else {
-      mc.gui.setScreen(null);
     }
+    if (!sendPacket) info("GUI closed without packet.");
+  }
+
+  private boolean hasContainer() {
+    return mc.player != null && mc.getConnection() != null
+      && mc.gui.screen() instanceof AbstractContainerScreen<?> screen
+      && screen.getMenu() == mc.player.containerMenu;
   }
 
   private void closeWithoutPacket() {
@@ -227,7 +244,7 @@ public class GuiDupe extends Module {
   }
 
   private void fabricate() {
-    if (mc.player == null || mc.player.containerMenu == null) return;
+    if (!hasContainer()) return;
     if (mc.player.containerMenu == mc.player.inventoryMenu) {
       error("Inventory GUI can't be fabricated.");
       return;
@@ -242,7 +259,7 @@ public class GuiDupe extends Module {
   }
 
   private void copyWindowData() {
-    if (mc.gui.screen() == null || mc.player == null || mc.player.containerMenu == null) {
+    if (!hasContainer()) {
       error("No GUI open.");
       return;
     }
@@ -263,7 +280,7 @@ public class GuiDupe extends Module {
   }
 
   private void saveGui() {
-    if (mc.gui.screen() == null || mc.player == null || mc.player.containerMenu == null) {
+    if (!hasContainer()) {
       error("No GUI open.");
       return;
     }
@@ -276,14 +293,16 @@ public class GuiDupe extends Module {
   }
 
   private void restoreGui() {
+    if (mc.player == null || mc.getConnection() == null) return;
     if (GuiDupeState.getStoredScreen() == null || GuiDupeState.getStoredMenu() == null) {
       error("No stored GUI.");
       return;
     }
-    mc.gui.setScreen(GuiDupeState.getStoredScreen());
-    if (mc.player != null) {
-      mc.player.containerMenu = GuiDupeState.getStoredMenu();
+    if (mc.gui.screen() instanceof AbstractContainerScreen<?> && mc.player.containerMenu != GuiDupeState.getStoredMenu()) {
+      closeScreen(true);
     }
+    mc.player.containerMenu = GuiDupeState.getStoredMenu();
+    mc.gui.setScreen(GuiDupeState.getStoredScreen());
     info("GUI restored.");
   }
 

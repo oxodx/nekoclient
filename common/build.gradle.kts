@@ -42,3 +42,19 @@ dependencies {
 loom {
     accessWidenerPath = file("src/main/resources/nekoclient.classtweaker")
 }
+
+// Headless checks for Scaffold's pure movement/rotation calculations. A separate
+// source set keeps these executable checks independent of a test framework.
+val scaffoldRegression = sourceSets.create("scaffoldRegression") {
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
+}
+val scaffoldRegressionTest = tasks.register<JavaExec>("scaffoldRegressionTest") {
+    dependsOn(tasks.named(scaffoldRegression.classesTaskName))
+    classpath = scaffoldRegression.runtimeClasspath
+    mainClass.set("nl.oxod.nekoclient.systems.modules.movement.ScaffoldRotationTest")
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
+tasks.named("check") {
+    dependsOn(scaffoldRegressionTest)
+}
