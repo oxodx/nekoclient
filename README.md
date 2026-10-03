@@ -3,7 +3,7 @@
 </div>
 
 <p align="center">
-  <b>A Minecraft Fabric Utility Mod for anarchy servers.</b>
+  <b>A Minecraft Utility Mod for anarchy servers.</b>
 </p>
 
 <p align="center">
