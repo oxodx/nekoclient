@@ -1,7 +1,6 @@
 package nl.oxod.nekoclient.systems.modules.movement;
 
 import nl.oxod.nekoclient.events.game.GameLeftEvent;
-import nl.oxod.nekoclient.events.entity.player.SendMovementPacketsEvent;
 import nl.oxod.nekoclient.events.packets.PacketEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -111,9 +110,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   private int slotResetTicks;
   private boolean selectionPending;
   private RotationUtil.Rotation serverRotation;
-  private PendingPlacement pendingPlacement;
-  private boolean movementSentThisTick;
-  private Vec3 lastSentPosition;
   private MovementLine currentMovementLine;
   private final ArrayDeque<BlockPos> lastPlacedBlocks = new ArrayDeque<>(MAX_LAST_PLACED_BLOCKS);
   private final ArrayDeque<Vec3> placementOffsets = new ArrayDeque<>(MAX_PLACEMENT_OFFSETS + 1);
@@ -366,8 +362,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   private void preMovementTick() {
-    pendingPlacement = null;
-    movementSentThisTick = false;
     if (isTellyMode()) {
       runTellyTick();
     } else if (isGrimFamily()) {
@@ -1249,7 +1243,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
             PlacementTarget aimed = tellyStreamAimedTarget(live.target());
             if (aimed == null) aimed = tellyBoundedFlickTarget(live.target());
             tellyTarget = live;
-            if (aimed == null) return;
             adoptTellyPlacementRotation(aimed.rotation());
             place(aimed, hand, held, false, false);
             tellyPlacementQueued = true;
@@ -1276,7 +1269,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     PlacementTarget aimed = tellyStreamAimedTarget(live.target());
     if (aimed == null) aimed = tellyBoundedFlickTarget(live.target());
     tellyTarget = live;
-    if (aimed == null) return;
     adoptTellyPlacementRotation(aimed.rotation());
     place(aimed, hand, held, false, false);
     tellyPlacementQueued = true;
@@ -1332,7 +1324,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     PlacementTarget aimed = tellyStreamAimedTarget(live.target());
     if (aimed == null) aimed = tellyBoundedFlickTarget(live.target());
     tellyTarget = live;
-    if (aimed == null) return true;
     adoptTellyPlacementRotation(aimed.rotation());
     place(aimed, hand, held, false, false);
     tellyPlacementQueued = true;
@@ -1630,7 +1621,8 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   private PlacementTarget tellyBoundedFlickTarget(PlacementTarget live) {
-    RotationUtil.Rotation from = serverRotation();
+    RotationUtil.Rotation from =
+      tellySmoothedRotation != null ? tellySmoothedRotation : serverRotation();
     RotationUtil.Rotation stepped = stepTellyRotation(
       from, live.rotation(), TELLY_FLICK_STEP_CAP, RotationUtil.sensitivityGcd());
     BlockHitResult ray = raytrace(stepped, MC.player.blockInteractionRange());
@@ -1639,12 +1631,7 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
       return new PlacementTarget(live.supportBlock(), live.placedBlock(), live.face(),
         ray, stepped, live.minPlacementY());
     }
-    // Keep turning, but do not replace a missed bounded ray with an exact aim.
-    tellySmoothedRotation = stepped;
-    grimSilentRotation = stepped;
-    grimRotationResetTicks = ROTATION_RESET_TICKS;
-    tellyRotationHeldForPlacement = true;
-    return null;
+    return live;
   }
 
   private boolean tryTellySecureFooting(LocalPlayer player) {
@@ -1681,7 +1668,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     if (shouldCancelUseExcept(target.hit(), hand, id())) return false;
     PlacementTarget aimed = tellyStreamAimedTarget(target);
     if (aimed == null) aimed = tellyBoundedFlickTarget(target);
-    if (aimed == null) return true;
     adoptTellyPlacementRotation(aimed.rotation());
     place(aimed, hand, held, false, false);
     tellyPlacementQueued = true;
@@ -1715,7 +1701,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     PlacementTarget aimed = tellyStreamAimedTarget(live.target());
     if (aimed == null) aimed = tellyBoundedFlickTarget(live.target());
     tellyTarget = live;
-    if (aimed == null) return true;
     adoptTellyPlacementRotation(aimed.rotation());
     place(aimed, hand, held, false, false);
     tellyPlacementQueued = true;
@@ -2117,19 +2102,9 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     if (gcd <= 0.0D) return stepped;
     float yawDiff = RotationUtil.angleDifference(stepped.yaw(), current.yaw());
     float pitchDiff = RotationUtil.angleDifference(stepped.pitch(), current.pitch());
-    double yawStep = Math.round(yawDiff / gcd) * gcd;
-    double pitchStep = Math.round(pitchDiff / gcd) * gcd;
-    if (Math.hypot(yawStep, pitchStep) > Math.max(0.0F, stepCap)) {
-      yawStep = Math.copySign(Math.floor(Math.abs(yawDiff) / gcd) * gcd, yawDiff);
-      pitchStep = Math.copySign(Math.floor(Math.abs(pitchDiff) / gcd) * gcd, pitchDiff);
-    }
-    if (current.pitch() + pitchStep > 90.0D) {
-      pitchStep = Math.floor((90.0D - current.pitch()) / gcd) * gcd;
-    } else if (current.pitch() + pitchStep < -90.0D) {
-      pitchStep = -Math.floor((90.0D + current.pitch()) / gcd) * gcd;
-    }
-    return new RotationUtil.Rotation(
-      current.yaw() + (float) yawStep, current.pitch() + (float) pitchStep);
+    float yaw = current.yaw() + (float) (Math.round(yawDiff / gcd) * gcd);
+    float pitch = current.pitch() + (float) (Math.round(pitchDiff / gcd) * gcd);
+    return new RotationUtil.Rotation(yaw, Mth.clamp(pitch, -90.0F, 90.0F));
   }
 
   static boolean tellyTurnSettled(float smoothedYaw, float anchorYaw,
@@ -2215,7 +2190,7 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
       if (tellySmoothedRotation != null) return tellySmoothedRotation;
     }
     RotationUtil.Rotation goal = selectTellyRotationGoal(player);
-    RotationUtil.Rotation from = serverRotation();
+    RotationUtil.Rotation from = tellySmoothedRotation != null ? tellySmoothedRotation : serverRotation();
     float cap = player.onGround() ? TELLY_ROTATION_STEP : TELLY_FLICK_STEP_CAP;
     if (tellyReturnFlickPending) {
       tellyReturnFlickPending = false;
@@ -2279,7 +2254,7 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   private boolean tellyFlickBackForLaunch() {
     if (tellyStreamAlignedForLaunch()) return true;
     tellySmoothedRotation = stepTellyRotation(
-      serverRotation(),
+      tellySmoothedRotation != null ? tellySmoothedRotation : serverRotation(),
       tellyForwardRotation(), TELLY_FLICK_STEP_CAP, RotationUtil.sensitivityGcd());
     grimSilentRotation = tellySmoothedRotation;
     return tellyStreamAlignedForLaunch();
@@ -2299,8 +2274,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   private void resetTellyState() {
-    pendingPlacement = null;
-    tellyPipelineTick = Integer.MIN_VALUE;
     grimRotationResetTicks = 0;
     grimSilentRotation = null;
     tellyPhase = TellyPhase.IDLE;
@@ -2351,8 +2324,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   private void releaseTellyControl() {
-    pendingPlacement = null;
-    tellyPipelineTick = Integer.MIN_VALUE;
     grimRotationResetTicks = 0;
     grimSilentRotation = null;
     tellyPhase = TellyPhase.IDLE;
@@ -2386,18 +2357,12 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   @EventHandler
-  private void onPacketSent(PacketEvent.Sent event) {
+  private void onPacketSend(PacketEvent.Send event) {
     Packet<?> packet = event.packet;
-    if (packet instanceof ServerboundMovePlayerPacket movement) {
-      movementSentThisTick = true;
-      if (movement.hasPosition()) {
-        lastSentPosition = new Vec3(movement.getX(0.0D), movement.getY(0.0D), movement.getZ(0.0D));
-      }
-      if (movement.hasRotation()) {
-        RotationUtil.Rotation base = serverRotation();
-        serverRotation = new RotationUtil.Rotation(
-          movement.getYRot(base.yaw()), movement.getXRot(base.pitch()));
-      }
+    if (packet instanceof ServerboundMovePlayerPacket movement && movement.hasRotation()) {
+      RotationUtil.Rotation base = serverRotation();
+      serverRotation = new RotationUtil.Rotation(
+        movement.getYRot(base.yaw()), movement.getXRot(base.pitch()));
     }
   }
 
@@ -2958,7 +2923,7 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     BlockState candidateState = MC.level.getBlockState(target.placedBlock());
     if (isSolidSupport(candidateState, target.placedBlock())) return null;
 
-    double reach = MC.player.blockInteractionRange();
+    double reach = Math.max(MC.player.blockInteractionRange(), MC.player.entityInteractionRange());
     BlockHitResult ray = raytrace(rotation, reach);
     if (ray == null || !ray.getBlockPos().equals(target.supportBlock()) || ray.getDirection() != target.face()) {
       return null;
@@ -2978,33 +2943,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
 
   private void place(PlacementTarget target, InteractionHand hand, ItemStack stack,
                      boolean restoreClientRotation, boolean sendPlacementRotation) {
-    if (!sendPlacementRotation) {
-      pendingPlacement = new PendingPlacement(target, hand, MC.player.getInventory().getSelectedSlot());
-      return;
-    }
-    executePlacement(target, hand, stack, restoreClientRotation, true);
-  }
-
-  @EventHandler(priority = -100)
-  private void onMovementSent(SendMovementPacketsEvent.Post event) {
-    PendingPlacement pending = pendingPlacement;
-    pendingPlacement = null;
-    if (pending == null || !canRun() || !usesSilentRotationPath()
-      || MC.player.isPassenger() || serverRotation == null
-      || pending.slot() != MC.player.getInventory().getSelectedSlot()) return;
-    // The post event also fires when Blink cancels movement. Stationary ticks
-    // legitimately omit packets, so permit those only at a known sent position.
-    if (lastSentPosition == null ? !movementSentThisTick
-      : lastSentPosition.distanceToSqr(MC.player.position()) > 1.0E-7D) return;
-    ItemStack stack = MC.player.getItemInHand(pending.hand());
-    // Physics has advanced since planning. Use the transmitted rotation and live eyes.
-    PlacementTarget verified = validateForHeldBlock(pending.target(), stack, pending.hand(), serverRotation);
-    if (verified == null) return;
-    executePlacement(verified, pending.hand(), stack, false, false);
-  }
-
-  private void executePlacement(PlacementTarget target, InteractionHand hand, ItemStack stack,
-                                boolean restoreClientRotation, boolean sendPlacementRotation) {
     RotationUtil.Rotation rotation = target.rotation();
     MovementLine placementLine = currentMovementLine;
     Vec3 previousFallOff = findFallOffPosition(placementLine);
@@ -3062,6 +3000,7 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
 
   private void sendRotation(RotationUtil.Rotation rotation) {
     if (rotation == null || MC.getConnection() == null || MC.player == null) return;
+    serverRotation = rotation;
     MC.getConnection().send(new ServerboundMovePlayerPacket.PosRot(
       MC.player.getX(), MC.player.getY(), MC.player.getZ(),
       rotation.yaw(), rotation.pitch(), MC.player.onGround(), MC.player.horizontalCollision
@@ -3845,9 +3784,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
   }
 
   private void clearRuntime(boolean restoreSlot) {
-    pendingPlacement = null;
-    movementSentThisTick = false;
-    lastSentPosition = null;
     if (restoreSlot && bool("switch-back") && originalSlot >= 0 && MC != null && MC.player != null
       && !false && !false
       && MC.player.getInventory().getSelectedSlot() != originalSlot) {
@@ -3934,9 +3870,6 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
     RotationUtil.Rotation rotation,
     double minPlacementY
   ) {
-  }
-
-  private record PendingPlacement(PlacementTarget target, InteractionHand hand, int slot) {
   }
 
   private record TargetPlan(BlockPos supportBlock, Direction face) {

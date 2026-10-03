@@ -23,21 +23,21 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class GuiDupePanel extends AbstractWidget {
   // ---- Panel geometry ----
-  private static final int PANEL_W = 208;
-  private static final int PAD = 8;
-  private static final int HEADER_H = 20;
-  private static final int SECTION_H = 16;
-  private static final int BUTTON_H = 18;
-  private static final int ROW_GAP = 3;
+  private static final int PANEL_W = 176;
+  private static final int PAD = 5;
+  private static final int HEADER_H = 16;
+  private static final int SECTION_H = 13;
+  private static final int BUTTON_H = 15;
+  private static final int ROW_GAP = 2;
   private static final int SECTION_GAP = 5;
   private static final int CHAT_H = 16;
   private static final int METRIC_H = 11;
 
   private static int panelX = 6;
   private static int panelY = 6;
-  private boolean dragging;
-  private int dragOffX;
-  private int dragOffY;
+  private static boolean dragging;
+  private static int dragOffX;
+  private static int dragOffY;
 
   // ---- Theme colors (from the NekoClient GUI theme) ----
   private static final int FALLBACK_WINDOW_FILL = 0xD8141414;
@@ -66,10 +66,6 @@ public class GuiDupePanel extends AbstractWidget {
 
   public static boolean active() {
     return Modules.get().get(GuiDupe.class).isActive();
-  }
-
-  public static boolean isTyping(AbstractContainerScreen<?> screen) {
-    return screen.getFocused() instanceof GuiDupeChatField field && field.isFocused();
   }
 
   private static GuiDupe module() {
@@ -149,16 +145,11 @@ public class GuiDupePanel extends AbstractWidget {
     if (!active()) {
       if (chatField != null) {
         chatField.visible = false;
-        chatField.setFocused(false);
         chatField.setX(-1000);
         chatField.setY(-1000);
       }
       return;
     }
-    panelX = Math.max(0, Math.min(Math.max(0, screen.width - PANEL_W), panelX));
-    panelY = Math.max(0, Math.min(Math.max(0, screen.height - panelHeight()), panelY));
-    setX(panelX);
-    setY(panelY);
     if (chatField != null) chatField.visible = true;
 
     int px = panelX;
@@ -173,21 +164,21 @@ public class GuiDupePanel extends AbstractWidget {
 
     int titleY = py + (HEADER_H - 8) / 2 - 1;
     graphics_text(g, "GUI DUPE", px + PAD, titleY, textColor());
-    String mode = !module().getSendPackets() ? "Blocked" : module().getDelayPackets() ? "Queuing" : "Sending";
-    graphics_text(g, mode, px + pw - PAD - neko$font().width(mode), titleY, accentColor());
+    int titleW = neko$font().width("GUI DUPE");
+    graphics_text(g, " Rev:" + getMenu().getStateId(), px + PAD + titleW + 6, titleY, mutedColor());
 
     int x = px + PAD;
     int y = py + PAD + HEADER_H;
 
-    graphics_text(g, "PACKETS  ·  " + module().getDelayedCount() + " queued", x, y + 2, mutedColor());
+    graphics_text(g, "PACKET", x, y + 2, mutedColor());
     y += SECTION_H;
 
     int pw2 = pairWidth();
     GuiDupe module = module();
     boolean send = module.getSendPackets();
     boolean delay = module.getDelayPackets();
-    neko$renderToggle(g, x, y, pw2, BUTTON_H, send ? "Send: ON" : "Send: OFF", send, send && !delay, mouseX, mouseY, packetButtons, 0);
-    neko$renderToggle(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, delay ? "Delay: ON" : "Delay: OFF", delay, delay, mouseX, mouseY, packetButtons, 1);
+    neko$renderToggle(g, x, y, pw2, BUTTON_H, "Send", send, send && !delay, mouseX, mouseY, packetButtons, 0);
+    neko$renderToggle(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Delay", delay, delay, mouseX, mouseY, packetButtons, 1);
     y += BUTTON_H + ROW_GAP;
 
     neko$renderButton(g, x, y, pw2, BUTTON_H, "Flush", mouseX, mouseY, packetButtons, 2);
@@ -198,16 +189,16 @@ public class GuiDupePanel extends AbstractWidget {
     graphics_text(g, "SCREEN", x, y + 2, mutedColor());
     y += SECTION_H;
 
-    neko$renderButton(g, x, y, pw2, BUTTON_H, "Close locally", mouseX, mouseY, screenButtons, 0);
-    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Desync server", mouseX, mouseY, screenButtons, 1);
+    neko$renderButton(g, x, y, pw2, BUTTON_H, "Close", mouseX, mouseY, screenButtons, 0);
+    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "De-sync", mouseX, mouseY, screenButtons, 1);
     y += BUTTON_H + ROW_GAP;
 
-    neko$renderButton(g, x, y, pw2, BUTTON_H, "Save GUI", mouseX, mouseY, screenButtons, 2);
-    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Restore GUI", mouseX, mouseY, screenButtons, 3);
+    neko$renderButton(g, x, y, pw2, BUTTON_H, "Save", mouseX, mouseY, screenButtons, 2);
+    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Load", mouseX, mouseY, screenButtons, 3);
     y += BUTTON_H + ROW_GAP;
 
-    neko$renderButton(g, x, y, pw2, BUTTON_H, "Copy data", mouseX, mouseY, screenButtons, 4);
-    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Button click", mouseX, mouseY, screenButtons, 5);
+    neko$renderButton(g, x, y, pw2, BUTTON_H, "Copy", mouseX, mouseY, screenButtons, 4);
+    neko$renderButton(g, x + pw2 + ROW_GAP, y, pw2, BUTTON_H, "Fabr", mouseX, mouseY, screenButtons, 5);
     y += BUTTON_H;
 
     y += SECTION_GAP;
@@ -226,8 +217,8 @@ public class GuiDupePanel extends AbstractWidget {
     net.minecraft.world.inventory.Slot hovered = ((AbstractContainerScreenAccessor) screen).neko$getHoveredSlot();
     String slot = hovered != null ? Integer.toString(hovered.index) : "--";
     neko$renderMetric(g, x, y, "Rev: ", rev, accentColor());
-    neko$renderMetric(g, x + (PANEL_W - PAD * 2) / 3, y, "ID: ", sync, textColor());
-    neko$renderMetric(g, x + (PANEL_W - PAD * 2) * 2 / 3, y, "Slot: ", slot, successColor());
+    neko$renderMetric(g, x + pw2, y, "Sync: ", sync, textColor());
+    neko$renderMetric(g, x + pw2 * 2 + ROW_GAP * 2, y, "Slot: ", slot, successColor());
 
     if (dragging) {
       neko$rect(g, px, py, px + pw, py + HEADER_H - 1, accentSoftColor());
@@ -237,7 +228,6 @@ public class GuiDupePanel extends AbstractWidget {
   @Override
   public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
     if (!active()) return false;
-    if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return isMouseOver(event.x(), event.y());
     int mx = (int) Math.round(event.x());
     int my = (int) Math.round(event.y());
 
@@ -272,12 +262,12 @@ public class GuiDupePanel extends AbstractWidget {
       }
       j++;
     }
-    return mx >= panelX && mx < panelX + PANEL_W && my >= panelY && my < chatTop();
+    return false;
   }
 
   @Override
   public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
-    if (active() && dragging) {
+    if (dragging) {
       panelX = Math.max(0, Math.min(screen.width - PANEL_W, (int) Math.round(event.x()) - dragOffX));
       panelY = Math.max(0, Math.min(screen.height - panelHeight(), (int) Math.round(event.y()) - dragOffY));
       return true;
@@ -296,7 +286,6 @@ public class GuiDupePanel extends AbstractWidget {
 
   @Override
   public boolean isMouseOver(double x, double y) {
-    if (!active()) return false;
     if (x < panelX || x >= panelX + PANEL_W || y < panelY || y >= panelY + panelHeight()) return false;
     return y < chatTop();
   }
@@ -315,18 +304,13 @@ public class GuiDupePanel extends AbstractWidget {
 
   private void handlePacketButton(int index) {
     GuiDupe module = module();
-    if (index >= 2 && module.getDelayedCount() == 0) return;
     switch (index) {
       case 0 -> {
         boolean next = !module.getSendPackets();
         module.setSendPackets(next);
         if (!next) module.setDelayPackets(false);
       }
-      case 1 -> {
-        boolean next = !module.getDelayPackets();
-        if (next) module.setSendPackets(true);
-        module.setDelayPackets(next);
-      }
+      case 1 -> module.setDelayPackets(!module.getDelayPackets());
       case 2 -> module.flushPublic();
       case 3 -> {
         GuiDupeState.clearDelayed();
@@ -337,7 +321,6 @@ public class GuiDupePanel extends AbstractWidget {
 
   private void handleScreenButton(int index) {
     GuiDupe module = module();
-    if (index == 3 && GuiDupeState.getStoredScreen() == null) return;
     switch (index) {
       case 0 -> module.closeWithoutPacketPublic();
       case 1 -> module.desyncPublic();
@@ -363,13 +346,11 @@ public class GuiDupePanel extends AbstractWidget {
 
   private void neko$renderButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String label,
                                  int mouseX, int mouseY, List<int[]> out, int slot) {
-    boolean enabled = out != packetButtons || slot < 2 || module().getDelayedCount() > 0;
-    if (out == screenButtons && slot == 3) enabled = GuiDupeState.getStoredScreen() != null;
-    boolean hovered = enabled && mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
+    boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     neko$rect(g, x, y, x + w, y + h, windowFillColor());
     neko$outline(g, x, y, x + w, y + h, borderColor());
     if (hovered) neko$rect(g, x + 1, y + 1, x + w - 1, y + h - 1, BTN_FILL_HOVER);
-    graphics_text(g, label, x + (w - neko$font().width(label)) / 2, y + (h - 8) / 2 - 1, enabled ? textColor() : mutedColor());
+    graphics_text(g, label, x + (w - neko$font().width(label)) / 2, y + (h - 8) / 2 - 1, textColor());
     setBounds(out, slot, x, y, x + w, y + h);
   }
 

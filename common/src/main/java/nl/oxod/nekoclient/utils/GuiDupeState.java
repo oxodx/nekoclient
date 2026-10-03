@@ -50,15 +50,15 @@ public final class GuiDupeState {
     suppressNextContainerClosePacket = value;
   }
 
-  public static synchronized int delayedPacketCount() {
+  public static int delayedPacketCount() {
     return delayedPackets.size();
   }
 
-  public static synchronized void enqueueDelayed(Packet<?> packet) {
+  public static void enqueueDelayed(Packet<?> packet) {
     delayedPackets.addLast(packet);
   }
 
-  public static synchronized void flushDelayed(Minecraft mc) {
+  public static void flushDelayed(Minecraft mc) {
     if (mc.getConnection() == null) return;
     net.minecraft.network.Connection connection = mc.getConnection().getConnection();
     if (connection == null) return;
@@ -68,7 +68,7 @@ public final class GuiDupeState {
     }
   }
 
-  public static synchronized void clearDelayed() {
+  public static void clearDelayed() {
     delayedPackets.clear();
   }
 
