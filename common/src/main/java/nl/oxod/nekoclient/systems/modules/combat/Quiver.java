@@ -7,14 +7,10 @@ package nl.oxod.nekoclient.systems.modules.combat;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import nl.oxod.nekoclient.events.world.TickEvent;
-import nl.oxod.nekoclient.mixin.BlockBehaviourAccessor;
-import nl.oxod.nekoclient.settings.*;
-import nl.oxod.nekoclient.systems.modules.Categories;
-import nl.oxod.nekoclient.systems.modules.Module;
-import nl.oxod.nekoclient.utils.entity.EntityUtils;
-import nl.oxod.nekoclient.utils.player.FindItemResult;
-import nl.oxod.nekoclient.utils.player.InvUtils;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,87 +23,102 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.mixin.BlockBehaviourAccessor;
+import nl.oxod.nekoclient.settings.*;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.entity.EntityUtils;
+import nl.oxod.nekoclient.utils.player.FindItemResult;
+import nl.oxod.nekoclient.utils.player.InvUtils;
+import nl.oxod.nekoclient.utils.player.SlotUtils;
 
 public class Quiver extends Module {
+
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
   private final SettingGroup sgSafety = settings.createGroup("Safety");
 
-
-  private final Setting<List<MobEffect>> effects = sgGeneral.add(new StatusEffectListSetting.Builder()
-    .name("effects")
-    .description("Which effects to shoot you with.")
-    .defaultValue(MobEffects.STRENGTH.value())
-    .build()
+  private final Setting<List<MobEffect>> effects = sgGeneral.add(
+    new StatusEffectListSetting.Builder()
+      .name("effects")
+      .description("Which effects to shoot you with.")
+      .defaultValue(MobEffects.STRENGTH.value())
+      .build()
   );
 
-  private final Setting<Integer> cooldown = sgGeneral.add(new IntSetting.Builder()
-    .name("cooldown")
-    .description("How many ticks between shooting effects (19 minimum for NCP).")
-    .defaultValue(10)
-    .range(0, 40)
-    .sliderRange(0, 40)
-    .build()
+  private final Setting<Integer> cooldown = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("cooldown")
+      .description(
+        "How many ticks between shooting effects (19 minimum for NCP)."
+      )
+      .defaultValue(10)
+      .range(0, 40)
+      .sliderRange(0, 40)
+      .build()
   );
 
-  private final Setting<Boolean> checkEffects = sgGeneral.add(new BoolSetting.Builder()
-    .name("check-effects")
-    .description("Won't shoot you with effects you already have.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> checkEffects = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("check-effects")
+      .description("Won't shoot you with effects you already have.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> silentBow = sgGeneral.add(new BoolSetting.Builder()
-    .name("silent-bow")
-    .description("Takes a bow from your inventory to quiver.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> silentBow = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("silent-bow")
+      .description("Takes a bow from your inventory to quiver.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> chatInfo = sgGeneral.add(new BoolSetting.Builder()
-    .name("chat-info")
-    .description("Sends info about quiver checks in chat.")
-    .defaultValue(false)
-    .build()
+  private final Setting<Boolean> chatInfo = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("chat-info")
+      .description("Sends info about quiver checks in chat.")
+      .defaultValue(false)
+      .build()
   );
 
   // Safety
-
-  private final Setting<Boolean> onlyInHoles = sgSafety.add(new BoolSetting.Builder()
-    .name("only-in-holes")
-    .description("Only quiver when you're in a hole.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> onlyInHoles = sgSafety.add(
+    new BoolSetting.Builder()
+      .name("only-in-holes")
+      .description("Only quiver when you're in a hole.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> onlyOnGround = sgSafety.add(new BoolSetting.Builder()
-    .name("only-on-ground")
-    .description("Only quiver when you're on the ground.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> onlyOnGround = sgSafety.add(
+    new BoolSetting.Builder()
+      .name("only-on-ground")
+      .description("Only quiver when you're on the ground.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Double> minHealth = sgSafety.add(new DoubleSetting.Builder()
-    .name("min-health")
-    .description("How much health you must have to quiver.")
-    .defaultValue(10)
-    .range(0, 36)
-    .sliderRange(0, 36)
-    .build()
+  private final Setting<Double> minHealth = sgSafety.add(
+    new DoubleSetting.Builder()
+      .name("min-health")
+      .description("How much health you must have to quiver.")
+      .defaultValue(10)
+      .range(0, 36)
+      .sliderRange(0, 36)
+      .build()
   );
 
   private final IntList arrowSlots = new IntArrayList();
   private FindItemResult bow;
   private boolean wasMainhand, wasHotbar;
   private int timer, prevSlot;
-  private final BlockPos.MutableBlockPos testPos = new BlockPos.MutableBlockPos();
+  private final BlockPos.MutableBlockPos testPos =
+    new BlockPos.MutableBlockPos();
 
   public Quiver() {
     super(Categories.Combat, "quiver", "Shoots arrows at yourself.");
@@ -115,6 +126,10 @@ public class Quiver extends Module {
 
   @Override
   public void onActivate() {
+    wasMainhand = true;
+    wasHotbar = false;
+    prevSlot = -1;
+
     bow = InvUtils.find(Items.BOW);
     if (!shouldQuiver()) return;
 
@@ -126,29 +141,39 @@ public class Quiver extends Module {
     timer = 0;
 
     if (!bow.isMainHand()) {
+      wasMainhand = false;
       if (wasHotbar) InvUtils.swap(bow.slot(), true);
-      else InvUtils.move().from(mc.player.getInventory().getSelectedSlot()).to(prevSlot);
-    } else wasMainhand = true;
+      else InvUtils.move()
+        .from(mc.player.getInventory().getSelectedSlot())
+        .to(prevSlot);
+    }
 
     arrowSlots.clear();
     Set<MobEffect> usedEffects = new HashSet<>();
 
-    for (int i = mc.player.getInventory().getContainerSize(); i > 0; i--) {
-      if (i == mc.player.getInventory().getSelectedSlot()) continue;
+    for (int i = SlotUtils.OFFHAND; i >= SlotUtils.HOTBAR_START; i--) {
+      if (
+        SlotUtils.isArmor(i) || i == mc.player.getInventory().getSelectedSlot()
+      ) continue;
 
       ItemStack item = mc.player.getInventory().getItem(i);
 
       if (item.getItem() != Items.TIPPED_ARROW) continue;
 
-      Iterator<MobEffectInstance> effects = item.getItem().components().get(DataComponents.POTION_CONTENTS).getAllEffects().iterator();
+      Iterator<MobEffectInstance> effects = item
+        .getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY)
+        .getAllEffects()
+        .iterator();
 
       if (!effects.hasNext()) continue;
 
       MobEffect effect = effects.next().getEffect().value();
 
-      if (this.effects.get().contains(effect)
-        && !usedEffects.contains(effect)
-        && (!hasEffect(effect) || !checkEffects.get())) {
+      if (
+        this.effects.get().contains(effect) &&
+        !usedEffects.contains(effect) &&
+        (!hasEffect(effect) || !checkEffects.get())
+      ) {
         usedEffects.add(effect);
         arrowSlots.add(i);
       }
@@ -157,9 +182,13 @@ public class Quiver extends Module {
 
   @Override
   public void onDeactivate() {
+    mc.options.keyUse.setDown(false);
+
     if (!wasMainhand) {
       if (wasHotbar) InvUtils.swapBack();
-      else InvUtils.move().from(mc.player.getInventory().getSelectedSlot()).to(prevSlot);
+      else if (prevSlot != -1) InvUtils.move()
+        .from(mc.player.getInventory().getSelectedSlot())
+        .to(prevSlot);
     }
   }
 
@@ -180,13 +209,22 @@ public class Quiver extends Module {
     boolean charging = mc.options.keyUse.isDown();
 
     if (!charging) {
-      InvUtils.move().from(arrowSlots.getInt(0)).to(9);
+      if (arrowSlots.getInt(0) != 9) InvUtils.move()
+        .from(arrowSlots.getInt(0))
+        .to(9);
       mc.options.keyUse.setDown(true);
     } else {
       if (BowItem.getPowerForTime(mc.player.getTicksUsingItem()) >= 0.12) {
         int targetSlot = arrowSlots.removeInt(0);
 
-        mc.getConnection().send(new ServerboundMovePlayerPacket.Rot(mc.player.getYRot(), -90, mc.player.onGround(), mc.player.horizontalCollision));
+        mc.getConnection().send(
+          new ServerboundMovePlayerPacket.Rot(
+            mc.player.getYRot(),
+            -90,
+            mc.player.onGround(),
+            mc.player.horizontalCollision
+          )
+        );
         mc.options.keyUse.setDown(false);
         mc.gameMode.releaseUsingItem(mc.player);
         if (targetSlot != 9) InvUtils.move().from(9).to(targetSlot);
@@ -197,7 +235,7 @@ public class Quiver extends Module {
   }
 
   private boolean shouldQuiver() {
-    if (!bow.found() || !bow.isHotbar() && !silentBow.get()) {
+    if (!bow.found() || (!bow.isHotbar() && !silentBow.get())) {
       if (chatInfo.get()) error("Couldn't find a usable bow, disabling.");
       toggle();
       return false;
@@ -231,11 +269,13 @@ public class Quiver extends Module {
   }
 
   private boolean headIsOpen() {
-    testPos.set(mc.player.blockPosition().offset(0, 1, 0));
+    testPos.setWithOffset(mc.player.blockPosition(), 0, 1, 0);
     BlockState pos1 = mc.level.getBlockState(testPos);
-    if (((BlockBehaviourAccessor) pos1.getBlock()).neko$isHasCollision()) return false;
+    if (
+      ((BlockBehaviourAccessor) pos1.getBlock()).neko$isHasCollision()
+    ) return false;
 
-    testPos.offset(0, 1, 0);
+    testPos.move(0, 1, 0);
     BlockState pos2 = mc.level.getBlockState(testPos);
     return !((BlockBehaviourAccessor) pos2.getBlock()).neko$isHasCollision();
   }
@@ -252,11 +292,16 @@ public class Quiver extends Module {
     for (Direction dir : Direction.values()) {
       if (dir == Direction.UP || dir == Direction.DOWN) continue;
 
-      testPos.set(target.blockPosition()).relative(dir);
+      testPos.setWithOffset(target.blockPosition(), dir);
       Block block = mc.level.getBlockState(testPos).getBlock();
 
-      if (block != Blocks.OBSIDIAN && block != Blocks.BEDROCK && block != Blocks.RESPAWN_ANCHOR
-        && block != Blocks.CRYING_OBSIDIAN && block != Blocks.NETHERITE_BLOCK) {
+      if (
+        block != Blocks.OBSIDIAN &&
+        block != Blocks.BEDROCK &&
+        block != Blocks.RESPAWN_ANCHOR &&
+        block != Blocks.CRYING_OBSIDIAN &&
+        block != Blocks.NETHERITE_BLOCK
+      ) {
         return false;
       }
     }
