@@ -5,6 +5,18 @@
 
 package nl.oxod.nekoclient;
 
+import java.io.File;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import meteordevelopment.orbit.EventBus;
+import meteordevelopment.orbit.EventHandler;
+import meteordevelopment.orbit.EventPriority;
+import meteordevelopment.orbit.IEventBus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.Identifier;
 import nl.oxod.nekoclient.addons.AddonManager;
 import nl.oxod.nekoclient.addons.NekoAddon;
 import nl.oxod.nekoclient.events.game.OpenScreenEvent;
@@ -14,10 +26,14 @@ import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.gui.WidgetScreen;
 import nl.oxod.nekoclient.gui.tabs.Tabs;
+import nl.oxod.nekoclient.platform.ModInfo;
+import nl.oxod.nekoclient.platform.NekoPlatform;
+import nl.oxod.nekoclient.platform.Platform;
 import nl.oxod.nekoclient.systems.Systems;
 import nl.oxod.nekoclient.systems.config.Config;
 import nl.oxod.nekoclient.systems.hud.screens.AddHudElementScreen;
 import nl.oxod.nekoclient.systems.hud.screens.HudEditorScreen;
+import nl.oxod.nekoclient.systems.hud.screens.HudElementPresetsScreen;
 import nl.oxod.nekoclient.systems.hud.screens.HudElementScreen;
 import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Modules;
@@ -30,25 +46,9 @@ import nl.oxod.nekoclient.utils.misc.Version;
 import nl.oxod.nekoclient.utils.misc.input.KeyAction;
 import nl.oxod.nekoclient.utils.misc.input.KeyBinds;
 import nl.oxod.nekoclient.utils.network.OnlinePlayers;
-import meteordevelopment.orbit.EventBus;
-import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.orbit.EventPriority;
-import meteordevelopment.orbit.IEventBus;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.Identifier;
-import nl.oxod.nekoclient.platform.ModInfo;
-import nl.oxod.nekoclient.platform.NekoPlatform;
-import nl.oxod.nekoclient.platform.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.MixinEnvironment;
-
-import java.io.File;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Loader-independent client entry point.
@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Nothing in this class may reference a loader API directly.
  */
 public class NekoClient {
+
   public static final String MOD_ID = "nekoclient";
   public static final String BUILD_NUMBER = "";
   public static final boolean DEBUG = false;
@@ -67,7 +68,12 @@ public class NekoClient {
   // NeoForge is before the @Mod constructor, and a class initializer that demanded the platform
   // would throw ExceptionInInitializerError and take down the boot. Crash reporting in particular
   // logs through LOG before any mod code has run.
-  private static ModInfo modInfo = new ModInfo(MOD_ID, "NekoClient", "0.0.0", List.of());
+  private static ModInfo modInfo = new ModInfo(
+    MOD_ID,
+    "NekoClient",
+    "0.0.0",
+    List.of()
+  );
   private static String name = "NekoClient";
   private static Version version = new Version("0.0.0");
   private static File folder = new File(MOD_ID);
@@ -126,8 +132,7 @@ public class NekoClient {
 
   private static boolean platformBound;
 
-  private NekoClient() {
-  }
+  private NekoClient() {}
 
   /**
    * Runs the client bootstrap. Safe to call more than once; only the first call does anything.
@@ -170,7 +175,9 @@ public class NekoClient {
     if (!FOLDER.exists()) {
       FOLDER.getParentFile().mkdirs();
       FOLDER.mkdir();
-      Systems.addPreLoadTask(() -> Modules.get().get(DiscordPresence.class).enable());
+      Systems.addPreLoadTask(() ->
+        Modules.get().get(DiscordPresence.class).enable()
+      );
     }
 
     // Register addons
@@ -179,14 +186,33 @@ public class NekoClient {
     // Register event handlers
     AddonManager.ADDONS.forEach(addon -> {
       try {
-        EVENT_BUS.registerLambdaFactory(addon.getPackage(), (lookupInMethod, klass) -> (MethodHandles.Lookup) lookupInMethod.invoke(null, klass, MethodHandles.lookup()));
+        EVENT_BUS.registerLambdaFactory(
+          addon.getPackage(),
+          (lookupInMethod, klass) ->
+            (MethodHandles.Lookup) lookupInMethod.invoke(
+              null,
+              klass,
+              MethodHandles.lookup()
+            )
+        );
       } catch (AbstractMethodError e) {
-        throw new RuntimeException("Addon \"%s\" is too old and cannot be ran.".formatted(addon.name), e);
+        throw new RuntimeException(
+          "Addon \"%s\" is too old and cannot be ran.".formatted(addon.name),
+          e
+        );
       }
     });
 
     // Register NekoClient lambda factory for orbit event bus
-    EVENT_BUS.registerLambdaFactory("nl.oxod.nekoclient", (lookupInMethod, klass) -> (MethodHandles.Lookup) lookupInMethod.invoke(null, klass, MethodHandles.lookup()));
+    EVENT_BUS.registerLambdaFactory(
+      "nl.oxod.nekoclient",
+      (lookupInMethod, klass) ->
+        (MethodHandles.Lookup) lookupInMethod.invoke(
+          null,
+          klass,
+          MethodHandles.lookup()
+        )
+    );
 
     // Register init classes
     ReflectInit.registerPackages();
@@ -217,22 +243,30 @@ public class NekoClient {
 
     // Protector bootstrap
     nl.oxod.nekoclient.security.ProtectorTracker.bootstrap();
-    if (!nl.oxod.nekoclient.security.Protector.isOverlapExternalProtectorPresent()) {
+    if (
+      !nl.oxod.nekoclient.security.Protector.isOverlapExternalProtectorPresent()
+    ) {
       nl.oxod.nekoclient.security.ProtectorVanillaKeys.primeAsync();
     }
 
     // Save on shutdown
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      OnlinePlayers.leave();
-      Systems.save();
-      GuiThemes.save();
-    }));
+    Runtime.getRuntime().addShutdownHook(
+      new Thread(() -> {
+        OnlinePlayers.leave();
+        Systems.save();
+        GuiThemes.save();
+      })
+    );
   }
 
   @EventHandler
   private void onTick(TickEvent.Post event) {
     nl.oxod.nekoclient.security.ProtectorPackResponseScheduler.tick();
-    if (mc.gui.screen() == null && mc.gui.overlay() == null && KeyBinds.OPEN_COMMANDS.consumeClick()) {
+    if (
+      mc.gui.screen() == null &&
+      mc.gui.overlay() == null &&
+      KeyBinds.OPEN_COMMANDS.consumeClick()
+    ) {
       mc.gui.setScreen(new ChatScreen(Config.get().prefix.get(), true));
     }
   }
@@ -247,21 +281,28 @@ public class NekoClient {
 
   @EventHandler
   private void onKey(KeyInputEvent event) {
-    if (event.action == KeyAction.Press && KeyBinds.OPEN_GUI.matches(event.input)) {
+    if (
+      event.action == KeyAction.Press && KeyBinds.OPEN_GUI.matches(event.input)
+    ) {
       toggleGui();
     }
   }
 
   @EventHandler
   private void onMouseClick(MouseClickEvent event) {
-    if (event.action == KeyAction.Press && KeyBinds.OPEN_GUI.matchesMouse(event.click)) {
+    if (
+      event.action == KeyAction.Press &&
+      KeyBinds.OPEN_GUI.matchesMouse(event.click)
+    ) {
       toggleGui();
     }
   }
 
   private void toggleGui() {
     if (Utils.canCloseGui()) mc.gui.screen().onClose();
-    else if (Utils.canOpenGui()) Tabs.get().getFirst().openScreen(GuiThemes.get());
+    else if (Utils.canOpenGui()) Tabs.get()
+      .getFirst()
+      .openScreen(GuiThemes.get());
   }
 
   // Hide HUD
@@ -270,17 +311,25 @@ public class NekoClient {
   @EventHandler(priority = EventPriority.LOWEST)
   private void onOpenScreen(OpenScreenEvent event) {
     if (event.screen instanceof WidgetScreen) {
-      if (!wasWidgetScreen) wasHudHiddenRoot = mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden;
+      if (!wasWidgetScreen) wasHudHiddenRoot = mc.gameRenderer
+        .gameRenderState()
+        .guiRenderState.isHudHidden;
       if (GuiThemes.get().hideHUD() || wasHudHiddenRoot) {
         // Always show the MC HUD in the HUD editor screen since people like
         // to align some items with the hotbar or chat
-        mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = !(event.screen instanceof HudEditorScreen)
-          && !(event.screen instanceof AddHudElementScreen)
-          && !(event.screen instanceof HudElementScreen);
+        mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden =
+          !(event.screen instanceof HudEditorScreen) &&
+          !(event.screen instanceof AddHudElementScreen) &&
+          !(screen instanceof HudElementScreen) &&
+          !(screen instanceof HudElementPresetsScreen);
       }
     } else {
-      if (wasWidgetScreen) mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = wasHudHiddenRoot;
-      wasHudHiddenRoot = mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden;
+      if (wasWidgetScreen) mc.gameRenderer
+        .gameRenderState()
+        .guiRenderState.isHudHidden = wasHudHiddenRoot;
+      wasHudHiddenRoot = mc.gameRenderer
+        .gameRenderState()
+        .guiRenderState.isHudHidden;
     }
 
     wasWidgetScreen = event.screen instanceof WidgetScreen;
@@ -292,9 +341,11 @@ public class NekoClient {
     Screen screen = mc.gui.screen();
     if (!(screen instanceof WidgetScreen)) return false;
 
-    return !(screen instanceof HudEditorScreen)
-      && !(screen instanceof AddHudElementScreen)
-      && !(screen instanceof HudElementScreen);
+    return (
+      !(screen instanceof HudEditorScreen) &&
+      !(screen instanceof AddHudElementScreen) &&
+      !(screen instanceof HudElementScreen)
+    );
   }
 
   public static Identifier identifier(String path) {
