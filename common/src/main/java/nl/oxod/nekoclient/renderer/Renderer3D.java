@@ -5,8 +5,8 @@
 
 package nl.oxod.nekoclient.renderer;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.utils.world.Dir;
 import net.minecraft.client.Minecraft;

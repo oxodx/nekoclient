@@ -13,11 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
   public enum Modifier {
@@ -40,7 +36,7 @@ public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
     public boolean isKeyPressed() {
       return switch (this) {
         case CONTROL -> Input.isKeyPressed(InputConstants.KEY_LCONTROL) || Input.isKeyPressed(InputConstants.KEY_RCONTROL);
-        case SUPER -> Input.isKeyPressed(InputConstants.KEY_LSUPER) || Input.isKeyPressed(InputConstants.KEY_RSUPER);
+                case SUPER -> Input.isKeyPressed(InputConstants.KEY_LGUI) || Input.isKeyPressed(InputConstants.KEY_RGUI);
         case ALT -> Input.isKeyPressed(InputConstants.KEY_LALT) || Input.isKeyPressed(InputConstants.KEY_RALT);
         case SHIFT -> Input.isKeyPressed(InputConstants.KEY_LSHIFT) || Input.isKeyPressed(InputConstants.KEY_RSHIFT);
         case CAPS_LOCK -> Input.isKeyPressed(InputConstants.KEY_CAPSLOCK);
@@ -184,7 +180,7 @@ public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
   }
 
   private boolean isKeyMod(InputConstants.Key key) {
-    return key.getValue() >= InputConstants.KEY_LSHIFT && key.getValue() <= InputConstants.KEY_RSUPER;
+        return key.getValue() >= InputConstants.KEY_LALT && key.getValue() <= InputConstants.KEY_RGUI;
   }
 
   @Override
@@ -271,7 +267,7 @@ public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
   }
 
   private static InputConstants.Key keyboard(int key) {
-    return InputConstants.Type.KEYSYM.getOrCreate(key);
+        return InputConstants.Type.KEYBOARD.getOrCreate(key);
   }
 
   private static InputConstants.Key mouse(int button) {

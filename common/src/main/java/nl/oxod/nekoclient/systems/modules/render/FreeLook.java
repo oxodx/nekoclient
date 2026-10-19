@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.systems.modules.render;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.settings.*;
 import nl.oxod.nekoclient.systems.modules.Categories;
@@ -13,7 +14,6 @@ import nl.oxod.nekoclient.utils.misc.input.Input;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.CameraType;
 import net.minecraft.util.Mth;
-import com.mojang.blaze3d.platform.InputConstants;
 
 public class FreeLook extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();

@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.gui.screens;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
 import nl.oxod.nekoclient.utils.Utils;
@@ -21,7 +22,6 @@ import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import org.jspecify.annotations.NonNull;
-import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -5,7 +5,7 @@
 
 package nl.oxod.nekoclient.gui;
 
-import com.mojang.blaze3d.platform.MacosUtil;
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.gui.renderer.GuiDebugRenderer;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
@@ -16,7 +16,6 @@ import nl.oxod.nekoclient.gui.widgets.WWidget;
 import nl.oxod.nekoclient.gui.widgets.containers.WContainer;
 import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
 import nl.oxod.nekoclient.utils.Utils;
-import nl.oxod.nekoclient.utils.misc.CursorStyle;
 import nl.oxod.nekoclient.utils.misc.input.Input;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,7 +24,9 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import org.apache.commons.lang3.SystemUtils;
 import org.jspecify.annotations.NonNull;
+import org.lwjgl.sdl.SDLMouse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +34,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import static com.mojang.blaze3d.platform.InputConstants.*;
 import static nl.oxod.nekoclient.NekoClient.mc;
 import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
 import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
-import static com.mojang.blaze3d.platform.InputConstants.*;
 
 public abstract class WidgetScreen extends Screen {
   private static final GuiRenderer RENDERER = new GuiRenderer();
@@ -105,6 +106,8 @@ public abstract class WidgetScreen extends Screen {
       firstInit = false;
       initWidgets();
     }
+
+        mc.textInputManager().startTextInput(this);
   }
 
   public abstract void initWidgets();
@@ -236,7 +239,7 @@ public abstract class WidgetScreen extends Screen {
       return true;
     }
 
-    boolean control = MacosUtil.IS_MACOS ? input.modifiers() == MOD_SUPER : input.modifiers() == MOD_CONTROL;
+        boolean control = SystemUtils.IS_OS_MAC ? input.modifiers() == MOD_SUPER : input.modifiers() == MOD_CONTROL;
 
     return (control && input.key() == KEY_C && toClipboard())
       || (control && input.key() == KEY_V && fromClipboard());
@@ -331,7 +334,7 @@ public abstract class WidgetScreen extends Screen {
       closed = true;
       onClosed();
 
-      Input.setCursorStyle(CursorStyle.Default);
+            Input.setCursorStyle(CursorTypes.ARROW);
 
       loopWidgets(root, widget -> {
         if (widget instanceof WTextBox textBox && textBox.isFocused()) textBox.setFocused(false);
@@ -354,8 +357,10 @@ public abstract class WidgetScreen extends Screen {
 
           // Restore mouse position to where it was when the screen was closed
           if (parent != null) {
-            grabOrReleaseMouse(mc.getWindow(), CURSOR_NORMAL, restoreX, restoreY);
+                        SDLMouse.SDL_WarpMouseInWindow(mc.getWindow().handle(), (float) restoreX, (float) restoreY);
           }
+
+                    mc.textInputManager().stopTextInput(this);
         };
       }
     }

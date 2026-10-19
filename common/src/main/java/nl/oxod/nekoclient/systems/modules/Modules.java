@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.systems.modules;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -56,7 +57,6 @@ import nl.oxod.nekoclient.systems.modules.movement.flight.Flight;
 import nl.oxod.nekoclient.systems.modules.movement.phase.Phase;
 
 import org.jspecify.annotations.Nullable;
-import com.mojang.blaze3d.platform.InputConstants;
 
 import java.io.File;
 import java.util.*;

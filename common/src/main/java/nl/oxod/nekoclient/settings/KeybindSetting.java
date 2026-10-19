@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.settings;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.neko.MouseClickEvent;
@@ -14,7 +15,6 @@ import nl.oxod.nekoclient.utils.misc.input.KeyAction;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
 import net.minecraft.nbt.CompoundTag;
-import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.function.Consumer;
 

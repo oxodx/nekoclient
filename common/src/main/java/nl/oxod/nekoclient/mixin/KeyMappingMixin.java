@@ -32,7 +32,7 @@ public abstract class KeyMappingMixin implements KeyMappingBridge {
     if (key.getType() == InputConstants.Type.MOUSE) {
       return GLFW.glfwGetMouseButton(window.handle(), code) == GLFW.GLFW_PRESS;
     }
-    return InputConstants.isKeyDown(window, code);
+    return InputConstants.isKeyDown(code);
   }
 
   @Override
@@ -49,11 +49,8 @@ public abstract class KeyMappingMixin implements KeyMappingBridge {
     Window window = mc.getWindow();
     int action = pressed ? GLFW.GLFW_PRESS : GLFW.GLFW_RELEASE;
     switch (key.getType()) {
-      case KEYSYM -> ((KeyboardHandlerAccessor) mc.keyboardHandler).nekoclient$invokeKeyPress(
+      case KEYBOARD -> ((KeyboardHandlerAccessor) mc.keyboardHandler).nekoclient$invokeKeyPress(
         window.handle(), action, new KeyEvent(key.getValue(), 0, 0)
-      );
-      case SCANCODE -> ((KeyboardHandlerAccessor) mc.keyboardHandler).nekoclient$invokeKeyPress(
-        window.handle(), action, new KeyEvent(GLFW.GLFW_KEY_UNKNOWN, key.getValue(), 0)
       );
       case MOUSE -> ((MouseHandlerAccessor) mc.mouseHandler).nekoclient$invokeOnButton(
         window.handle(), new MouseButtonInfo(key.getValue(), 0), action

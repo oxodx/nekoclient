@@ -8,6 +8,10 @@ package nl.oxod.nekoclient.systems.modules.world;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.utils.BetterBlockPos;
+import com.mojang.blaze3d.platform.InputConstants;
+import nl.oxod.nekoclient.events.neko.KeyInputEvent;
+import nl.oxod.nekoclient.events.neko.MouseClickEvent;
+import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.neko.MouseClickEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
@@ -20,7 +24,6 @@ import nl.oxod.nekoclient.utils.misc.input.KeyAction;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.world.phys.BlockHitResult;
-import com.mojang.blaze3d.platform.InputConstants;
 
 public class Excavator extends Module {
   private final IBaritone baritone = BaritoneAPI.getProvider().getPrimaryBaritone();

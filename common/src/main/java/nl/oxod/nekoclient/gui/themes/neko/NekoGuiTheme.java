@@ -5,7 +5,6 @@
 
 package nl.oxod.nekoclient.gui.themes.neko;
 
-import com.mojang.blaze3d.platform.MacosUtil;
 import nl.oxod.nekoclient.gui.DefaultSettingsWidgetFactory;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.WidgetScreen;
@@ -31,6 +30,7 @@ import nl.oxod.nekoclient.systems.accounts.Account;
 import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.utils.render.color.Color;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
+import org.apache.commons.lang3.SystemUtils;
 
 import static nl.oxod.nekoclient.NekoClient.mc;
 
@@ -85,11 +85,6 @@ public class NekoGuiTheme extends GuiTheme {
     .name("hide-HUD")
     .description("Hide HUD when in GUI.")
     .defaultValue(false)
-    .onChanged(v -> {
-      if (mc.gui.screen() instanceof WidgetScreen) {
-        mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = v;
-      }
-    })
     .build()
   );
 
@@ -380,7 +375,7 @@ public class NekoGuiTheme extends GuiTheme {
   public double scale(double value) {
     double scaled = value * scale.get();
 
-    if (MacosUtil.IS_MACOS) {
+        if (SystemUtils.IS_OS_MAC) {
       scaled /= (double) mc.getWindow().getWidth() / mc.getWindow().getWidth();
     }
 

@@ -5,8 +5,8 @@
 
 package nl.oxod.nekoclient.renderer;
 
-import com.mojang.blaze3d.textures.GpuSampler;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuSampler;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import nl.oxod.nekoclient.gui.renderer.packer.TextureRegion;
 import nl.oxod.nekoclient.utils.PreInit;
 import nl.oxod.nekoclient.utils.render.color.Color;

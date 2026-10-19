@@ -11,7 +11,6 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.entity.DropItemsEvent;
 import nl.oxod.nekoclient.events.entity.player.PlayerTickMovementEvent;
 import nl.oxod.nekoclient.events.entity.player.SendMovementPacketsEvent;
 import nl.oxod.nekoclient.systems.modules.Modules;
@@ -19,6 +18,7 @@ import nl.oxod.nekoclient.systems.modules.movement.*;
 import nl.oxod.nekoclient.systems.modules.player.LiquidInteract;
 import nl.oxod.nekoclient.systems.modules.player.NoMiningTrace;
 import nl.oxod.nekoclient.systems.modules.player.Portals;
+import nl.oxod.nekoclient.systems.modules.render.NoRender;
 import nl.oxod.nekoclient.utils.entity.fakeplayer.FakePlayerEntity;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -28,6 +28,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
@@ -48,12 +50,6 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
 
   public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
     super(world, profile);
-  }
-
-  @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
-  private void onDrop(boolean all, CallbackInfoReturnable<Boolean> cir) {
-    if (NekoClient.EVENT_BUS.post(DropItemsEvent.get(getMainHandItem())).isCancelled())
-      cir.setReturnValue(false);
   }
 
   @ModifyExpressionValue(method = "handlePortalTransitionEffect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;screen()Lnet/minecraft/client/gui/screens/Screen;", ordinal = 0))
@@ -90,7 +86,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
     }
   }
 
-  @ModifyExpressionValue(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/player/ClientInput;keyPresses:Lnet/minecraft/world/entity/player/Input;", opcode = Opcodes.GETFIELD))
+    @ModifyExpressionValue(method = "sendChanges", at = @At(value = "FIELD", target = "Lnet/minecraft/client/player/ClientInput;keyPresses:Lnet/minecraft/world/entity/player/Input;", opcode = Opcodes.GETFIELD))
   private Input isSneaking(Input original) {
     if (Modules.get().get(Sneak.class).doPacket() || Modules.get().get(NoSlow.class).airStrict()) {
       return new Input(
@@ -136,12 +132,19 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
   }
 
   @ModifyExpressionValue(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
-  private static HitResult modifyPick(HitResult original, @Local(argsOnly = true, name = "cameraEntity") Entity cameraEntity, @Local(argsOnly = true, name = "partialTicks") float partialTicks, @Local(name = "maxDistance") double maxDistance) {
+    private static HitResult modifyPick(HitResult original, final Entity cameraEntity, final double blockInteractionRange, final double entityInteractionRange, final float partialTicks, @Local(name = "maxDistance") double maxDistance) {
     if (!Modules.get().isActive(LiquidInteract.class)) return original;
     if (original.getType() != HitResult.Type.MISS) return original;
 
     return cameraEntity.pick(maxDistance, partialTicks, true);
   }
+
+    @Inject(method = "displayItemActivation", at = @At("HEAD"), cancellable = true)
+    private void onDisplayItemActivation(ItemStack itemStack, CallbackInfo ci) {
+        if (itemStack.getItem() == Items.TOTEM_OF_UNDYING && Modules.get().get(NoRender.class).noTotemAnimation()) {
+            ci.cancel();
+        }
+    }
 
   // Sprint
 
@@ -176,7 +179,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
     NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
   }
 
-  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1))
+    @Inject(method = "sendChanges", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1))
   private void onTickHasVehicleBeforeSendPackets(CallbackInfo ci) {
     NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Pre.get());
   }
@@ -186,7 +189,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
     NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
   }
 
-  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1, shift = At.Shift.AFTER))
+    @Inject(method = "sendChanges", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V", ordinal = 1, shift = At.Shift.AFTER))
   private void onTickHasVehicleAfterSendPackets(CallbackInfo ci) {
     NekoClient.EVENT_BUS.post(SendMovementPacketsEvent.Post.get());
   }

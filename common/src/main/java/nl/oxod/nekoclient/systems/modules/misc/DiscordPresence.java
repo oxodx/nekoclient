@@ -1,10 +1,13 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
+* This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/nekoclient).
+* Copyright (c) Meteor Development.
+*/
 
 package nl.oxod.nekoclient.systems.modules.misc;
 
+//Created by squidoodly
+
+import com.mojang.blaze3d.Blaze3D;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import meteordevelopment.discordipc.DiscordIPC;
 import meteordevelopment.discordipc.RichPresence;
@@ -32,9 +35,9 @@ import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.EditWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.realms.RealmsScreen;
-import net.minecraft.util.Util;
 import org.meteordev.starscript.Script;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,13 +50,16 @@ public class DiscordPresence extends Module {
   private final SettingGroup sgLine1 = settings.createGroup("Line 1");
   private final SettingGroup sgLine2 = settings.createGroup("Line 2");
 
+  // Line 1
+
   private final Setting<List<String>> line1Strings = sgLine1.add(new StringListSetting.Builder()
     .name("line-1-messages")
     .description("Messages used for the first line.")
     .defaultValue("{player}", "{server}")
     .onChanged(_ -> recompileLine1())
     .renderer(StarscriptTextBoxRenderer.class)
-    .build());
+    .build()
+  );
 
   private final Setting<Integer> line1UpdateDelay = sgLine1.add(new IntSetting.Builder()
     .name("line-1-update-delay")
@@ -61,21 +67,26 @@ public class DiscordPresence extends Module {
     .defaultValue(200)
     .min(10)
     .sliderRange(10, 200)
-    .build());
+    .build()
+  );
 
   private final Setting<SelectMode> line1SelectMode = sgLine1.add(new EnumSetting.Builder<SelectMode>()
     .name("line-1-select-mode")
     .description("How to select messages for the first line.")
     .defaultValue(SelectMode.Sequential)
-    .build());
+    .build()
+  );
+
+  // Line 2
 
   private final Setting<List<String>> line2Strings = sgLine2.add(new StringListSetting.Builder()
     .name("line-2-messages")
     .description("Messages used for the second line.")
-    .defaultValue("NekoClient on Crack!", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
+    .defaultValue("Meteor on Crack!", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
     .onChanged(_ -> recompileLine2())
     .renderer(StarscriptTextBoxRenderer.class)
-    .build());
+    .build()
+  );
 
   private final Setting<Integer> line2UpdateDelay = sgLine2.add(new IntSetting.Builder()
     .name("line-2-update-delay")
@@ -83,13 +94,15 @@ public class DiscordPresence extends Module {
     .defaultValue(60)
     .min(10)
     .sliderRange(10, 200)
-    .build());
+    .build()
+  );
 
   private final Setting<SelectMode> line2SelectMode = sgLine2.add(new EnumSetting.Builder<SelectMode>()
     .name("line-2-select-mode")
     .description("How to select messages for the second line.")
     .defaultValue(SelectMode.Sequential)
-    .build());
+    .build()
+  );
 
   private static final RichPresence rpc = new RichPresence();
   private SmallImage currentSmallImage;
@@ -110,28 +123,28 @@ public class DiscordPresence extends Module {
   }
 
   public DiscordPresence() {
-    super(Categories.Misc, "discord-presence", "Displays NekoClient as your presence on Discord.");
+    super(Categories.Misc, "discord-presence", "Displays Meteor as your presence on Discord.");
 
     runInMainMenu = true;
   }
 
   /**
-   * Registers a custom state to be used when the current screen is a class in the specified package.
-   */
+  * Registers a custom state to be used when the current screen is a class in the specified package.
+  */
   public static void registerCustomState(String packageName, String state) {
     customStates.put(packageName, state);
   }
 
   /**
-   * The package name must match exactly to the one provided through {@link #registerCustomState(String, String)}.
-   */
+  * The package name must match exactly to the one provided through {@link #registerCustomState(String, String)}.
+  */
   public static void unregisterCustomState(String packageName) {
     customStates.remove(packageName);
   }
 
   @Override
   public void onActivate() {
-    DiscordIPC.start(1553440542552100894L, null);
+    DiscordIPC.start(835240968533049424L, null);
 
     rpc.setStart(System.currentTimeMillis() / 1000L);
 
@@ -238,7 +251,7 @@ public class DiscordPresence extends Module {
         else if (mc.gui.screen() instanceof ManageServerScreen) rpc.setState("Adding server");
         else if (mc.gui.screen() instanceof ConnectScreen || mc.gui.screen() instanceof DirectJoinServerScreen)
           rpc.setState("Connecting to server");
-        else if (mc.gui.screen() instanceof WidgetScreen) rpc.setState("Browsing NekoClient's GUI");
+        else if (mc.gui.screen() instanceof WidgetScreen) rpc.setState("Browsing Meteor's GUI");
         else if (mc.gui.screen() instanceof OptionsScreen || mc.gui.screen() instanceof SkinCustomizationScreen || mc.gui.screen() instanceof SoundOptionsScreen || mc.gui.screen() instanceof VideoSettingsScreen || mc.gui.screen() instanceof ControlsScreen || mc.gui.screen() instanceof LanguageSelectScreen || mc.gui.screen() instanceof ChatOptionsScreen || mc.gui.screen() instanceof PackSelectionScreen || mc.gui.screen() instanceof AccessibilityOptionsScreen)
           rpc.setState("Changing options");
         else if (mc.gui.screen() instanceof WinScreen) rpc.setState("Reading credits");
@@ -276,7 +289,7 @@ public class DiscordPresence extends Module {
   @Override
   public WWidget getWidget(GuiTheme theme) {
     WButton help = theme.button("Open documentation.");
-    help.action = () -> Util.getPlatform().openUri("https://github.com/MeteorDevelopment/meteor-client/wiki/Starscript");
+    help.action = () -> Blaze3D.openUri(URI.create("https://github.com/MeteorDevelopment/nekoclient/wiki/Starscript"));
 
     return help;
   }

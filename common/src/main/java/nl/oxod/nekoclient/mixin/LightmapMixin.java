@@ -6,7 +6,7 @@
 package nl.oxod.nekoclient.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTexture;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.Fullbright;
 import nl.oxod.nekoclient.systems.modules.render.Xray;

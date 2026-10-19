@@ -6,16 +6,21 @@
 package nl.oxod.nekoclient.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.misc.BetterChat;
 import nl.oxod.nekoclient.systems.modules.render.Freecam;
 import nl.oxod.nekoclient.systems.modules.render.NoRender;
+import nl.oxod.nekoclient.systems.modules.render.Zoom;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.Objective;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
@@ -95,4 +100,20 @@ public abstract class HudMixin {
   private void onExtractNausea(GuiGraphicsExtractor graphics, float strength, CallbackInfo ci) {
     if (Modules.get().get(NoRender.class).noNausea()) ci.cancel();
   }
+
+    @ModifyExpressionValue(method = "extractRenderState", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/Hud;isHidden:Z", opcode = Opcodes.GETFIELD))
+    private boolean onGetIsHidden(boolean original) {
+        return original || neko$ShouldHideHud();
+    }
+
+    @Inject(method = "extractDebugOverlay", at = @At("HEAD"), cancellable = true)
+    private void onExtractDebugOverlay(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        if (neko$ShouldHideHud()) ci.cancel();
+    }
+
+    @Unique
+    private static boolean neko$ShouldHideHud() {
+        if (GuiThemes.get() == null || Modules.get() == null) return false;
+        return NekoClient.shouldHideHud() || Modules.get().get(Zoom.class).shouldHideHud();
+    }
 }

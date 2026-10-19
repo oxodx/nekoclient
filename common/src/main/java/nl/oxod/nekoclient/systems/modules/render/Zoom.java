@@ -6,7 +6,6 @@
 package nl.oxod.nekoclient.systems.modules.render;
 
 import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.neko.MouseScrollEvent;
 import nl.oxod.nekoclient.events.render.GetFovEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
@@ -19,7 +18,6 @@ import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.util.Mth;
-import com.mojang.blaze3d.platform.InputConstants;
 
 public class Zoom extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -75,8 +73,6 @@ public class Zoom extends Module {
   private double value;
   private double time;
 
-  private boolean hudManualToggled;
-
   public Zoom() {
     super(Categories.Render, "zoom", "Zooms your view.");
     autoSubscribe = false;
@@ -84,33 +80,15 @@ public class Zoom extends Module {
 
   @Override
   public void onActivate() {
-    if (!enabled) {
-      preCinematic = mc.options.smoothCamera;
-      preMouseSensitivity = mc.options.sensitivity().get();
-      value = zoom.get();
-      time = 0.001;
+        if (enabled) return;
 
-      NekoClient.EVENT_BUS.subscribe(this);
-      enabled = true;
-    }
+        preCinematic = mc.options.smoothCamera;
+        preMouseSensitivity = mc.options.sensitivity().get();
+        value = zoom.get();
+        time = 0.001;
 
-    if (hideHud.get() && !mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden) {
-      hudManualToggled = false;
-      mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = true;
-    }
-  }
-
-  @Override
-  public void onDeactivate() {
-    if (hideHud.get() && !hudManualToggled) {
-      mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = false;
-    }
-  }
-
-  @EventHandler
-  public void onKeyPressed(KeyInputEvent event) {
-    if (event.key() != InputConstants.KEY_F1) return;
-    hudManualToggled = true;
+        NekoClient.EVENT_BUS.subscribe(this);
+        enabled = true;
   }
 
   public void onStop() {
@@ -171,4 +149,8 @@ public class Zoom extends Module {
   public boolean renderHands() {
     return !isActive() || renderHands.get();
   }
+
+    public boolean shouldHideHud() {
+        return isActive() && hideHud.get();
+    }
 }

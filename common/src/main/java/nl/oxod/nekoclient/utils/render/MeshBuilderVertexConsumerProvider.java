@@ -60,6 +60,11 @@ public class MeshBuilderVertexConsumerProvider implements IVertexConsumerProvide
       return this;
     }
 
+        @Override
+        public VertexConsumer setUv3(float u, float v) {
+            return this;
+        }
+
     public VertexConsumer setNormal(float x, float y, float z) {
       return this;
     }
@@ -155,6 +160,11 @@ public class MeshBuilderVertexConsumerProvider implements IVertexConsumerProvide
     public @NonNull VertexConsumer setUv2(int u, int v) {
       return this;
     }
+
+        @Override
+        public @NonNull VertexConsumer setUv3(float u, float v) {
+            return this;
+        }
 
     @Override
     public @NonNull VertexConsumer setNormal(float x, float y, float z) {

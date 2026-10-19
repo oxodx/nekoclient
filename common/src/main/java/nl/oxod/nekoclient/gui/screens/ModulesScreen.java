@@ -5,7 +5,6 @@
 
 package nl.oxod.nekoclient.gui.screens;
 
-import com.mojang.blaze3d.platform.MacosUtil;
 import com.mojang.datafixers.util.Pair;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.tabs.TabScreen;
@@ -24,15 +23,16 @@ import nl.oxod.nekoclient.utils.misc.NbtUtils;
 import nl.oxod.nekoclient.utils.render.DisplayItemUtils;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.world.item.Items;
+import org.apache.commons.lang3.SystemUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.mojang.blaze3d.platform.InputConstants.*;
 import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
 import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
-import static com.mojang.blaze3d.platform.InputConstants.*;
 
 public class ModulesScreen extends TabScreen {
     private WCategoryController controller;
@@ -155,7 +155,7 @@ public class ModulesScreen extends TabScreen {
     public boolean keyPressed(@NonNull KeyEvent value) {
         if (locked) return false;
 
-        boolean cntrl = MacosUtil.IS_MACOS ? value.modifiers() == MOD_SUPER : value.modifiers() == MOD_CONTROL;
+        boolean cntrl = SystemUtils.IS_OS_MAC ? value.modifiers() == MOD_SUPER : value.modifiers() == MOD_CONTROL;
 
         if (cntrl && value.key() == KEY_F) {
             if (searchWindow != null) searchWindow.setExpanded(true);

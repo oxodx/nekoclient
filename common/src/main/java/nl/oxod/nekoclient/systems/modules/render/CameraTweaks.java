@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.systems.modules.render;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.events.game.ChangePerspectiveEvent;
 import nl.oxod.nekoclient.events.neko.MouseScrollEvent;
 import nl.oxod.nekoclient.settings.*;
@@ -13,7 +14,6 @@ import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.utils.misc.Keybind;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.CameraType;
-import com.mojang.blaze3d.platform.InputConstants;
 
 public class CameraTweaks extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();

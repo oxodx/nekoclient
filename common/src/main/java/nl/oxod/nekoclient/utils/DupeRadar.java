@@ -11,8 +11,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.blaze3d.Blaze3D;
 import nl.oxod.nekoclient.NekoClient;
-import net.minecraft.util.Util;
 import nl.oxod.nekoclient.utils.security.AtRestSeal;
 
 import java.io.BufferedReader;
@@ -193,7 +193,7 @@ public final class DupeRadar {
     try {
       String safe = safeFindingUrl(url, "");
       if (safe.startsWith("https://") || safe.startsWith("http://")) {
-        Util.getPlatform().openUri(safe);
+        Blaze3D.openUri(URI.create(safe));
       }
     } catch (Exception ignored) {
     }
@@ -234,7 +234,7 @@ public final class DupeRadar {
         + "&code_challenge=" + url(challenge)
         + "&code_challenge_method=S256"
         + "&state=" + url(stateToken);
-      Util.getPlatform().openUri(loginUrl);
+      Blaze3D.openUri(URI.create(loginUrl));
       publish(generation, state.withBusy(true, false, "Waiting for browser login...", null));
 
       try (Socket socket = server.accept()) {

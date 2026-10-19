@@ -963,8 +963,8 @@ public class KillAura extends Module {
     var piercing = stack.get(DataComponents.PIERCING_WEAPON);
 
     if (piercing != null && !mc.gameMode.isSpectator()) {
-      mc.gameMode.piercingAttack(piercing);
-      mc.player.swing(InteractionHand.MAIN_HAND);
+      mc.gameMode.piercingAttack(stack.getAttackAnimation(), piercing);
+      mc.player.swing(InteractionHand.MAIN_HAND, stack.getAttackAnimation(), false);
       CpsTracker.recordLeft();
       queueHitFeedback(target);
       return;
@@ -1003,7 +1003,7 @@ public class KillAura extends Module {
     }
 
     mc.player.resetAttackStrengthTicker();
-    mc.player.swing(InteractionHand.MAIN_HAND);
+    mc.player.swing(InteractionHand.MAIN_HAND, stack.getAttackAnimation(), false);
   }
 
   private boolean canBeAttackedWithVanillaPacket(Entity target) {

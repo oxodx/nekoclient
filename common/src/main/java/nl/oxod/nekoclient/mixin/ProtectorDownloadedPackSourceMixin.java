@@ -50,13 +50,8 @@ public abstract class ProtectorDownloadedPackSourceMixin {
 
     return new FilePackResources.FileResourcesSupplier(file) {
       @Override
-      public PackResources openPrimary(PackLocationInfo loc) {
-        return new ProtectorLangOnlyPackResources(real.openPrimary(loc));
-      }
-
-      @Override
-      public PackResources openFull(PackLocationInfo loc, Pack.Metadata md) {
-        return new ProtectorLangOnlyPackResources(real.openFull(loc, md));
+      public java.util.stream.Stream<PackResources> openResources(PackLocationInfo loc, Pack.Metadata md) {
+        return real.openResources(loc, md).map(ProtectorLangOnlyPackResources::new);
       }
     };
   }

@@ -6,9 +6,9 @@
 package nl.oxod.nekoclient.systems.accounts;
 
 import com.mojang.authlib.minecraft.UserApiService;
-import com.mojang.authlib.yggdrasil.FriendsService;
-import com.mojang.authlib.yggdrasil.ServicesKeyType;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.mojang.authlib.services.FriendsService;
+import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
+import com.mojang.authlib.services.ServicesKeyType;
 import nl.oxod.nekoclient.mixin.FileCacheAccessor;
 import nl.oxod.nekoclient.mixin.MinecraftAccessor;
 import nl.oxod.nekoclient.mixin.SkinManagerAccessor;
@@ -47,7 +47,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
     public abstract boolean fetchInfo();
 
     public boolean login() {
-        YggdrasilAuthenticationService authenticationService = new YggdrasilAuthenticationService(mc.getProxy());
+        MinecraftServicesDiscoveryService authenticationService = MinecraftServicesDiscoveryService.create(mc.getProxy());
         applyLoginEnvironment(authenticationService);
 
         return true;
@@ -70,7 +70,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
         MinecraftAccessor mca = (MinecraftAccessor) mc;
         mca.neko$setUser(session);
 
-        YggdrasilAuthenticationService yggdrasilAuthenticationService = new YggdrasilAuthenticationService(mc.getProxy());
+        MinecraftServicesDiscoveryService yggdrasilAuthenticationService = MinecraftServicesDiscoveryService.create(mc.getProxy());
 
         UserApiService apiService = yggdrasilAuthenticationService.createUserApiService(session.getAccessToken());
         FriendsService friendsService = yggdrasilAuthenticationService.createFriendsService(session.getAccessToken());
@@ -82,7 +82,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
         mca.neko$setProfileFuture(CompletableFuture.supplyAsync(() -> mc.services().sessionService().fetchProfile(mc.getUser().getProfileId(), true), Util.ioPool()));
     }
 
-    public static void applyLoginEnvironment(YggdrasilAuthenticationService authService) {
+    public static void applyLoginEnvironment(MinecraftServicesDiscoveryService authService) {
         MinecraftAccessor mca = (MinecraftAccessor) mc;
         SignatureValidator.from(authService.getServicesKeySet(), ServicesKeyType.PROFILE_KEY);
         SkinManager.TextureCache skinCache = ((SkinManagerAccessor) mc.getSkinManager()).neko$getSkinTextures();

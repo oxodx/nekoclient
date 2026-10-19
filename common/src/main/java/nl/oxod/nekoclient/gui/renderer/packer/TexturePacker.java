@@ -5,9 +5,9 @@
 
 package nl.oxod.nekoclient.gui.renderer.packer;
 
-import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.textures.FilterMode;
 import nl.oxod.nekoclient.renderer.Texture;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.BufferUtils;

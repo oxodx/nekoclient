@@ -36,6 +36,7 @@ import meteordevelopment.orbit.EventPriority;
 import meteordevelopment.orbit.IEventBus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
 import nl.oxod.nekoclient.platform.ModInfo;
 import nl.oxod.nekoclient.platform.NekoPlatform;
@@ -283,6 +284,17 @@ public class NekoClient {
     }
 
     wasWidgetScreen = event.screen instanceof WidgetScreen;
+  }
+
+  public static boolean shouldHideHud() {
+    if (!GuiThemes.get().hideHUD()) return false;
+
+    Screen screen = mc.gui.screen();
+    if (!(screen instanceof WidgetScreen)) return false;
+
+    return !(screen instanceof HudEditorScreen)
+      && !(screen instanceof AddHudElementScreen)
+      && !(screen instanceof HudElementScreen);
   }
 
   public static Identifier identifier(String path) {

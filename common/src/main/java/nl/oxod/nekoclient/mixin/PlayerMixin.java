@@ -8,7 +8,6 @@ package nl.oxod.nekoclient.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.entity.DropItemsEvent;
 import nl.oxod.nekoclient.events.entity.player.ClipAtLedgeEvent;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.movement.NoSlow;
@@ -19,10 +18,8 @@ import nl.oxod.nekoclient.utils.world.BlockUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -52,13 +49,6 @@ public abstract class PlayerMixin extends LivingEntity {
 
     ClipAtLedgeEvent event = NekoClient.EVENT_BUS.post(ClipAtLedgeEvent.get());
     if (event.isSet()) cir.setReturnValue(event.isClip());
-  }
-
-  @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
-  private void onDropItem(ItemStack itemStack, boolean thrownFromHand, CallbackInfoReturnable<ItemEntity> cir) {
-    if (level().isClientSide() && !itemStack.isEmpty()) {
-      if (NekoClient.EVENT_BUS.post(DropItemsEvent.get(itemStack)).isCancelled()) cir.setReturnValue(null);
-    }
   }
 
   @Inject(method = "isSpectator", at = @At("HEAD"), cancellable = true)

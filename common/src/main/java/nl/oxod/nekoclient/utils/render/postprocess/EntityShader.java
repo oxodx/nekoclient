@@ -1,6 +1,6 @@
 package nl.oxod.nekoclient.utils.render.postprocess;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import nl.oxod.nekoclient.mixininterface.ILevelRenderer;
 import net.minecraft.world.entity.Entity;
 

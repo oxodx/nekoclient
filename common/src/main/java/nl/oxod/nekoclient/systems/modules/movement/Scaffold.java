@@ -2958,24 +2958,22 @@ public class Scaffold extends nl.oxod.nekoclient.systems.modules.Module {
         if (stack.isEmpty()) return;
         InteractionResult itemResult = MC.gameMode.useItem(MC.player, hand);
         if (itemResult instanceof InteractionResult.Success success) {
-          if (success.swingSource() == InteractionResult.SwingSource.CLIENT) MC.player.swing(hand);
-          MC.gameRenderer.itemInHandRenderer.itemUsed(hand);
+          if (success.swingSource() == InteractionResult.SwingSource.PREDICTED) {
+            MC.player.swing(hand, stack.getInteractAnimation(), false);
+          }
         }
         return;
       }
       if (!result.consumesAction()) return;
       if (result instanceof InteractionResult.Success success
-        && success.swingSource() != InteractionResult.SwingSource.CLIENT) return;
+        && success.swingSource() != InteractionResult.SwingSource.PREDICTED) return;
 
-      MC.player.swing(hand);
+      MC.player.swing(hand, stack.getInteractAnimation(), false);
       CpsTracker.recordRight();
       ScaffoldPlaceRenderer.recordPlacement(target.placedBlock());
       trackSuccessfulPlacement(target.placedBlock(), placementLine, previousFallOff);
       boolean wasStackUsed = !stack.isEmpty()
         && (stack.getCount() != oldCount || MC.player.hasInfiniteMaterials());
-      if (wasStackUsed) {
-        MC.gameRenderer.itemInHandRenderer.itemUsed(hand);
-      }
     } finally {
       if (restoreClientRotation) {
         RotationUtil.Rotation clientRotation = new RotationUtil.Rotation(clientYaw, clientPitch);

@@ -1,10 +1,11 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
+* This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/nekoclient).
+* Copyright (c) Meteor Development.
+*/
 
 package nl.oxod.nekoclient.systems.modules.misc.swarm;
 
+import com.mojang.blaze3d.Blaze3D;
 import nl.oxod.nekoclient.events.game.GameJoinedEvent;
 import nl.oxod.nekoclient.events.game.GameLeftEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -17,7 +18,8 @@ import nl.oxod.nekoclient.settings.*;
 import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.util.Util;
+
+import java.net.URI;
 
 public class Swarm extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -50,7 +52,7 @@ public class Swarm extends Module {
   public SwarmWorker worker;
 
   public Swarm() {
-    super(Categories.Misc, "swarm", "Allows you to control multiple instances of NekoClient from one central host.");
+    super(Categories.Misc, "swarm", "Allows you to control multiple instances of Meteor from one central host.");
   }
 
   @Override
@@ -72,7 +74,7 @@ public class Swarm extends Module {
     stop.action = this::close;
 
     WButton guide = list.add(theme.button("Guide")).expandX().widget();
-    guide.action = () -> Util.getPlatform().openUri("https://github.com/MeteorDevelopment/meteor-client/wiki/Swarm-Guide");
+    guide.action = () -> Blaze3D.openUri(URI.create("https://github.com/MeteorDevelopment/nekoclient/wiki/Swarm-Guide"));
 
     return list;
   }

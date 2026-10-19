@@ -49,7 +49,7 @@ public abstract class ProtectorPacketSanityMixin {
 
   @Inject(method = "handleEntityPositionSync", at = @At("HEAD"), cancellable = true, require = 0)
   private void protector$saneEntityPositionSync(ClientboundEntityPositionSyncPacket packet, CallbackInfo ci) {
-    if (ProtectorNumericSanity.positionMoveOutOfRange(packet.values())) ci.cancel();
+    if (ProtectorNumericSanity.outOfRange(packet.position().endPosition())) ci.cancel();
   }
 
   @Inject(method = "handleAddEntity", at = @At("HEAD"), cancellable = true, require = 0)
@@ -64,23 +64,25 @@ public abstract class ProtectorPacketSanityMixin {
 
   @Inject(method = "handleParticleEvent", at = @At("HEAD"), cancellable = true, require = 0)
   private void protector$saneParticles(ClientboundLevelParticlesPacket packet, CallbackInfo ci) {
-    if (ProtectorNumericSanity.outOfRange(packet.getX())
-      || ProtectorNumericSanity.outOfRange(packet.getY())
-      || ProtectorNumericSanity.outOfRange(packet.getZ())
-      || ProtectorNumericSanity.outOfRange(packet.getXDist())
-      || ProtectorNumericSanity.outOfRange(packet.getYDist())
-      || ProtectorNumericSanity.outOfRange(packet.getZDist())
-      || ProtectorNumericSanity.outOfRange(packet.getMaxSpeed())
-      || packet.getCount() > 100_000) {
+    if (ProtectorNumericSanity.outOfRange(packet.x())
+      || ProtectorNumericSanity.outOfRange(packet.y())
+      || ProtectorNumericSanity.outOfRange(packet.z())
+      || ProtectorNumericSanity.outOfRange(packet.xDist())
+      || ProtectorNumericSanity.outOfRange(packet.yDist())
+      || ProtectorNumericSanity.outOfRange(packet.zDist())
+      || ProtectorNumericSanity.outOfRange(packet.xMaxSpeed())
+      || ProtectorNumericSanity.outOfRange(packet.yMaxSpeed())
+      || ProtectorNumericSanity.outOfRange(packet.zMaxSpeed())
+      || packet.count() > 100_000) {
       ci.cancel();
     }
   }
 
   @Inject(method = "handleMoveVehicle", at = @At("HEAD"), cancellable = true, require = 0)
   private void protector$saneMoveVehicle(ClientboundMoveVehiclePacket packet, CallbackInfo ci) {
-    if (ProtectorNumericSanity.outOfRange(packet.position())
-      || ProtectorNumericSanity.outOfRange(packet.yRot())
-      || ProtectorNumericSanity.outOfRange(packet.xRot())) {
+    if (ProtectorNumericSanity.outOfRange(packet.movingTo().position())
+      || ProtectorNumericSanity.outOfRange(packet.movingTo().yRot())
+      || ProtectorNumericSanity.outOfRange(packet.movingTo().xRot())) {
       ci.cancel();
     }
   }

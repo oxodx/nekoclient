@@ -5,8 +5,9 @@
 
 package nl.oxod.nekoclient.renderer;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
+
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 
 public abstract class NekoVertexFormats {
   // Step rate = 0 means per-vertex (not instanced)

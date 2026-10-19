@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.mixin;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.systems.config.Config;
 import nl.oxod.nekoclient.utils.player.TitleScreenCredits;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -12,7 +13,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import com.mojang.blaze3d.platform.InputConstants;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

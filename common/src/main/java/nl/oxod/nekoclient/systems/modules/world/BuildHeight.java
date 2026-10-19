@@ -1,7 +1,7 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
+* This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/nekoclient).
+* Copyright (c) Meteor Development.
+*/
 
 package nl.oxod.nekoclient.systems.modules.world;
 
@@ -22,8 +22,8 @@ public class BuildHeight extends Module {
   private void onSendPacket(PacketEvent.Send event) {
     if (!(event.packet instanceof ServerboundUseItemOnPacket p)) return;
     if (mc.level == null) return;
-    if (p.getHitResult().getLocation().y >= mc.level.getHeight() && p.getHitResult().getDirection() == Direction.UP) {
-      ((BlockHitResultAccessor) p.getHitResult()).neko$setDirection(Direction.DOWN);
+    if (p.hitResult().getLocation().y >= mc.level.getHeight() && p.hitResult().getDirection() == Direction.UP) {
+      ((BlockHitResultAccessor) p.hitResult()).neko$setDirection(Direction.DOWN);
     }
   }
 }

@@ -13,9 +13,9 @@ import nl.oxod.nekoclient.gui.widgets.containers.WHorizontalList;
 import nl.oxod.nekoclient.gui.widgets.pressable.WPressable;
 import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.gui.screens.Screen;
+import org.lwjgl.sdl.SDLMouse;
 
 import static nl.oxod.nekoclient.NekoClient.mc;
-import static com.mojang.blaze3d.platform.InputConstants.*;
 
 public abstract class WTopBar extends WHorizontalList {
   protected abstract Color getButtonColor(boolean pressed, boolean hovered);
@@ -57,7 +57,7 @@ public abstract class WTopBar extends WHorizontalList {
         double mouseY = mc.mouseHandler.ypos();
 
         tab.openScreen(theme);
-        grabOrReleaseMouse(mc.getWindow(), CURSOR_NORMAL, mouseX, mouseY);
+                SDLMouse.SDL_WarpMouseInWindow(mc.getWindow().handle(), (float) mouseX, (float) mouseY);
       }
     }
 

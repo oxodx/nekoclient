@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.fabricmc.fabric.impl.resource.pack.ModNioPackResources;
 import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.locale.Language;
-import net.minecraft.server.packs.CompositePackResources;
+import net.minecraft.server.packs.OverlayedPackResources;
 import net.minecraft.server.packs.FilePackResources;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PathPackResources;
@@ -44,7 +44,7 @@ public class ProtectorClientLanguageMixin {
       original.call(stream, trackingOutput(output, (key, value) -> ProtectorTracker.addVanillaTranslation(key)));
       return;
     }
-    if (source instanceof FilePackResources || source instanceof CompositePackResources) {
+    if (source instanceof FilePackResources || source instanceof OverlayedPackResources) {
       original.call(stream, trackingOutput(output, ProtectorTracker::addServerTranslation));
       return;
     }

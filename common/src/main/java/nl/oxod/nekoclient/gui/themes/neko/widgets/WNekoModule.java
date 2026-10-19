@@ -13,9 +13,9 @@ import nl.oxod.nekoclient.gui.widgets.pressable.WPressable;
 import nl.oxod.nekoclient.systems.modules.Module;
 import net.minecraft.util.Mth;
 
-import static nl.oxod.nekoclient.NekoClient.mc;
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT;
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class WNekoModule extends WPressable implements NekoWidget {
   private final Module module;

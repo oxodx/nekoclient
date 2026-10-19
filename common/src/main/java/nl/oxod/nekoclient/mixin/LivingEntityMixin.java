@@ -8,6 +8,7 @@ package nl.oxod.nekoclient.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.entity.DropItemsEvent;
 import nl.oxod.nekoclient.events.entity.player.CanWalkOnFluidEvent;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.movement.HighJump;
@@ -20,11 +21,13 @@ import nl.oxod.nekoclient.systems.modules.render.HandView;
 import nl.oxod.nekoclient.systems.modules.render.NoRender;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
@@ -56,7 +59,7 @@ public abstract class LivingEntityMixin extends Entity {
     if (noRender.noEatParticles() && itemStack.getComponents().has(DataComponents.FOOD)) ci.cancel();
   }
 
-  @ModifyVariable(method = "swing(Lnet/minecraft/world/InteractionHand;)V", at = @At("HEAD"), argsOnly = true, name = "hand")
+    @ModifyVariable(method = "swing", at = @At("HEAD"), argsOnly = true, name = "hand")
   private InteractionHand setHand(InteractionHand hand) {
     if ((Object) this != mc.player) return hand;
 
@@ -67,13 +70,6 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     return hand;
-  }
-
-  @ModifyExpressionValue(method = "getCurrentSwingDuration", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/component/SwingAnimation;duration()I"))
-  private int getHandSwingDuration(int original) {
-    if ((Object) this != mc.player) return original;
-
-    return Modules.get().get(HandView.class).isActive() && mc.options.getCameraType().isFirstPerson() ? Modules.get().get(HandView.class).swingSpeed.get() : original;
   }
 
   @ModifyReturnValue(method = "isFallFlying", at = @At("RETURN"))
@@ -138,4 +134,11 @@ public abstract class LivingEntityMixin extends Entity {
     // only add the extra velocity if you're actually moving, otherwise you'll jump in place and move forward
     return original && (Math.abs(mc.player.zza) > 1.0E-5F || Math.abs(mc.player.xxa) > 1.0E-5F);
   }
+
+    @Inject(method = "drop", at = @At("HEAD"), cancellable = true)
+    private void onDropItem(ItemStack itemStack, boolean thrownFromHand, Prediction prediction, CallbackInfoReturnable<ItemEntity> cir) {
+        if (level().isClientSide() && !itemStack.isEmpty()) {
+            if (NekoClient.EVENT_BUS.post(DropItemsEvent.get(itemStack)).isCancelled()) cir.setReturnValue(null);
+        }
+    }
 }

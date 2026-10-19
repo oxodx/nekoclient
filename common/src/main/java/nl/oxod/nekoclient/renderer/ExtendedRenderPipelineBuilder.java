@@ -5,7 +5,7 @@
 
 package nl.oxod.nekoclient.renderer;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import nl.oxod.nekoclient.mixininterface.IRenderPipeline;
 import org.jspecify.annotations.NonNull;
 
