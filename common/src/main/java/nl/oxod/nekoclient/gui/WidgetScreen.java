@@ -5,7 +5,24 @@
 
 package nl.oxod.nekoclient.gui;
 
+import static com.mojang.blaze3d.platform.InputConstants.*;
+import static nl.oxod.nekoclient.NekoClient.mc;
+import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
+import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
+
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.gui.renderer.GuiDebugRenderer;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
@@ -17,29 +34,12 @@ import nl.oxod.nekoclient.gui.widgets.containers.WContainer;
 import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.misc.input.Input;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import org.apache.commons.lang3.SystemUtils;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.sdl.SDLMouse;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
-import static com.mojang.blaze3d.platform.InputConstants.*;
-import static nl.oxod.nekoclient.NekoClient.mc;
-import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
-import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
-
 public abstract class WidgetScreen extends Screen {
+
   private static final GuiRenderer RENDERER = new GuiRenderer();
   private static final GuiDebugRenderer DEBUG_RENDERER = new GuiDebugRenderer();
 
@@ -107,7 +107,7 @@ public abstract class WidgetScreen extends Screen {
       initWidgets();
     }
 
-        mc.textInputManager().startTextInput(this);
+    mc.textInputManager().startTextInput(this);
   }
 
   public abstract void initWidgets();
@@ -123,7 +123,10 @@ public abstract class WidgetScreen extends Screen {
   }
 
   @Override
-  public boolean mouseClicked(@NonNull MouseButtonEvent click, boolean doubled) {
+  public boolean mouseClicked(
+    @NonNull MouseButtonEvent click,
+    boolean doubled
+  ) {
     if (locked) return false;
 
     double mouseX = click.x();
@@ -135,12 +138,19 @@ public abstract class WidgetScreen extends Screen {
 
     // Unfocus all text boxes that are not under the mouse cursor
     loopWidgets(root, widget -> {
-      if (widget instanceof WTextBox textBox && textBox.isFocused() && !textBox.mouseOver) {
+      if (
+        widget instanceof WTextBox textBox &&
+        textBox.isFocused() &&
+        !textBox.mouseOver
+      ) {
         textBox.setFocused(false);
       }
     });
 
-    return root.mouseClicked(new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()), doubled);
+    return root.mouseClicked(
+      new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()),
+      doubled
+    );
   }
 
   @Override
@@ -154,10 +164,17 @@ public abstract class WidgetScreen extends Screen {
     mouseX *= s;
     mouseY *= s;
 
-    if (debug && click.button() == MOUSE_BUTTON_RIGHT)
-      DEBUG_RENDERER.mouseReleased(root, new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()), 0);
+    if (
+      debug && click.button() == MOUSE_BUTTON_RIGHT
+    ) DEBUG_RENDERER.mouseReleased(
+      root,
+      new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()),
+      0
+    );
 
-    return root.mouseReleased(new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()));
+    return root.mouseReleased(
+      new MouseButtonEvent(mouseX, mouseY, click.buttonInfo())
+    );
   }
 
   @Override
@@ -175,29 +192,46 @@ public abstract class WidgetScreen extends Screen {
   }
 
   @Override
-  public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+  public boolean mouseScrolled(
+    double mouseX,
+    double mouseY,
+    double horizontalAmount,
+    double verticalAmount
+  ) {
     if (locked) return false;
 
     root.mouseScrolled(verticalAmount);
 
-    return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    return super.mouseScrolled(
+      mouseX,
+      mouseY,
+      horizontalAmount,
+      verticalAmount
+    );
   }
 
   @Override
-  public boolean keyReleased(@NonNull KeyEvent input) {
+  public boolean keyReleased(@NonNull KeyEvent event) {
     if (locked) return false;
 
-    if ((input.modifiers() == MOD_CONTROL || input.modifiers() == MOD_SUPER) && input.key() == KEY_9) {
+    boolean ctrl = SystemUtils.IS_OS_MAC
+      ? Input.modsMatch(event.modifiers(), MOD_SUPER)
+      : Input.modsMatch(event.modifiers(), MOD_CONTROL);
+
+    if (ctrl && event.key() == KEY_9) {
       debug = !debug;
       return true;
     }
 
-    if ((input.key() == KEY_RETURN || input.key() == KEY_NUMPADENTER) && enterAction != null) {
+    if (
+      (event.key() == KEY_RETURN || event.key() == KEY_NUMPADENTER) &&
+      enterAction != null
+    ) {
       enterAction.run();
       return true;
     }
 
-    return super.keyReleased(input);
+    return super.keyReleased(event);
   }
 
   @Override
@@ -239,10 +273,14 @@ public abstract class WidgetScreen extends Screen {
       return true;
     }
 
-        boolean control = SystemUtils.IS_OS_MAC ? input.modifiers() == MOD_SUPER : input.modifiers() == MOD_CONTROL;
+    boolean ctrl = SystemUtils.IS_OS_MAC
+      ? Input.modsMatch(input.modifiers(), MOD_SUPER)
+      : Input.modsMatch(input.modifiers(), MOD_CONTROL);
 
-    return (control && input.key() == KEY_C && toClipboard())
-      || (control && input.key() == KEY_V && fromClipboard());
+    return (
+      (ctrl && input.key() == KEY_C && toClipboard()) ||
+      (ctrl && input.key() == KEY_V && fromClipboard())
+    );
   }
 
   public void keyRepeated(KeyEvent input) {
@@ -259,18 +297,28 @@ public abstract class WidgetScreen extends Screen {
   }
 
   @Override
-  public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float deltaTicks) {
+  public void extractBackground(
+    @NonNull GuiGraphicsExtractor graphics,
+    int mouseX,
+    int mouseY,
+    float deltaTicks
+  ) {
     if (this.minecraft.level == null) {
       this.extractPanorama(graphics, deltaTicks);
     }
   }
 
-  public void renderCustom(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+  public void renderCustom(
+    GuiGraphicsExtractor graphics,
+    int mouseX,
+    int mouseY,
+    float delta
+  ) {
     int s = mc.getWindow().getGuiScale();
     mouseX *= s;
     mouseY *= s;
 
-    animProgress += (delta / 20 * 14) * (closing ? -1 : 1);
+    animProgress += (delta / 20) * 14 * (closing ? -1 : 1);
     animProgress = Mth.clamp(animProgress, 0, 1);
 
     if (closing && (animProgress == 0 || parent != null)) {
@@ -293,7 +341,12 @@ public abstract class WidgetScreen extends Screen {
     RENDERER.setAlpha(1);
     RENDERER.end();
 
-    boolean tooltip = RENDERER.renderTooltip(graphics, mouseX, mouseY, delta / 20);
+    boolean tooltip = RENDERER.renderTooltip(
+      graphics,
+      mouseX,
+      mouseY,
+      delta / 20
+    );
 
     if (debug) {
       DEBUG_RENDERER.render(root);
@@ -312,8 +365,12 @@ public abstract class WidgetScreen extends Screen {
     }
   }
 
-  protected void onRenderBefore(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-  }
+  protected void onRenderBefore(
+    GuiGraphicsExtractor graphics,
+    int mouseX,
+    int mouseY,
+    float delta
+  ) {}
 
   @Override
   public void resize(int width, int height) {
@@ -334,10 +391,12 @@ public abstract class WidgetScreen extends Screen {
       closed = true;
       onClosed();
 
-            Input.setCursorStyle(CursorTypes.ARROW);
+      Input.setCursorStyle(CursorTypes.ARROW);
 
       loopWidgets(root, widget -> {
-        if (widget instanceof WTextBox textBox && textBox.isFocused()) textBox.setFocused(false);
+        if (
+          widget instanceof WTextBox textBox && textBox.isFocused()
+        ) textBox.setFocused(false);
       });
 
       NekoClient.EVENT_BUS.unsubscribe(this);
@@ -357,10 +416,14 @@ public abstract class WidgetScreen extends Screen {
 
           // Restore mouse position to where it was when the screen was closed
           if (parent != null) {
-                        SDLMouse.SDL_WarpMouseInWindow(mc.getWindow().handle(), (float) restoreX, (float) restoreY);
+            SDLMouse.SDL_WarpMouseInWindow(
+              mc.getWindow().handle(),
+              (float) restoreX,
+              (float) restoreY
+            );
           }
 
-                    mc.textInputManager().stopTextInput(this);
+          mc.textInputManager().stopTextInput(this);
         };
       }
     }
@@ -384,8 +447,7 @@ public abstract class WidgetScreen extends Screen {
     }
   }
 
-  protected void onClosed() {
-  }
+  protected void onClosed() {}
 
   public boolean toClipboard() {
     return false;
@@ -406,6 +468,7 @@ public abstract class WidgetScreen extends Screen {
   }
 
   private static class WFullScreenRoot extends WContainer implements WRoot {
+
     private boolean valid;
 
     @Override
@@ -433,13 +496,23 @@ public abstract class WidgetScreen extends Screen {
     }
 
     @Override
-    public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
+    public boolean render(
+      GuiRenderer renderer,
+      double mouseX,
+      double mouseY,
+      double delta
+    ) {
       if (!valid) {
         calculateSize();
         calculateWidgetPositions();
 
         valid = true;
-        mouseMoved(mc.mouseHandler.xpos(), mc.mouseHandler.ypos(), mc.mouseHandler.xpos(), mc.mouseHandler.ypos());
+        mouseMoved(
+          mc.mouseHandler.xpos(),
+          mc.mouseHandler.ypos(),
+          mc.mouseHandler.xpos(),
+          mc.mouseHandler.ypos()
+        );
       }
 
       return super.render(renderer, mouseX, mouseY, delta);
