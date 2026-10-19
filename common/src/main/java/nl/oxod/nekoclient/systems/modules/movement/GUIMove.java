@@ -5,9 +5,20 @@
 
 package nl.oxod.nekoclient.systems.modules.movement;
 
+import static com.mojang.blaze3d.platform.InputConstants.*;
+
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.*;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.CreativeModeTabs;
 import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.neko.MouseClickEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
+import nl.oxod.nekoclient.gui.GuiKeyEvents;
 import nl.oxod.nekoclient.gui.WidgetScreen;
 import nl.oxod.nekoclient.mixin.CreativeModeInventoryScreenAccessor;
 import nl.oxod.nekoclient.settings.*;
@@ -17,82 +28,98 @@ import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.Freecam;
 import nl.oxod.nekoclient.utils.misc.input.Input;
 import nl.oxod.nekoclient.utils.misc.input.KeyAction;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.gui.screens.inventory.*;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.CreativeModeTabs;
-
-import static com.mojang.blaze3d.platform.InputConstants.*;
 
 public class GUIMove extends Module {
+
   public enum Screens {
     GUI,
     Inventory,
-    Both
+    Both,
   }
 
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
-  private final Setting<Screens> screens = sgGeneral.add(new EnumSetting.Builder<Screens>()
-    .name("guis")
-    .description("Which GUIs to move in.")
-    .defaultValue(Screens.Inventory)
-    .build()
+  private final Setting<Screens> screens = sgGeneral.add(
+    new EnumSetting.Builder<Screens>()
+      .name("guis")
+      .description("Which GUIs to move in.")
+      .defaultValue(Screens.Inventory)
+      .build()
   );
 
-  public final Setting<Boolean> jump = sgGeneral.add(new BoolSetting.Builder()
-    .name("jump")
-    .description("Allows you to jump while in GUIs.")
-    .defaultValue(true)
-    .onChanged(aBoolean -> {
-      if (isActive() && !aBoolean) mc.options.keyJump.setDown(false);
-    })
-    .build()
+  public final Setting<Boolean> jump = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("jump")
+      .description("Allows you to jump while in GUIs.")
+      .defaultValue(true)
+      .onChanged(aBoolean -> {
+        if (isActive() && !aBoolean) mc.options.keyJump.setDown(false);
+      })
+      .build()
   );
 
-  public final Setting<Boolean> sneak = sgGeneral.add(new BoolSetting.Builder()
-    .name("sneak")
-    .description("Allows you to sneak while in GUIs.")
-    .defaultValue(true)
-    .onChanged(aBoolean -> {
-      if (isActive() && !aBoolean) mc.options.keyShift.setDown(false);
-    })
-    .build()
+  public final Setting<Boolean> sneak = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("sneak")
+      .description("Allows you to sneak while in GUIs.")
+      .defaultValue(true)
+      .onChanged(aBoolean -> {
+        if (isActive() && !aBoolean) mc.options.keyShift.setDown(false);
+      })
+      .build()
   );
 
-  public final Setting<Boolean> sprint = sgGeneral.add(new BoolSetting.Builder()
-    .name("sprint")
-    .description("Allows you to sprint while in GUIs.")
-    .defaultValue(true)
-    .onChanged(aBoolean -> {
-      if (isActive() && !aBoolean) mc.options.keySprint.setDown(false);
-    })
-    .build()
+  public final Setting<Boolean> sprint = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("sprint")
+      .description("Allows you to sprint while in GUIs.")
+      .defaultValue(true)
+      .onChanged(aBoolean -> {
+        if (isActive() && !aBoolean) mc.options.keySprint.setDown(false);
+      })
+      .build()
   );
 
-  private final Setting<Boolean> arrowsRotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("arrows-rotate")
-    .description("Allows you to use your arrow keys to rotate while in GUIs.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> arrowsRotate = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("arrows-rotate")
+      .description("Allows you to use your arrow keys to rotate while in GUIs.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Double> rotateSpeed = sgGeneral.add(new DoubleSetting.Builder()
-    .name("rotate-speed")
-    .description("Rotation speed while in GUIs.")
-    .defaultValue(4)
-    .min(0)
-    .build()
+  private final Setting<Double> rotateSpeed = sgGeneral.add(
+    new DoubleSetting.Builder()
+      .name("rotate-speed")
+      .description("Rotation speed while in GUIs.")
+      .defaultValue(4)
+      .min(0)
+      .build()
   );
+
+  private boolean wasSkipped = true;
 
   public GUIMove() {
-    super(Categories.Movement, "gui-move", "Allows you to perform various actions while in GUIs.");
+    super(
+      Categories.Movement,
+      "gui-move",
+      "Allows you to perform various actions while in GUIs."
+    );
+  }
+
+  @Override
+  public void onActivate() {
+    wasSkipped = true;
   }
 
   @Override
   public void onDeactivate() {
+    wasSkipped = true;
+    unpress();
+  }
+
+  private void unpress() {
+    if (mc == null || mc.options == null) return;
     mc.options.keyUp.setDown(false);
     mc.options.keyDown.setDown(false);
     mc.options.keyLeft.setDown(false);
@@ -104,11 +131,13 @@ public class GUIMove extends Module {
   }
 
   public boolean disableSpace() {
-    return isActive() && jump.get() && mc.options.keyJump.isDefault();
+    return (
+      isActive() && jump.get() && mc.options.keyJump.isDefault() && !skip()
+    );
   }
 
   public boolean disableArrows() {
-    return isActive() && arrowsRotate.get();
+    return isActive() && arrowsRotate.get() && !skip();
   }
 
   @EventHandler
@@ -122,7 +151,7 @@ public class GUIMove extends Module {
   }
 
   private void onInput(int key, KeyAction action) {
-    if (skip()) return;
+    if (checkSkip()) return;
 
     pass(mc.options.keyUp, key, action);
     pass(mc.options.keyDown, key, action);
@@ -136,9 +165,12 @@ public class GUIMove extends Module {
 
   @EventHandler
   private void onRender3D(Render3DEvent event) {
-    if (skip()) return;
+    if (checkSkip()) return;
 
-    float rotationDelta = Math.min((float) (rotateSpeed.get() * event.frameTime * 20f), 100);
+    float rotationDelta = Math.min(
+      (float) (rotateSpeed.get() * event.frameTime * 20f),
+      100
+    );
 
     Freecam freecam = Modules.get().get(Freecam.class);
 
@@ -157,7 +189,8 @@ public class GUIMove extends Module {
         mc.player.setYRot(yaw);
         mc.player.setXRot(pitch);
       } else {
-        double dy = 0, dx = 0;
+        double dy = 0,
+          dx = 0;
 
         if (Input.isKeyPressed(KEY_LEFT)) dy = -rotationDelta;
         if (Input.isKeyPressed(KEY_RIGHT)) dy = rotationDelta;
@@ -175,15 +208,44 @@ public class GUIMove extends Module {
     if (action == KeyAction.Release) bind.setDown(false);
   }
 
+  private boolean checkSkip() {
+    if (skip()) {
+      if (!wasSkipped) {
+        wasSkipped = true;
+        if (mc != null && mc.gui != null && mc.gui.screen() != null) unpress();
+      }
+      return true;
+    }
+
+    wasSkipped = false;
+    return false;
+  }
+
   public boolean skip() {
-    if (mc.gui.screen() == null ||
-      (mc.gui.screen() instanceof CreativeModeInventoryScreen && CreativeModeInventoryScreenAccessor.neko$getSelectedTab() == CreativeModeTabs.searchTab())
-      || mc.gui.screen() instanceof ChatScreen
-      || mc.gui.screen() instanceof SignEditScreen
-      || mc.gui.screen() instanceof AnvilScreen
-      || mc.gui.screen() instanceof AbstractCommandBlockEditScreen
-      || mc.gui.screen() instanceof StructureBlockEditScreen) return true;
-    if (screens.get() == Screens.GUI && !(mc.gui.screen() instanceof WidgetScreen)) return true;
-    return screens.get() == Screens.Inventory && mc.gui.screen() instanceof WidgetScreen;
+    return mc == null || mc.gui == null || skip(mc.gui.screen());
+  }
+
+  public boolean skip(Screen screen) {
+    if (
+      screen == null ||
+      !GuiKeyEvents.canUseKeys ||
+      (screen instanceof CreativeModeInventoryScreen &&
+        CreativeModeInventoryScreenAccessor.meteor$getSelectedTab() ==
+          CreativeModeTabs.searchTab()) ||
+      screen instanceof ChatScreen ||
+      screen instanceof AbstractSignEditScreen ||
+      screen instanceof AnvilScreen ||
+      screen instanceof AbstractCommandBlockEditScreen ||
+      screen instanceof StructureBlockEditScreen ||
+      (screen.getFocused() instanceof EditBox editBox &&
+        editBox.canConsumeInput())
+    ) return true;
+    if (screens.get() == Screens.GUI) return !(screen instanceof WidgetScreen);
+    if (screens.get() == Screens.Inventory) return !(screen instanceof
+      AbstractContainerScreen<?>);
+    return !(
+      screen instanceof WidgetScreen ||
+      screen instanceof AbstractContainerScreen<?>
+    );
   }
 }
