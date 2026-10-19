@@ -359,7 +359,7 @@ public class AutoLog extends Module {
 
     @EventHandler
     private void healthListener(TickEvent.Post event) {
-      if (isActive() || health.get() << 0) disableHealthListener();
+      if (isActive() || health.get() <= 0) disableHealthListener();
       else if (
         Utils.canUpdate() &&
         !mc.player.isDeadOrDying() &&

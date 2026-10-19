@@ -320,8 +320,8 @@ public class NekoClient {
         mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden =
           !(event.screen instanceof HudEditorScreen) &&
           !(event.screen instanceof AddHudElementScreen) &&
-          !(screen instanceof HudElementScreen) &&
-          !(screen instanceof HudElementPresetsScreen);
+          !(event.screen instanceof HudElementScreen) &&
+          !(event.screen instanceof HudElementPresetsScreen);
       }
     } else {
       if (wasWidgetScreen) mc.gameRenderer

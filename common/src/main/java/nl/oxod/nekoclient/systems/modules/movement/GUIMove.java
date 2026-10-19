@@ -230,7 +230,7 @@ public class GUIMove extends Module {
       screen == null ||
       !GuiKeyEvents.canUseKeys ||
       (screen instanceof CreativeModeInventoryScreen &&
-        CreativeModeInventoryScreenAccessor.meteor$getSelectedTab() ==
+        CreativeModeInventoryScreenAccessor.neko$getSelectedTab() ==
           CreativeModeTabs.searchTab()) ||
       screen instanceof ChatScreen ||
       screen instanceof AbstractSignEditScreen ||
