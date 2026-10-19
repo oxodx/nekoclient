@@ -5,26 +5,19 @@
 
 package nl.oxod.nekoclient.utils;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.objects.*;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.world.TickEvent;
-import nl.oxod.nekoclient.gui.tabs.TabScreen;
-import nl.oxod.nekoclient.mixin.*;
-import nl.oxod.nekoclient.mixininterface.IMinecraft;
-import nl.oxod.nekoclient.settings.StatusEffectAmplifierMapSetting;
-import nl.oxod.nekoclient.systems.modules.Modules;
-import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
-import nl.oxod.nekoclient.systems.modules.world.Timer;
-import nl.oxod.nekoclient.utils.misc.Names;
-import nl.oxod.nekoclient.utils.player.EChestMemory;
-import nl.oxod.nekoclient.utils.render.PeekScreen;
-import nl.oxod.nekoclient.utils.render.RenderUtils;
-import nl.oxod.nekoclient.utils.render.color.Color;
-import nl.oxod.nekoclient.utils.world.BlockEntityIterator;
-import nl.oxod.nekoclient.utils.world.ChunkIterator;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.ResourceLoadStateTracker;
 import net.minecraft.client.gui.screens.Screen;
@@ -58,24 +51,33 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.gui.tabs.TabScreen;
+import nl.oxod.nekoclient.mixin.*;
+import nl.oxod.nekoclient.mixininterface.IMinecraft;
+import nl.oxod.nekoclient.settings.StatusEffectAmplifierMapSetting;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
+import nl.oxod.nekoclient.systems.modules.world.Timer;
+import nl.oxod.nekoclient.utils.misc.Names;
+import nl.oxod.nekoclient.utils.player.EChestMemory;
+import nl.oxod.nekoclient.utils.render.PeekScreen;
+import nl.oxod.nekoclient.utils.render.RenderUtils;
+import nl.oxod.nekoclient.utils.render.color.Color;
+import nl.oxod.nekoclient.utils.world.BlockEntityIterator;
+import nl.oxod.nekoclient.utils.world.ChunkIterator;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Range;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
-
 public class Utils {
-  public static final Pattern FILE_NAME_INVALID_CHARS_PATTERN = Pattern.compile("[\\s\\\\/:*?\"<>|]");
+
+  public static final Pattern FILE_NAME_INVALID_CHARS_PATTERN = Pattern.compile(
+    "[\\s\\\\/:*?\"<>|]"
+  );
   public static final Color WHITE = new Color(255, 255, 255);
 
   private static final Random random = new Random();
@@ -84,10 +86,10 @@ public class Utils {
   public static double frameTime;
   public static Screen screenToOpen;
 
-  private static final ProjectionMatrixBuffer matrixBuffer = new ProjectionMatrixBuffer("nekoclient-projection-matrix");
+  private static final ProjectionMatrixBuffer matrixBuffer =
+    new ProjectionMatrixBuffer("nekoclient-projection-matrix");
 
-  private Utils() {
-  }
+  private Utils() {}
 
   @PreInit
   public static void init() {
@@ -126,11 +128,16 @@ public class Utils {
   public static String getWorldTime() {
     if (mc.level == null) return "00:00";
 
-    int ticks = (int) (mc.level.getGameTime() % 24000);
-    ticks += 6000;
-    if (ticks > 24000) ticks -= 24000;
+    int ticks = (int) Math.floorMod(
+      mc.level.getDefaultClockTime() + 6000L,
+      24000L
+    );
 
-    return String.format("%02d:%02d", ticks / 1000, (int) (ticks % 1000 / 1000.0 * 60));
+    return String.format(
+      "%02d:%02d",
+      ticks / 1000,
+      (int) (((ticks % 1000) / 1000.0) * 60)
+    );
   }
 
   public static Iterable<ChunkAccess> chunks(boolean onlyWithLoadedNeighbours) {
@@ -145,13 +152,22 @@ public class Utils {
     return BlockEntityIterator::new;
   }
 
-  public static void getEnchantments(ItemStack itemStack, Object2IntMap<Holder<Enchantment>> enchantments) {
+  public static void getEnchantments(
+    ItemStack itemStack,
+    Object2IntMap<Holder<Enchantment>> enchantments
+  ) {
     enchantments.clear();
 
     if (!itemStack.isEmpty()) {
-      Set<Object2IntMap.Entry<Holder<Enchantment>>> itemEnchantments = itemStack.getItem() == Items.ENCHANTED_BOOK
-        ? itemStack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY).entrySet()
-        : itemStack.getEnchantments().entrySet();
+      Set<Object2IntMap.Entry<Holder<Enchantment>>> itemEnchantments =
+        itemStack.getItem() == Items.ENCHANTED_BOOK
+          ? itemStack
+              .getOrDefault(
+                DataComponents.STORED_ENCHANTMENTS,
+                ItemEnchantments.EMPTY
+              )
+              .entrySet()
+          : itemStack.getEnchantments().entrySet();
 
       for (Object2IntMap.Entry<Holder<Enchantment>> entry : itemEnchantments) {
         enchantments.put(entry.getKey(), entry.getIntValue());
@@ -159,24 +175,37 @@ public class Utils {
     }
   }
 
-  public static int getEnchantmentLevel(ItemStack itemStack, ResourceKey<Enchantment> enchantment) {
+  public static int getEnchantmentLevel(
+    ItemStack itemStack,
+    ResourceKey<Enchantment> enchantment
+  ) {
     if (itemStack.isEmpty()) return 0;
-    Object2IntMap<Holder<Enchantment>> itemEnchantments = new Object2IntArrayMap<>();
+    Object2IntMap<Holder<Enchantment>> itemEnchantments =
+      new Object2IntArrayMap<>();
     getEnchantments(itemStack, itemEnchantments);
     return getEnchantmentLevel(itemEnchantments, enchantment);
   }
 
-  public static int getEnchantmentLevel(Object2IntMap<Holder<Enchantment>> itemEnchantments, ResourceKey<Enchantment> enchantment) {
-    for (Object2IntMap.Entry<Holder<Enchantment>> entry : Object2IntMaps.fastIterable(itemEnchantments)) {
+  public static int getEnchantmentLevel(
+    Object2IntMap<Holder<Enchantment>> itemEnchantments,
+    ResourceKey<Enchantment> enchantment
+  ) {
+    for (Object2IntMap.Entry<
+      Holder<Enchantment>
+    > entry : Object2IntMaps.fastIterable(itemEnchantments)) {
       if (entry.getKey().is(enchantment)) return entry.getIntValue();
     }
     return 0;
   }
 
   @SafeVarargs
-  public static boolean hasEnchantments(ItemStack itemStack, ResourceKey<Enchantment>... enchantments) {
+  public static boolean hasEnchantments(
+    ItemStack itemStack,
+    ResourceKey<Enchantment>... enchantments
+  ) {
     if (itemStack.isEmpty()) return false;
-    Object2IntMap<Holder<Enchantment>> itemEnchantments = new Object2IntArrayMap<>();
+    Object2IntMap<Holder<Enchantment>> itemEnchantments =
+      new Object2IntArrayMap<>();
     getEnchantments(itemStack, itemEnchantments);
 
     for (ResourceKey<Enchantment> enchantment : enchantments) {
@@ -185,14 +214,21 @@ public class Utils {
     return true;
   }
 
-  public static boolean hasEnchantment(ItemStack itemStack, ResourceKey<Enchantment> enchantmentKey) {
+  public static boolean hasEnchantment(
+    ItemStack itemStack,
+    ResourceKey<Enchantment> enchantmentKey
+  ) {
     if (itemStack.isEmpty()) return false;
-    Object2IntMap<Holder<Enchantment>> itemEnchantments = new Object2IntArrayMap<>();
+    Object2IntMap<Holder<Enchantment>> itemEnchantments =
+      new Object2IntArrayMap<>();
     getEnchantments(itemStack, itemEnchantments);
     return hasEnchantment(itemEnchantments, enchantmentKey);
   }
 
-  private static boolean hasEnchantment(Object2IntMap<Holder<Enchantment>> itemEnchantments, ResourceKey<Enchantment> enchantmentKey) {
+  private static boolean hasEnchantment(
+    Object2IntMap<Holder<Enchantment>> itemEnchantments,
+    ResourceKey<Enchantment> enchantmentKey
+  ) {
     for (Holder<Enchantment> enchantment : itemEnchantments.keySet()) {
       if (enchantment.is(enchantmentKey)) return true;
     }
@@ -205,11 +241,19 @@ public class Utils {
 
   // Not every food item in minecraft is consumable for some reason (e.g. buckets of any fish)
   public static boolean isFood(Item item) {
-    return item.components().has(DataComponents.FOOD) && item.components().has(DataComponents.CONSUMABLE);
+    return (
+      item.components().has(DataComponents.FOOD) &&
+      item.components().has(DataComponents.CONSUMABLE)
+    );
   }
 
   public static int getRenderDistance() {
-    return Math.max(mc.options.renderDistance().get(), ((ClientPacketListenerAccessor) mc.getConnection()).neko$getServerChunkRadius());
+    return Math.max(
+      mc.options.renderDistance().get(),
+      (
+        (ClientPacketListenerAccessor) mc.getConnection()
+      ).neko$getServerChunkRadius()
+    );
   }
 
   public static int getWindowWidth() {
@@ -228,21 +272,29 @@ public class Utils {
     proj.setupOrtho(-10, 100, width, height, true);
     var matrix = proj.getMatrix(new Matrix4f());
 
-    RenderSystem.setProjectionMatrix(matrixBuffer.getBuffer(matrix), ProjectionType.ORTHOGRAPHIC);
+    RenderSystem.setProjectionMatrix(
+      matrixBuffer.getBuffer(matrix),
+      ProjectionType.ORTHOGRAPHIC
+    );
     RenderUtils.projection.set(matrix);
 
     rendering3D = false;
   }
 
   public static void scaledProjection() {
-    float width = (float) (mc.getWindow().getWidth() / mc.getWindow().getGuiScale());
-    float height = (float) (mc.getWindow().getHeight() / mc.getWindow().getGuiScale());
+    float width = (float) (mc.getWindow().getWidth() /
+      mc.getWindow().getGuiScale());
+    float height = (float) (mc.getWindow().getHeight() /
+      mc.getWindow().getGuiScale());
 
     var proj = new Projection();
     proj.setupOrtho(-10, 100, width, height, true);
     var matrix = proj.getMatrix(new Matrix4f());
 
-    RenderSystem.setProjectionMatrix(matrixBuffer.getBuffer(matrix), ProjectionType.PERSPECTIVE);
+    RenderSystem.setProjectionMatrix(
+      matrixBuffer.getBuffer(matrix),
+      ProjectionType.PERSPECTIVE
+    );
     RenderUtils.projection.set(matrix);
 
     rendering3D = true;
@@ -252,7 +304,11 @@ public class Utils {
     return new Vec3(pos.getX(), pos.getY(), pos.getZ());
   }
 
-  public static boolean openContainer(ItemStack itemStack, ItemStack[] contents, boolean pause) {
+  public static boolean openContainer(
+    ItemStack itemStack,
+    ItemStack[] contents,
+    boolean pause
+  ) {
     if (hasItems(itemStack) || itemStack.getItem() == Items.ENDER_CHEST) {
       Utils.getItemsInContainerItem(itemStack, contents);
       if (pause) screenToOpen = new PeekScreen(itemStack, contents);
@@ -263,7 +319,10 @@ public class Utils {
     return false;
   }
 
-  public static void getItemsInContainerItem(ItemStack itemStack, ItemStack[] items) {
+  public static void getItemsInContainerItem(
+    ItemStack itemStack,
+    ItemStack[] items
+  ) {
     if (itemStack.getItem() == Items.ENDER_CHEST) {
       for (int i = 0; i < EChestMemory.ITEMS.size(); i++) {
         items[i] = EChestMemory.ITEMS.get(i);
@@ -276,13 +335,18 @@ public class Utils {
     DataComponentMap components = itemStack.getComponents();
 
     if (components.has(DataComponents.CONTAINER)) {
-            List<ItemStack> stacks = components.get(DataComponents.CONTAINER).itemCopies().toList();
+      List<ItemStack> stacks = components
+        .get(DataComponents.CONTAINER)
+        .itemCopies()
+        .toList();
 
       for (int i = 0; i < stacks.size(); i++) {
-                if (i < items.length) items[i] = stacks.get(i);
+        if (i < items.length) items[i] = stacks.get(i);
       }
     } else if (components.has(DataComponents.BLOCK_ENTITY_DATA)) {
-      TypedEntityData<BlockEntityType<?>> blockEntityData = components.get(DataComponents.BLOCK_ENTITY_DATA);
+      TypedEntityData<BlockEntityType<?>> blockEntityData = components.get(
+        DataComponents.BLOCK_ENTITY_DATA
+      );
       if (blockEntityData == null) return;
       ListTag nbt3 = blockEntityData.copyTagWithoutId().getListOrEmpty("Items");
 
@@ -295,9 +359,19 @@ public class Utils {
 
         // now NPEs when mc.world == null
         if (slot.get() >= 0 && slot.get() < items.length) {
-          switch (ItemStackWithSlot.CODEC.parse(mc.player.registryAccess().createSerializationContext(NbtOps.INSTANCE), compound.get())) {
-            case DataResult.Success<ItemStackWithSlot> success -> items[slot.get()] = success.value().stack();
-            case DataResult.Error<ItemStackWithSlot> _ -> items[slot.get()] = ItemStack.EMPTY;
+          switch (
+            ItemStackWithSlot.CODEC.parse(
+              mc.player
+                .registryAccess()
+                .createSerializationContext(NbtOps.INSTANCE),
+              compound.get()
+            )
+          ) {
+            case DataResult.Success<ItemStackWithSlot> success -> items[
+              slot.get()
+            ] = success.value().stack();
+            case DataResult.Error<ItemStackWithSlot> _ -> items[slot.get()] =
+              ItemStack.EMPTY;
             default -> throw new MatchException(null, null);
           }
         }
@@ -315,7 +389,12 @@ public class Utils {
         if (dye == null) return WHITE;
 
         final int color = dye.getTextureDiffuseColor();
-        return new Color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
+        return new Color(
+          (color >> 16) & 0xFF,
+          (color >> 8) & 0xFF,
+          color & 0xFF,
+          255
+        );
       }
     }
 
@@ -330,25 +409,49 @@ public class Utils {
       if (items.hasNext()) return true;
     }
 
-    TypedEntityData<BlockEntityType<?>> blockEntityData = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+    TypedEntityData<BlockEntityType<?>> blockEntityData = itemStack.get(
+      DataComponents.BLOCK_ENTITY_DATA
+    );
     return blockEntityData != null && blockEntityData.contains("Items");
   }
 
   public static Reference2IntMap<MobEffect> createStatusEffectMap() {
-    return new Reference2IntArrayMap<>(StatusEffectAmplifierMapSetting.EMPTY_STATUS_EFFECT_MAP);
+    return new Reference2IntArrayMap<>(
+      StatusEffectAmplifierMapSetting.EMPTY_STATUS_EFFECT_MAP
+    );
   }
 
-  public static String getEnchantSimpleName(Holder<Enchantment> enchantment, int length) {
+  public static String getEnchantSimpleName(
+    Holder<Enchantment> enchantment,
+    int length
+  ) {
     String name = Names.get(enchantment);
     return name.length() > length ? name.substring(0, length) : name;
   }
 
-  public static boolean searchTextDefault(String text, String filter, boolean caseSensitive) {
-    return searchInWords(text, filter) > 0 || searchLevenshteinDefault(text, filter, caseSensitive) < text.length() / 2;
+  public static boolean searchTextDefault(
+    String text,
+    String filter,
+    boolean caseSensitive
+  ) {
+    return (
+      searchInWords(text, filter) > 0 ||
+      searchLevenshteinDefault(text, filter, caseSensitive) < text.length() / 2
+    );
   }
 
-  public static int searchLevenshteinDefault(String text, String filter, boolean caseSensitive) {
-    return levenshteinDistance(caseSensitive ? filter : filter.toLowerCase(Locale.ROOT), caseSensitive ? text : text.toLowerCase(Locale.ROOT), 1, 8, 8);
+  public static int searchLevenshteinDefault(
+    String text,
+    String filter,
+    boolean caseSensitive
+  ) {
+    return levenshteinDistance(
+      caseSensitive ? filter : filter.toLowerCase(Locale.ROOT),
+      caseSensitive ? text : text.toLowerCase(Locale.ROOT),
+      1,
+      8,
+      8
+    );
   }
 
   public static int searchInWords(String text, String filter) {
@@ -366,7 +469,13 @@ public class Utils {
     return wordsFound;
   }
 
-  public static int levenshteinDistance(String from, String to, int insCost, int subCost, int delCost) {
+  public static int levenshteinDistance(
+    String from,
+    String to,
+    int insCost,
+    int subCost,
+    int delCost
+  ) {
     int textLength = from.length();
     int filterLength = to.length();
 
@@ -387,7 +496,9 @@ public class Utils {
     // Find best route
     for (int i = 1; i <= textLength; i++) {
       for (int j = 1; j <= filterLength; j++) {
-        int sCost = d[i - 1][j - 1] + (from.charAt(i - 1) == to.charAt(j - 1) ? 0 : subCost);
+        int sCost =
+          d[i - 1][j - 1] +
+          (from.charAt(i - 1) == to.charAt(j - 1) ? 0 : subCost);
         int dCost = d[i - 1][j] + delCost;
         int iCost = d[i][j - 1] + insCost;
         d[i][j] = Math.min(Math.min(dCost, iCost), sCost);
@@ -397,14 +508,28 @@ public class Utils {
     return d[textLength][filterLength];
   }
 
-  public static double squaredDistance(double x1, double y1, double z1, double x2, double y2, double z2) {
+  public static double squaredDistance(
+    double x1,
+    double y1,
+    double z1,
+    double x2,
+    double y2,
+    double z2
+  ) {
     double dX = x2 - x1;
     double dY = y2 - y1;
     double dZ = z2 - z1;
     return dX * dX + dY * dY + dZ * dZ;
   }
 
-  public static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
+  public static double distance(
+    double x1,
+    double y1,
+    double z1,
+    double x2,
+    double y2,
+    double z2
+  ) {
     double dX = x2 - x1;
     double dY = y2 - y1;
     double dZ = z2 - z1;
@@ -412,7 +537,9 @@ public class Utils {
   }
 
   public static String getFileWorldName() {
-    return FILE_NAME_INVALID_CHARS_PATTERN.matcher(getWorldName()).replaceAll("_");
+    return FILE_NAME_INVALID_CHARS_PATTERN.matcher(getWorldName()).replaceAll(
+      "_"
+    );
   }
 
   /**
@@ -422,10 +549,18 @@ public class Utils {
     // Singleplayer
     if (mc.isLocalServer()) {
       if (mc.level == null) return "";
-      if (mc.getSingleplayerServer() == null) return "FAILED_BECAUSE_LEFT_WORLD";
+      if (
+        mc.getSingleplayerServer() == null
+      ) return "FAILED_BECAUSE_LEFT_WORLD";
 
-      File folder = ((MinecraftServerAccessor) mc.getSingleplayerServer()).neko$getStorageSource().getDimensionPath(mc.level.dimension()).toFile();
-      if (folder.toPath().relativize(mc.gameDirectory.toPath()).getNameCount() != 2) {
+      File folder = ((MinecraftServerAccessor) mc.getSingleplayerServer())
+        .neko$getStorageSource()
+        .getDimensionPath(mc.level.dimension())
+        .toFile();
+      if (
+        folder.toPath().relativize(mc.gameDirectory.toPath()).getNameCount() !=
+        2
+      ) {
         folder = folder.getParentFile();
       }
       return folder.getName();
@@ -433,14 +568,18 @@ public class Utils {
 
     // Multiplayer
     if (mc.getCurrentServer() != null) {
-      return mc.getCurrentServer().isRealm() ? "realms" : mc.getCurrentServer().ip;
+      return mc.getCurrentServer().isRealm()
+        ? "realms"
+        : mc.getCurrentServer().ip;
     }
 
     return "";
   }
 
   public static String nameToTitle(String name) {
-    return Arrays.stream(name.split("-")).map(StringUtils::capitalize).collect(Collectors.joining(" "));
+    return Arrays.stream(name.split("-"))
+      .map(StringUtils::capitalize)
+      .collect(Collectors.joining(" "));
   }
 
   public static String titleToName(String title) {
@@ -464,9 +603,11 @@ public class Utils {
 
   public static boolean canOpenGui() {
     if (canUpdate()) return mc.gui.screen() == null;
-    return mc.gui.screen() instanceof TitleScreen
-      || mc.gui.screen() instanceof JoinMultiplayerScreen
-      || mc.gui.screen() instanceof SelectWorldScreen;
+    return (
+      mc.gui.screen() instanceof TitleScreen ||
+      mc.gui.screen() instanceof JoinMultiplayerScreen ||
+      mc.gui.screen() instanceof SelectWorldScreen
+    );
   }
 
   public static boolean canCloseGui() {
@@ -504,44 +645,76 @@ public class Utils {
   }
 
   public static <T> boolean contains(ColorCollection<T> collection, T value) {
-    return collection.white() == value
-      || collection.orange() == value
-      || collection.magenta() == value
-      || collection.lightBlue() == value
-      || collection.yellow() == value
-      || collection.lime() == value
-      || collection.pink() == value
-      || collection.gray() == value
-      || collection.lightGray() == value
-      || collection.cyan() == value
-      || collection.purple() == value
-      || collection.blue() == value
-      || collection.brown() == value
-      || collection.green() == value
-      || collection.red() == value
-      || collection.black() == value;
+    return (
+      collection.white() == value ||
+      collection.orange() == value ||
+      collection.magenta() == value ||
+      collection.lightBlue() == value ||
+      collection.yellow() == value ||
+      collection.lime() == value ||
+      collection.pink() == value ||
+      collection.gray() == value ||
+      collection.lightGray() == value ||
+      collection.cyan() == value ||
+      collection.purple() == value ||
+      collection.blue() == value ||
+      collection.brown() == value ||
+      collection.green() == value ||
+      collection.red() == value ||
+      collection.black() == value
+    );
   }
 
   public static boolean isThrowable(Item item) {
-    return item instanceof ExperienceBottleItem || item instanceof BowItem || item instanceof CrossbowItem || item instanceof SnowballItem || item instanceof EggItem || item instanceof EnderpearlItem || item instanceof SplashPotionItem || item instanceof LingeringPotionItem || item instanceof FishingRodItem || item instanceof TridentItem;
+    return (
+      item instanceof ExperienceBottleItem ||
+      item instanceof BowItem ||
+      item instanceof CrossbowItem ||
+      item instanceof SnowballItem ||
+      item instanceof EggItem ||
+      item instanceof EnderpearlItem ||
+      item instanceof SplashPotionItem ||
+      item instanceof LingeringPotionItem ||
+      item instanceof FishingRodItem ||
+      item instanceof TridentItem
+    );
   }
 
-  public static void addEnchantment(ItemStack itemStack, Holder<Enchantment> enchantment, int level) {
-    ItemEnchantments.Mutable b = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(itemStack));
+  public static void addEnchantment(
+    ItemStack itemStack,
+    Holder<Enchantment> enchantment,
+    int level
+  ) {
+    ItemEnchantments.Mutable b = new ItemEnchantments.Mutable(
+      EnchantmentHelper.getEnchantmentsForCrafting(itemStack)
+    );
     b.set(enchantment, level);
 
     EnchantmentHelper.setEnchantments(itemStack, b.toImmutable());
   }
 
   public static void clearEnchantments(ItemStack itemStack) {
-    EnchantmentHelper.updateEnchantments(itemStack, components -> components.removeIf(a -> true));
+    EnchantmentHelper.updateEnchantments(itemStack, components ->
+      components.removeIf(a -> true)
+    );
   }
 
-  public static void removeEnchantment(ItemStack itemStack, Enchantment enchantment) {
-    EnchantmentHelper.updateEnchantments(itemStack, components -> components.removeIf(enchantment1 -> enchantment1.value().equals(enchantment)));
+  public static void removeEnchantment(
+    ItemStack itemStack,
+    Enchantment enchantment
+  ) {
+    EnchantmentHelper.updateEnchantments(itemStack, components ->
+      components.removeIf(enchantment1 ->
+        enchantment1.value().equals(enchantment)
+      )
+    );
   }
 
-  public static Color lerp(Color first, Color second, @Range(from = 0, to = 1) float v) {
+  public static Color lerp(
+    Color first,
+    Color second,
+    @Range(from = 0, to = 1) float v
+  ) {
     return new Color(
       (int) (first.r * (1 - v) + second.r * v),
       (int) (first.g * (1 - v) + second.g * v),
@@ -550,7 +723,11 @@ public class Utils {
   }
 
   public static boolean isLoading() {
-    ResourceLoadStateTracker.ReloadState state = ((ResourceLoadStateTrackerAccessor) ((MinecraftAccessor) mc).neko$getReloadStateTracker()).neko$getReloadState();
+    ResourceLoadStateTracker.ReloadState state = (
+      (ResourceLoadStateTrackerAccessor) (
+        (MinecraftAccessor) mc
+      ).neko$getReloadStateTracker()
+    ).neko$getReloadState();
     return state == null || !((ReloadStateAccessor) state).neko$isFinished();
   }
 
@@ -560,7 +737,9 @@ public class Utils {
     int port;
 
     try {
-      port = Integer.parseInt(full.substring(full.lastIndexOf(':') + 1, full.length() - 1));
+      port = Integer.parseInt(
+        full.substring(full.lastIndexOf(':') + 1, full.length() - 1)
+      );
     } catch (NumberFormatException _) {
       port = -1;
     }
@@ -584,7 +763,9 @@ public class Utils {
   }
 
   public static boolean resolveAddress(String address, int port) {
-    if (port <= 0 || port > 65535 || address == null || address.isBlank()) return false;
+    if (
+      port <= 0 || port > 65535 || address == null || address.isBlank()
+    ) return false;
     InetSocketAddress socketAddress = new InetSocketAddress(address, port);
     return !socketAddress.isUnresolved();
   }
@@ -608,15 +789,37 @@ public class Utils {
   // Filters
 
   public static boolean nameFilter(String text, char character) {
-    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == '_' || character == '-' || character == '.' || character == ' ';
+    return (
+      (character >= 'a' && character <= 'z') ||
+      (character >= 'A' && character <= 'Z') ||
+      (character >= '0' && character <= '9') ||
+      character == '_' ||
+      character == '-' ||
+      character == '.' ||
+      character == ' '
+    );
   }
 
   public static boolean fileNameFilter(String text, char character) {
-    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == '_' || character == '-' || character == ' ';
+    return (
+      (character >= 'a' && character <= 'z') ||
+      (character >= 'A' && character <= 'Z') ||
+      (character >= '0' && character <= '9') ||
+      character == '_' ||
+      character == '-' ||
+      character == ' '
+    );
   }
 
   public static boolean ipFilter(String text, char character) {
     if (text.contains(":") && character == ':') return false;
-    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == '.' || character == '-' || character == ':';
+    return (
+      (character >= 'a' && character <= 'z') ||
+      (character >= 'A' && character <= 'Z') ||
+      (character >= '0' && character <= '9') ||
+      character == '.' ||
+      character == '-' ||
+      character == ':'
+    );
   }
 }
