@@ -304,7 +304,7 @@ public abstract class WTextBox extends WWidget {
       }
 
       return true;
-    } else if (control && input.key() == KEY_A) {
+    } else if (ctrl && input.key() == KEY_A) {
       cursor = text.length();
       selectionStart = 0;
       selectionEnd = cursor;
