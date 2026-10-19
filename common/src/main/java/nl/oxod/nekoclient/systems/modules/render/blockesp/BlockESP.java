@@ -8,6 +8,18 @@ package nl.oxod.nekoclient.systems.modules.render.blockesp;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.dimension.DimensionType;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.world.BlockUpdateEvent;
 import nl.oxod.nekoclient.events.world.ChunkDataEvent;
@@ -19,73 +31,76 @@ import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.render.color.RainbowColors;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.dimension.DimensionType;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class BlockESP extends Module {
+
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
   // General
-
-  private final Setting<List<Block>> blocks = sgGeneral.add(new BlockListSetting.Builder()
-    .name("blocks")
-    .description("Blocks to search for.")
-    .onChanged(_ -> {
-      if (isActive() && Utils.canUpdate()) onActivate();
-    })
-    .build()
+  private final Setting<List<Block>> blocks = sgGeneral.add(
+    new BlockListSetting.Builder()
+      .name("blocks")
+      .description("Blocks to search for.")
+      .onChanged(_ -> {
+        if (isActive() && Utils.canUpdate()) onActivate();
+      })
+      .build()
   );
 
-  private final Setting<ESPBlockData> defaultBlockConfig = sgGeneral.add(new GenericSetting.Builder<ESPBlockData>()
-    .name("default-block-config")
-    .description("Default block config.")
-    .defaultValue(
-      new ESPBlockData(
-        ShapeMode.Lines,
-        new SettingColor(0, 255, 200),
-        new SettingColor(0, 255, 200, 25),
-        true,
-        new SettingColor(0, 255, 200, 125)
+  private final Setting<ESPBlockData> defaultBlockConfig = sgGeneral.add(
+    new GenericSetting.Builder<ESPBlockData>()
+      .name("default-block-config")
+      .description("Default block config.")
+      .defaultValue(
+        new ESPBlockData(
+          ShapeMode.Lines,
+          new SettingColor(0, 255, 200),
+          new SettingColor(0, 255, 200, 25),
+          true,
+          new SettingColor(0, 255, 200, 125)
+        )
       )
-    )
-    .build()
+      .build()
   );
 
-  private final Setting<Map<Block, ESPBlockData>> blockConfigs = sgGeneral.add(new BlockDataSetting.Builder<ESPBlockData>()
-    .name("block-configs")
-    .description("Config for each block.")
-    .defaultData(defaultBlockConfig)
-    .build()
+  private final Setting<Map<Block, ESPBlockData>> blockConfigs = sgGeneral.add(
+    new BlockDataSetting.Builder<ESPBlockData>()
+      .name("block-configs")
+      .description("Config for each block.")
+      .defaultData(defaultBlockConfig)
+      .build()
   );
 
-  private final Setting<Boolean> tracers = sgGeneral.add(new BoolSetting.Builder()
-    .name("tracers")
-    .description("Render tracer lines.")
-    .defaultValue(false)
-    .build()
+  private final Setting<Boolean> tracers = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("tracers")
+      .description("Render tracer lines.")
+      .defaultValue(false)
+      .build()
   );
 
-  private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
+  private final BlockPos.MutableBlockPos blockPos =
+    new BlockPos.MutableBlockPos();
 
-  private final Long2ObjectMap<ESPChunk> chunks = new Long2ObjectOpenHashMap<>();
+  private final Long2ObjectMap<ESPChunk> chunks =
+    new Long2ObjectOpenHashMap<>();
   private final Set<ESPGroup> groups = new ReferenceOpenHashSet<>();
-  private final ExecutorService workerThread = Executors.newSingleThreadExecutor();
+  private final ExecutorService workerThread =
+    Executors.newSingleThreadExecutor(task -> {
+      Thread t = new Thread(task);
+      t.setDaemon(true);
+      return t;
+    });
 
   private DimensionType lastDimension;
 
   public BlockESP() {
-    super(Categories.Render, "block-esp", "Renders specified blocks through walls.", "search");
+    super(
+      Categories.Render,
+      "block-esp",
+      "Renders specified blocks through walls.",
+      "search"
+    );
 
     RainbowColors.register(this::onTickRainbow);
   }
@@ -116,7 +131,8 @@ public class BlockESP extends Module {
     if (!isActive()) return;
 
     defaultBlockConfig.get().tickRainbow();
-    for (ESPBlockData blockData : blockConfigs.get().values()) blockData.tickRainbow();
+    for (ESPBlockData blockData : blockConfigs.get().values())
+      blockData.tickRainbow();
   }
 
   ESPBlockData getBlockData(Block block) {
@@ -189,8 +205,13 @@ public class BlockESP extends Module {
     int chunkZ = bz >> 4;
     long key = ChunkPos.pack(chunkX, chunkZ);
 
-    boolean added = blocks.get().contains(event.newState.getBlock()) && !blocks.get().contains(event.oldState.getBlock());
-    boolean removed = !added && !blocks.get().contains(event.newState.getBlock()) && blocks.get().contains(event.oldState.getBlock());
+    boolean added =
+      blocks.get().contains(event.newState.getBlock()) &&
+      !blocks.get().contains(event.oldState.getBlock());
+    boolean removed =
+      !added &&
+      !blocks.get().contains(event.newState.getBlock()) &&
+      blocks.get().contains(event.oldState.getBlock());
 
     if (added || removed) {
       workerThread.submit(() -> {
