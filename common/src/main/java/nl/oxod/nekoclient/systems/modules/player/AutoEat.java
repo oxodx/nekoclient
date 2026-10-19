@@ -7,6 +7,14 @@ package nl.oxod.nekoclient.systems.modules.player;
 
 import it.unimi.dsi.fastutil.booleans.BooleanBinaryOperator;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
+import meteordevelopment.orbit.EventPriority;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import nl.oxod.nekoclient.events.entity.player.ItemUseCrosshairTargetEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.pathing.PathManagers;
@@ -17,109 +25,117 @@ import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.combat.AnchorAura;
 import nl.oxod.nekoclient.systems.modules.combat.BedAura;
 import nl.oxod.nekoclient.systems.modules.combat.CrystalAura;
+import nl.oxod.nekoclient.systems.modules.combat.KillAura;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.SlotUtils;
-import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.orbit.EventPriority;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import nl.oxod.nekoclient.systems.modules.combat.KillAura;
-
-import java.util.List;
 
 public class AutoEat extends Module {
+
   @SuppressWarnings("unchecked")
-  private static final Class<? extends Module>[] AURAS = new Class[]{KillAura.class, CrystalAura.class, AnchorAura.class, BedAura.class};
+  private static final Class<? extends Module>[] AURAS = new Class[] {
+    KillAura.class,
+    CrystalAura.class,
+    AnchorAura.class,
+    BedAura.class,
+  };
 
   // Settings groups
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
   private final SettingGroup sgThreshold = settings.createGroup("Threshold");
 
   // General
-  public final Setting<List<Item>> blacklist = sgGeneral.add(new ItemListSetting.Builder()
-    .name("blacklist")
-    .description("Which items to not eat.")
-    .defaultValue(
-      Items.ENCHANTED_GOLDEN_APPLE,
-      Items.GOLDEN_APPLE,
-      Items.CHORUS_FRUIT,
-      Items.POISONOUS_POTATO,
-      Items.PUFFERFISH,
-      Items.CHICKEN,
-      Items.ROTTEN_FLESH,
-      Items.SPIDER_EYE,
-      Items.SUSPICIOUS_STEW
-    )
-    .filter(Utils::isFood)
-    .bypassFilterWhenSavingAndLoading()
-    .build()
+  public final Setting<List<Item>> blacklist = sgGeneral.add(
+    new ItemListSetting.Builder()
+      .name("blacklist")
+      .description("Which items to not eat.")
+      .defaultValue(
+        Items.ENCHANTED_GOLDEN_APPLE,
+        Items.GOLDEN_APPLE,
+        Items.CHORUS_FRUIT,
+        Items.POISONOUS_POTATO,
+        Items.PUFFERFISH,
+        Items.CHICKEN,
+        Items.ROTTEN_FLESH,
+        Items.SPIDER_EYE,
+        Items.SUSPICIOUS_STEW
+      )
+      .filter(Utils::isFood)
+      .bypassFilterWhenSavingAndLoading()
+      .build()
   );
 
-  private final Setting<Boolean> pauseAuras = sgGeneral.add(new BoolSetting.Builder()
-    .name("pause-auras")
-    .description("Pauses all auras when eating.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> pauseAuras = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("pause-auras")
+      .description("Pauses all auras when eating.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> pauseBaritone = sgGeneral.add(new BoolSetting.Builder()
-    .name("pause-baritone")
-    .description("Pause baritone when eating.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> pauseBaritone = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("pause-baritone")
+      .description("Pause baritone when eating.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> searchInventory = sgGeneral.add(new BoolSetting.Builder()
-    .name("search-inventory")
-    .description("Search the full inventory for food, not only the hotbar.")
-    .defaultValue(false)
-    .build()
+  private final Setting<Boolean> searchInventory = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("search-inventory")
+      .description("Search the full inventory for food, not only the hotbar.")
+      .defaultValue(false)
+      .build()
   );
 
-  private final Setting<Priority> prioritise = sgGeneral.add(new EnumSetting.Builder<Priority>()
-    .name("food-priority")
-    .description("Which aspect of the food to prioritise selecting for.")
-    .defaultValue(Priority.Saturation)
-    .build()
+  private final Setting<Priority> prioritise = sgGeneral.add(
+    new EnumSetting.Builder<Priority>()
+      .name("food-priority")
+      .description("Which aspect of the food to prioritise selecting for.")
+      .defaultValue(Priority.Saturation)
+      .build()
   );
 
   // Threshold
-  private final Setting<ThresholdMode> thresholdMode = sgThreshold.add(new EnumSetting.Builder<ThresholdMode>()
-    .name("threshold-mode")
-    .description("The threshold mode to trigger auto eat.\n'Both' == health AND hunger, 'Any' == health OR hunger")
-    .defaultValue(ThresholdMode.Any)
-    .build()
+  private final Setting<ThresholdMode> thresholdMode = sgThreshold.add(
+    new EnumSetting.Builder<ThresholdMode>()
+      .name("threshold-mode")
+      .description(
+        "The threshold mode to trigger auto eat.\n'Both' == health AND hunger, 'Any' == health OR hunger"
+      )
+      .defaultValue(ThresholdMode.Any)
+      .build()
   );
 
-  private final Setting<Double> healthThreshold = sgThreshold.add(new DoubleSetting.Builder()
-    .name("health-threshold")
-    .description("The level of health you eat at.")
-    .defaultValue(10)
-    .range(1, 19)
-    .sliderRange(1, 19)
-    .visible(() -> thresholdMode.get() != ThresholdMode.Hunger)
-    .build()
+  private final Setting<Double> healthThreshold = sgThreshold.add(
+    new DoubleSetting.Builder()
+      .name("health-threshold")
+      .description("The level of health you eat at.")
+      .defaultValue(10)
+      .range(1, 19)
+      .sliderRange(1, 19)
+      .visible(() -> thresholdMode.get() != ThresholdMode.Hunger)
+      .build()
   );
 
-  private final Setting<Integer> hungerThreshold = sgThreshold.add(new IntSetting.Builder()
-    .name("hunger-threshold")
-    .description("The level of hunger you eat at.")
-    .defaultValue(16)
-    .range(1, 19)
-    .sliderRange(1, 19)
-    .visible(() -> thresholdMode.get() != ThresholdMode.Health)
-    .build()
+  private final Setting<Integer> hungerThreshold = sgThreshold.add(
+    new IntSetting.Builder()
+      .name("hunger-threshold")
+      .description("The level of hunger you eat at.")
+      .defaultValue(16)
+      .range(1, 19)
+      .sliderRange(1, 19)
+      .visible(() -> thresholdMode.get() != ThresholdMode.Health)
+      .build()
   );
 
   // Module state
   public boolean eating;
   private int slot, prevSlot;
 
-  private final List<Class<? extends Module>> wasAura = new ReferenceArrayList<>();
+  private final List<Class<? extends Module>> wasAura =
+    new ReferenceArrayList<>();
   private boolean wasBaritone = false;
 
   public AutoEat() {
@@ -148,8 +164,8 @@ public class AutoEat extends Module {
         return;
       }
 
-      // Check if the item in current slot is not food anymore
-      if (!Utils.isFood(mc.player.getInventory().getItem(slot))) {
+      // Check if the item in current slot is no longer edible food
+      if (!isEdible(mc.player.getInventory().getItem(slot))) {
         int newSlot = findSlot();
 
         // Stop if no food found
@@ -255,7 +271,11 @@ public class AutoEat extends Module {
     }
 
     // main inventory: move to empty hotbar, abort if none
-    int emptySlot = InvUtils.find(ItemStack::isEmpty, SlotUtils.HOTBAR_START, SlotUtils.HOTBAR_END).slot();
+    int emptySlot = InvUtils.find(
+      ItemStack::isEmpty,
+      SlotUtils.HOTBAR_START,
+      SlotUtils.HOTBAR_END
+    ).slot();
     if (emptySlot == -1) return false;
 
     InvUtils.move().from(slot).toHotbar(emptySlot);
@@ -267,17 +287,13 @@ public class AutoEat extends Module {
   public boolean shouldEat() {
     if (mc.player == null) return false;
     boolean healthLow = mc.player.getHealth() <= healthThreshold.get();
-    boolean hungerLow = mc.player.getFoodData().getFoodLevel() <= hungerThreshold.get();
+    boolean hungerLow =
+      mc.player.getFoodData().getFoodLevel() <= hungerThreshold.get();
     if (!thresholdMode.get().test(healthLow, hungerLow)) return false;
 
     slot = findSlot();
-    if (slot == -1) return false;
 
-    ItemStack item = mc.player.getInventory().getItem(slot);
-    FoodProperties prop = item.get(DataComponents.FOOD);
-    if (prop == null || !Utils.isFood(item)) return false;
-
-    return (mc.player.getFoodData().needsFood() || prop.canAlwaysEat());
+    return slot != -1;
   }
 
   /**
@@ -286,17 +302,17 @@ public class AutoEat extends Module {
    */
   private int findSlot() {
     // prefer offhand
-    Item offHandItem = mc.player.getOffhandItem().getItem();
-    if (Utils.isFood(offHandItem) && !blacklist.get().contains(offHandItem)) return SlotUtils.OFFHAND;
+    if (isEdible(mc.player.getOffhandItem())) return SlotUtils.OFFHAND;
 
     // if offhand empty, prefer best in hotbar
     int slot = findBestFood(SlotUtils.HOTBAR_START, SlotUtils.HOTBAR_END);
     if (slot != -1) return slot;
 
     // if allowed, search main inventory
-    if (searchInventory.get()) {
-      return findBestFood(SlotUtils.MAIN_START, SlotUtils.MAIN_END);
-    }
+    if (searchInventory.get()) return findBestFood(
+      SlotUtils.MAIN_START,
+      SlotUtils.MAIN_END
+    );
 
     return -1; // nothing found :(
   }
@@ -306,15 +322,10 @@ public class AutoEat extends Module {
     float bestHunger = -1;
 
     for (int i = start; i <= end; i++) {
-      // Skip if item isn't food
       ItemStack stack = mc.player.getInventory().getItem(i);
-      FoodProperties food = stack.get(DataComponents.FOOD);
-      if (!Utils.isFood(stack)) continue;
-      if (food == null) continue;
+      if (!isEdible(stack)) continue;
 
-      // Skip if item is in blacklist
-      Item item = stack.getItem();
-      if (blacklist.get().contains(item)) continue;
+      FoodProperties food = stack.get(DataComponents.FOOD);
 
       // Check if hunger value is better
       float hunger = prioritise.get().value(food);
@@ -325,6 +336,18 @@ public class AutoEat extends Module {
     }
 
     return best;
+  }
+
+  private boolean isEdible(ItemStack stack) {
+    if (
+      !Utils.isFood(stack) || blacklist.get().contains(stack.getItem())
+    ) return false;
+
+    FoodProperties food = stack.get(DataComponents.FOOD);
+    return (
+      food != null &&
+      (mc.player.getFoodData().needsFood() || food.canAlwaysEat())
+    );
   }
 
   public enum ThresholdMode {
