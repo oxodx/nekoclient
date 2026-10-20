@@ -13,18 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LocalPlayer.class)
 public class KillAuraLocalPlayerMixin {
 
-  @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE",
-    target = "Lnet/minecraft/client/player/LocalPlayer;getYRot()F"))
-  private float killAura$silentMovementYaw(float original) {
-    return KillAura.outgoingMovementYaw((LocalPlayer) (Object) this, original);
-  }
-
-  @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE",
-    target = "Lnet/minecraft/client/player/LocalPlayer;getXRot()F"))
-  private float killAura$silentMovementPitch(float original) {
-    return KillAura.outgoingMovementPitch((LocalPlayer) (Object) this, original);
-  }
-
   @ModifyExpressionValue(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getViewVector(F)Lnet/minecraft/world/phys/Vec3;"))
   private static Vec3 killAura$silentViewVector(Vec3 original, Entity camera, double blockInteractionRange,
