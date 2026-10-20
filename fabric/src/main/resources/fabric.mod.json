@@ -33,8 +33,7 @@
     "nekoclient-baritone.mixins.json",
     "nekoclient-indigo.mixins.json",
     "nekoclient-sodium.mixins.json",
-    "nekoclient-lithium.mixins.json",
-    "nekoclient-viafabricplus.mixins.json"
+    "nekoclient-lithium.mixins.json"
   ],
   "accessWidener": "nekoclient.classtweaker",
   "custom": {
