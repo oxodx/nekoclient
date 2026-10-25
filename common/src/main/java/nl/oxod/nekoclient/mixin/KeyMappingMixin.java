@@ -9,7 +9,7 @@ import net.minecraft.client.input.MouseButtonInfo;
 import nl.oxod.nekoclient.mixin.accessor.KeyboardHandlerAccessor;
 import nl.oxod.nekoclient.mixin.accessor.MouseHandlerAccessor;
 import nl.oxod.nekoclient.utils.KeyMappingBridge;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLMouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,7 +30,7 @@ public abstract class KeyMappingMixin implements KeyMappingBridge {
     Window window = mc.getWindow();
     int code = key.getValue();
     if (key.getType() == InputConstants.Type.MOUSE) {
-      return GLFW.glfwGetMouseButton(window.handle(), code) == GLFW.GLFW_PRESS;
+      return (SDLMouse.SDL_GetMouseState(null, null) & (1 << (code - 1))) != 0;
     }
     return InputConstants.isKeyDown(code);
   }
@@ -47,7 +47,7 @@ public abstract class KeyMappingMixin implements KeyMappingBridge {
     Minecraft mc = Minecraft.getInstance();
     if (mc == null || mc.getWindow() == null || mc.keyboardHandler == null || mc.mouseHandler == null) return;
     Window window = mc.getWindow();
-    int action = pressed ? GLFW.GLFW_PRESS : GLFW.GLFW_RELEASE;
+    int action = pressed ? InputConstants.PRESS : InputConstants.RELEASE;
     switch (key.getType()) {
       case KEYBOARD -> ((KeyboardHandlerAccessor) mc.keyboardHandler).nekoclient$invokeKeyPress(
         window.handle(), action, new KeyEvent(key.getValue(), 0, 0)

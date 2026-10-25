@@ -1,5 +1,6 @@
 package nl.oxod.nekoclient.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import nl.oxod.nekoclient.gui.themes.neko.NekoGuiTheme;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import net.minecraft.client.gui.Font;
@@ -14,7 +15,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import nl.oxod.nekoclient.mixin.AbstractContainerScreenAccessor;
 import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.utils.GuiDupeState;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -231,7 +231,7 @@ public class GuiDupePanel extends AbstractWidget {
     int mx = (int) Math.round(event.x());
     int my = (int) Math.round(event.y());
 
-    if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && mx >= panelX && mx < panelX + PANEL_W && my >= panelY && my < panelY + HEADER_H) {
+    if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && mx >= panelX && mx < panelX + PANEL_W && my >= panelY && my < panelY + HEADER_H) {
       dragging = true;
       dragOffX = mx - panelX;
       dragOffY = my - panelY;
