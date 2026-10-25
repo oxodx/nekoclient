@@ -30,6 +30,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.game.ServerboundAttackPacket;
+import net.minecraft.network.protocol.game.ServerboundPunchPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
@@ -1004,6 +1005,7 @@ public class KillAura extends Module {
 
     mc.player.resetAttackStrengthTicker();
     mc.player.swing(InteractionHand.MAIN_HAND, stack.getAttackAnimation(), false);
+    mc.getConnection().send(ServerboundPunchPacket.INSTANCE);
   }
 
   private boolean canBeAttackedWithVanillaPacket(Entity target) {
