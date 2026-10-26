@@ -5,6 +5,19 @@
 
 package nl.oxod.nekoclient.gui.tabs.builtin;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.WindowScreen;
@@ -23,38 +36,12 @@ import nl.oxod.nekoclient.settings.Setting;
 import nl.oxod.nekoclient.systems.profiles.Profile;
 import nl.oxod.nekoclient.systems.profiles.Profiles;
 import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.misc.FileDialogs;
 import nl.oxod.nekoclient.utils.misc.NbtUtils;
 import nl.oxod.nekoclient.utils.render.prompts.OkPrompt;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
 import org.apache.commons.io.FilenameUtils;
-import org.lwjgl.sdl.SDLDialog;
-import org.lwjgl.sdl.SDLError;
-import org.lwjgl.sdl.SDL_DialogFileFilter;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class ProfilesTab extends Tab {
-    private static final SDL_DialogFileFilter.Buffer filters;
-
-  static {
-        MemoryStack stack = MemoryStack.stackPush();
-        filters = SDL_DialogFileFilter.malloc(1, stack);
-        filters.name(stack.UTF8("NBT Files")).pattern(stack.UTF8("nbt"));
-  }
-
   public ProfilesTab() {
     super("Profiles");
   }
@@ -91,36 +78,29 @@ public class ProfilesTab extends Tab {
       // Import
       WButton importBtn = l.add(theme.button("Import")).expandX().widget();
       importBtn.tooltip = "Import profile";
-            importBtn.action = () -> SDLDialog.SDL_ShowOpenFileDialog((_, file, _) -> {
+      importBtn.action = () -> FileDialogs.openFile("nbt", profileFile -> {
         try {
-                    if (file == 0) throw new IOException("Dialog Error: " + SDLError.SDL_GetError());
+          Profile profile = importProfile(profileFile);
 
-                    long filePointer = MemoryUtil.memGetAddress(file);
-                    if (filePointer == 0) return;
-
-                    String path = MemoryUtil.memUTF8(filePointer);
-                    File profileFile = new File(path);
-
-                    Profile profile = importProfile(profileFile);
-
-                    if (profile != null)
-                        NekoClient.LOG.info("Successfully imported profile '{}'.", profile.name.get());
+          if (profile != null)
+            NekoClient.LOG.info("Successfully imported profile '{}'.", profile.name.get());
           reload();
         } catch (Exception e) {
           NekoClient.LOG.error("Error importing profile", e);
           OkPrompt.create()
-            .title("Failure importing profile")
-            .message("There was an error importing the profile.")
-            .message("Error: %s", e.getMessage())
-            .dontShowAgainCheckboxVisible(false)
-            .show();
+              .title("Failure importing profile")
+              .message("There was an error importing the profile.")
+              .message("Error: %s", e.getMessage())
+              .dontShowAgainCheckboxVisible(false)
+              .show();
         }
-            }, 0L, 0, filters, "", false);
+      });
     }
 
     private void initTable(WTable table) {
       table.clear();
-      if (Profiles.get().isEmpty()) return;
+      if (Profiles.get().isEmpty())
+        return;
 
       for (Profile profile : Profiles.get()) {
         table.add(theme.label(profile.name.get())).expandCellX();
@@ -148,14 +128,16 @@ public class ProfilesTab extends Tab {
       }
     }
 
-        private Profile importProfile(File profileFile) throws IOException {
+    private Profile importProfile(File profileFile) throws IOException {
       CompoundTag nbt = NbtIo.read(profileFile.toPath());
-      if (nbt == null) return null;
+      if (nbt == null)
+        return null;
 
       Profile p = new Profile();
       Optional<String> parsedName = nbt.getString("name").filter(n -> !n.isEmpty());
 
-      if (parsedName.filter(p.name::set).isEmpty() && !p.name.set(FilenameUtils.removeExtension(profileFile.getName()))) {
+      if (parsedName.filter(p.name::set).isEmpty()
+          && !p.name.set(FilenameUtils.removeExtension(profileFile.getName()))) {
         throw new IllegalStateException("Imported profile does not have a valid name.");
       }
 
@@ -164,27 +146,31 @@ public class ProfilesTab extends Tab {
         throw new IllegalStateException("Imported profile does not have a valid location.");
       }
 
-      //noinspection ResultOfMethodCallIgnored
+      // noinspection ResultOfMethodCallIgnored
       profileFolder.mkdirs();
       nbt.remove("name");
 
       boolean valid = false;
       for (var entry : nbt.entrySet()) {
         String filename = entry.getKey();
-        if (!filename.endsWith(".nbt")) continue;
-        if (filename.contains("/") || filename.contains("\\") || new File(filename).isAbsolute()) continue;
+        if (!filename.endsWith(".nbt"))
+          continue;
+        if (filename.contains("/") || filename.contains("\\") || new File(filename).isAbsolute())
+          continue;
 
         switch (filename) {
           case "hud.nbt" -> p.hud.set(true);
           case "macros.nbt" -> p.macros.set(true);
           case "modules.nbt" -> p.modules.set(true);
           default -> {
-            if (filename.endsWith(".nbt")) p.waypoints.set(true);
+            if (filename.endsWith(".nbt"))
+              p.waypoints.set(true);
           }
         }
 
         File f = new File(profileFolder, filename).getCanonicalFile();
-        if (!f.toPath().startsWith(profileFolder.toPath())) continue;
+        if (!f.toPath().startsWith(profileFolder.toPath()))
+          continue;
 
         valid = true;
         NbtIo.writeUnnamedTagWithFallback(entry.getValue(), new DataOutputStream(new FileOutputStream(f)));
@@ -234,23 +220,28 @@ public class ProfilesTab extends Tab {
 
       WButton save = add(theme.button(isNew ? "Create" : "Save")).expandX().widget();
       save.action = () -> {
-        if (profile.name.get().isEmpty()) return;
+        if (profile.name.get().isEmpty())
+          return;
 
         if (isNew) {
           for (Profile p : Profiles.get()) {
-            if (profile.equals(p)) return;
+            if (profile.equals(p))
+              return;
           }
         }
 
         List<String> valid = new ArrayList<>();
         for (String address : profile.loadOnJoin.get()) {
-          if (Utils.resolveAddress(address)) valid.add(address);
+          if (Utils.resolveAddress(address))
+            valid.add(address);
         }
 
         profile.loadOnJoin.set(valid);
 
-        if (isNew) Profiles.get().add(profile);
-        else Profiles.get().save();
+        if (isNew)
+          Profiles.get().add(profile);
+        else
+          Profiles.get().save();
 
         onClose();
       };
@@ -267,7 +258,8 @@ public class ProfilesTab extends Tab {
 
     @Override
     protected void onClosed() {
-      if (action != null) action.run();
+      if (action != null)
+        action.run();
     }
   }
 
@@ -285,26 +277,20 @@ public class ProfilesTab extends Tab {
 
       WContainer settingsContainer = add(theme.verticalList()).expandX().minWidth(400).widget();
 
-            settingsContainer.add(theme.horizontalSeparator()).expandX();
+      settingsContainer.add(theme.horizontalSeparator()).expandX();
 
       WCheckbox hud = addBool(settingsContainer, profile.settings.get("hud", Boolean.class));
       WCheckbox macros = addBool(settingsContainer, profile.settings.get("macros", Boolean.class));
       WCheckbox modules = addBool(settingsContainer, profile.settings.get("modules", Boolean.class));
       WCheckbox waypoints = addBool(settingsContainer, profile.settings.get("waypoints", Boolean.class));
 
-            add(theme.horizontalSeparator()).expandX();
+      add(theme.horizontalSeparator()).expandX();
 
       WButton export = add(theme.button("Export profile")).expandX().widget();
-            export.action = () -> SDLDialog.SDL_ShowSaveFileDialog((_, file, _) -> {
-                if (file == 0) return;
-
-                long filePointer = MemoryUtil.memGetAddress(file);
-                if (filePointer == 0) return;
-
-                String path = MemoryUtil.memUTF8(filePointer);
-                exportProfile(path, profile, hud.checked, macros.checked, modules.checked, waypoints.checked);
+      export.action = () -> FileDialogs.saveFile("nbt", file -> {
+        exportProfile(file.getPath(), profile, hud.checked, macros.checked, modules.checked, waypoints.checked);
         onClose();
-            }, 0, 0, filters, "");
+      });
     }
 
     private WCheckbox addBool(WContainer container, Setting<Boolean> setting) {
@@ -317,8 +303,10 @@ public class ProfilesTab extends Tab {
       return c;
     }
 
-        private void exportProfile(String path, Profile profile, boolean hud, boolean macros, boolean modules, boolean waypoints) {
-      if (path == null) return;
+    private void exportProfile(
+        String path, Profile profile, boolean hud, boolean macros, boolean modules, boolean waypoints) {
+      if (path == null)
+        return;
       Path p = Path.of(path.endsWith(".nbt") ? path : path + ".nbt");
 
       CompoundTag nbt = new CompoundTag();
@@ -326,10 +314,8 @@ public class ProfilesTab extends Tab {
 
       try {
         for (File f : profile.getFile().listFiles()) {
-          if (f.getName().equals("hud.nbt") && hud ||
-            f.getName().equals("macros.nbt") && macros ||
-            f.getName().equals("modules.nbt") && modules
-          ) {
+          if (f.getName().equals("hud.nbt") && hud || f.getName().equals("macros.nbt") && macros
+              || f.getName().equals("modules.nbt") && modules) {
             nbt.put(f.getName(), NbtIo.read(f.toPath()));
           } else if (f.getName().endsWith(".nbt") && waypoints)
             nbt.put(f.getName(), NbtIo.read(f.toPath()));
@@ -339,11 +325,11 @@ public class ProfilesTab extends Tab {
       } catch (IOException e) {
         NekoClient.LOG.error("Error serialising profile {} to a file", profile.name.get(), e);
         OkPrompt.create()
-          .title("Failure exporting profile")
-          .message("There was an error serialising or exporting the profile %d.", profile.name.get())
-          .message("Error: %d", e.getMessage())
-          .dontShowAgainCheckboxVisible(false)
-          .show();
+            .title("Failure exporting profile")
+            .message("There was an error serialising or exporting the profile %d.", profile.name.get())
+            .message("Error: %d", e.getMessage())
+            .dontShowAgainCheckboxVisible(false)
+            .show();
       }
     }
   }

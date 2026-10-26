@@ -5,13 +5,13 @@
 
 package nl.oxod.nekoclient.systems.modules.misc;
 
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.world.TickEvent;
-import nl.oxod.nekoclient.settings.*;
-import nl.oxod.nekoclient.systems.modules.Categories;
-import nl.oxod.nekoclient.systems.modules.Module;
-import nl.oxod.nekoclient.utils.player.FindItemResult;
-import nl.oxod.nekoclient.utils.player.InvUtils;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.function.Predicate;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -22,14 +22,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
 import net.minecraft.world.item.component.WrittenBookContent;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.function.Predicate;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.settings.*;
+import nl.oxod.nekoclient.systems.modules.Categories;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.player.FindItemResult;
+import nl.oxod.nekoclient.utils.player.InvUtils;
 
 public class BookBot extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -37,89 +36,75 @@ public class BookBot extends Module {
   private final File DEFAULT_FILE = new File(NekoClient.FOLDER, "bookbot.txt");
 
   private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
-    .name("mode")
-    .description("What kind of text to write.")
-    .defaultValue(Mode.Random)
-    .build()
-  );
+          .name("mode")
+          .description("What kind of text to write.")
+          .defaultValue(Mode.Random)
+          .build());
 
   private final Setting<File> file = sgGeneral.add(new FileSetting.Builder()
-    .name("file")
-    .description("Which file to use.")
-    .defaultValue(DEFAULT_FILE)
-    .filter("*.txt")
-    .visible(() -> mode.get() == Mode.File)
-    .build()
-  );
+          .name("file")
+          .description("Which file to use.")
+          .defaultValue(DEFAULT_FILE)
+          .filter("txt")
+          .visible(() -> mode.get() == Mode.File)
+          .build());
 
   private final Setting<RandomType> randomType = sgGeneral.add(new EnumSetting.Builder<RandomType>()
-    .name("random-type")
-    .description("What kind of random to use.")
-    .defaultValue(RandomType.Utf8)
-    .visible(() -> mode.get() == Mode.Random)
-    .build()
-  );
+          .name("random-type")
+          .description("What kind of random to use.")
+          .defaultValue(RandomType.Utf8)
+          .visible(() -> mode.get() == Mode.Random)
+          .build());
 
   private final Setting<Integer> pages = sgGeneral.add(new IntSetting.Builder()
-    .name("pages")
-    .description("The number of pages to write per book.")
-    .defaultValue(50)
-    .range(1, 100)
-    .sliderRange(1, 100)
-    .visible(() -> mode.get() != Mode.File && randomType.get() != RandomType.PaperMC)
-    .build()
-  );
+          .name("pages")
+          .description("The number of pages to write per book.")
+          .defaultValue(50)
+          .range(1, 100)
+          .sliderRange(1, 100)
+          .visible(() -> mode.get() != Mode.File && randomType.get() != RandomType.PaperMC)
+          .build());
 
   private final Setting<Integer> characters = sgGeneral.add(new IntSetting.Builder()
-    .name("characters")
-    .description("How many characters to write per page.")
-    .defaultValue(128)
-    .range(1, 1024)
-    .sliderRange(1, 1024)
-    .visible(() -> mode.get() == Mode.Random && randomType.get() != RandomType.PaperMC)
-    .build()
-  );
+          .name("characters")
+          .description("How many characters to write per page.")
+          .defaultValue(128)
+          .range(1, 1024)
+          .sliderRange(1, 1024)
+          .visible(() -> mode.get() == Mode.Random && randomType.get() != RandomType.PaperMC)
+          .build());
 
   private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
-    .name("delay")
-    .description("The amount of delay between writing books.")
-    .defaultValue(20)
-    .min(1)
-    .sliderRange(1, 200)
-    .build()
-  );
+          .name("delay")
+          .description("The amount of delay between writing books.")
+          .defaultValue(20)
+          .min(1)
+          .sliderRange(1, 200)
+          .build());
 
-  private final Setting<Boolean> sign = sgGeneral.add(new BoolSetting.Builder()
-    .name("sign")
-    .description("Whether to sign the book.")
-    .defaultValue(true)
-    .build()
-  );
+  private final Setting<Boolean> sign = sgGeneral.add(
+      new BoolSetting.Builder().name("sign").description("Whether to sign the book.").defaultValue(true).build());
 
   private final Setting<String> name = sgGeneral.add(new StringSetting.Builder()
-    .name("name")
-    .description("The name you want to give your books.")
-    .defaultValue("NekoClient on Crack!")
-    .visible(sign::get)
-    .build()
-  );
+          .name("name")
+          .description("The name you want to give your books.")
+          .defaultValue("NekoClient on Crack!")
+          .visible(sign::get)
+          .build());
 
   private final Setting<Boolean> count = sgGeneral.add(new BoolSetting.Builder()
-    .name("append-count")
-    .description("Whether to append the number of the book to the title.")
-    .defaultValue(true)
-    .visible(sign::get)
-    .build()
-  );
+          .name("append-count")
+          .description("Whether to append the number of the book to the title.")
+          .defaultValue(true)
+          .visible(sign::get)
+          .build());
 
   private final Setting<Boolean> wordWrap = sgGeneral.add(new BoolSetting.Builder()
-    .name("word-wrap")
-    .description("Prevents words from being cut in the middle of lines.")
-    .defaultValue(true)
-    .visible(() -> mode.get() == Mode.File)
-    .build()
-  );
-
+          .name("word-wrap")
+          .description("Prevents words from being cut in the middle of lines.")
+          .defaultValue(true)
+          .visible(() -> mode.get() == Mode.File)
+          .build());
 
   private int delayTimer, bookCount;
   private Random random;
@@ -176,9 +161,11 @@ public class BookBot extends Module {
     if (mode.get() == Mode.Random) {
       switch (randomType.get()) {
         case Ascii ->
-          writeBook(random.ints(0x21, 0x80).filter(i -> !Character.isWhitespace(i) && i != '\r' && i != '\n').iterator());
+          writeBook(
+              random.ints(0x21, 0x80).filter(i -> !Character.isWhitespace(i) && i != '\r' && i != '\n').iterator());
         case Utf8 ->
-          writeBook(random.ints(0x21, 0xD800).filter(i -> !Character.isWhitespace(i) && i != '\r' && i != '\n').iterator());
+          writeBook(
+              random.ints(0x21, 0xD800).filter(i -> !Character.isWhitespace(i) && i != '\r' && i != '\n').iterator());
         case PaperMC -> writePaperMcBook();
       }
     } else if (mode.get() == Mode.File) {
@@ -194,18 +181,15 @@ public class BookBot extends Module {
         MutableComponent message = Component.literal("");
         message.append(Component.literal("The bookbot file is empty! ").withStyle(ChatFormatting.RED));
         message.append(Component.literal("Click here to edit it.")
-          .setStyle(Style.EMPTY
-            .applyFormats(ChatFormatting.UNDERLINE, ChatFormatting.RED)
-            .withClickEvent(new ClickEvent.OpenFile(file.get().getAbsolutePath()))
-          )
-        );
+                .setStyle(Style.EMPTY.applyFormats(ChatFormatting.UNDERLINE, ChatFormatting.RED)
+                        .withClickEvent(new ClickEvent.OpenFile(file.get().getAbsolutePath()))));
         info(message);
         toggle();
         return;
       }
 
       // Read each line of the file and construct a string with the needed line breaks
-            try (BufferedReader reader = Files.newBufferedReader(file.get().toPath(), StandardCharsets.UTF_8)) {
+      try (BufferedReader reader = Files.newBufferedReader(file.get().toPath(), StandardCharsets.UTF_8)) {
         StringBuilder file = new StringBuilder();
 
         String line;
@@ -301,7 +285,8 @@ public class BookBot extends Module {
     createBook(pages, filteredPages);
   }
 
-  private void processLinesToPages(List<FormattedText> lines, ArrayList<String> pages, ArrayList<Filterable<Component>> filteredPages, int maxPages) {
+  private void processLinesToPages(List<FormattedText> lines, ArrayList<String> pages,
+      ArrayList<Filterable<Component>> filteredPages, int maxPages) {
     int pageIndex = 0;
     int lineIndex = 0;
     StringBuilder currentPage = new StringBuilder();
@@ -322,7 +307,8 @@ public class BookBot extends Module {
         pageIndex++;
         lineIndex = 0;
 
-        if (pageIndex == maxPages) break;
+        if (pageIndex == maxPages)
+          break;
       }
     }
 
@@ -335,25 +321,22 @@ public class BookBot extends Module {
   private void createBook(ArrayList<String> pages, ArrayList<Filterable<Component>> filteredPages) {
     // Get the title with count
     String title = name.get();
-    if (count.get() && bookCount != 0) title += " #" + bookCount;
+    if (count.get() && bookCount != 0)
+      title += " #" + bookCount;
 
     // Write data to book
-    mc.player.getMainHandItem().set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(Filterable.passThrough(title), mc.player.getGameProfile().name(), 0, filteredPages, true));
+    mc.player.getMainHandItem().set(DataComponents.WRITTEN_BOOK_CONTENT,
+        new WrittenBookContent(
+            Filterable.passThrough(title), mc.player.getGameProfile().name(), 0, filteredPages, true));
 
     // Send book update to server
-    mc.player.connection.send(new ServerboundEditBookPacket(mc.player.getInventory().getSelectedSlot(), pages, sign.get() ? Optional.of(title) : Optional.empty()));
+    mc.player.connection.send(new ServerboundEditBookPacket(
+        mc.player.getInventory().getSelectedSlot(), pages, sign.get() ? Optional.of(title) : Optional.empty()));
 
     bookCount++;
   }
 
-  public enum Mode {
-    File,
-    Random
-  }
+  public enum Mode { File, Random }
 
-  public enum RandomType {
-    Ascii,
-    Utf8,
-    PaperMC
-  }
+  public enum RandomType { Ascii, Utf8, PaperMC }
 }

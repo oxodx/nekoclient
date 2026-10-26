@@ -5,8 +5,16 @@
 
 package nl.oxod.nekoclient.gui;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.DoubleConsumer;
+import net.minecraft.client.resources.language.I18n;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.screens.settings.*;
 import nl.oxod.nekoclient.gui.themes.neko.widgets.WNekoLabel;
@@ -24,21 +32,10 @@ import nl.oxod.nekoclient.renderer.Fonts;
 import nl.oxod.nekoclient.settings.*;
 import nl.oxod.nekoclient.systems.hud.elements.keyboard.KeyboardHud;
 import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.misc.FileDialogs;
 import nl.oxod.nekoclient.utils.render.DisplayItemUtils;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
-import net.minecraft.client.resources.language.I18n;
 import org.apache.commons.lang3.Strings;
-import org.lwjgl.sdl.SDLDialog;
-import org.lwjgl.system.MemoryUtil;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.DoubleConsumer;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
   private static final SettingColor WHITE = new SettingColor();
@@ -52,7 +49,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     factories.put(DoubleSetting.class, (table, setting) -> doubleW(table, (DoubleSetting) setting));
     factories.put(StringSetting.class, (table, setting) -> stringW(table, (StringSetting) setting));
     factories.put(EnumSetting.class, (table, setting) -> enumW(table, (EnumSetting<? extends Enum<?>>) setting));
-    factories.put(ProvidedStringSetting.class, (table, setting) -> providedStringW(table, (ProvidedStringSetting) setting));
+    factories.put(
+        ProvidedStringSetting.class, (table, setting) -> providedStringW(table, (ProvidedStringSetting) setting));
     factories.put(GenericSetting.class, (table, setting) -> genericW(table, (GenericSetting<?>) setting));
     factories.put(ColorSetting.class, (table, setting) -> colorW(table, (ColorSetting) setting));
     factories.put(KeybindSetting.class, (table, setting) -> keybindW(table, (KeybindSetting) setting));
@@ -60,16 +58,24 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     factories.put(BlockListSetting.class, (table, setting) -> blockListW(table, (BlockListSetting) setting));
     factories.put(ItemSetting.class, (table, setting) -> itemW(table, (ItemSetting) setting));
     factories.put(ItemListSetting.class, (table, setting) -> itemListW(table, (ItemListSetting) setting));
-    factories.put(EntityTypeListSetting.class, (table, setting) -> entityTypeListW(table, (EntityTypeListSetting) setting));
-    factories.put(EnchantmentListSetting.class, (table, setting) -> enchantmentListW(table, (EnchantmentListSetting) setting));
+    factories.put(
+        EntityTypeListSetting.class, (table, setting) -> entityTypeListW(table, (EntityTypeListSetting) setting));
+    factories.put(
+        EnchantmentListSetting.class, (table, setting) -> enchantmentListW(table, (EnchantmentListSetting) setting));
     factories.put(ModuleListSetting.class, (table, setting) -> moduleListW(table, (ModuleListSetting) setting));
     factories.put(PacketListSetting.class, (table, setting) -> packetListW(table, (PacketListSetting) setting));
-    factories.put(ParticleTypeListSetting.class, (table, setting) -> particleTypeListW(table, (ParticleTypeListSetting) setting));
-    factories.put(SoundEventListSetting.class, (table, setting) -> soundEventListW(table, (SoundEventListSetting) setting));
-    factories.put(StatusEffectAmplifierMapSetting.class, (table, setting) -> statusEffectAmplifierMapW(table, (StatusEffectAmplifierMapSetting) setting));
-    factories.put(StatusEffectListSetting.class, (table, setting) -> statusEffectListW(table, (StatusEffectListSetting) setting));
-    factories.put(StorageBlockListSetting.class, (table, setting) -> storageBlockListW(table, (StorageBlockListSetting) setting));
-    factories.put(ScreenHandlerListSetting.class, (table, setting) -> screenHandlerListW(table, (ScreenHandlerListSetting) setting));
+    factories.put(
+        ParticleTypeListSetting.class, (table, setting) -> particleTypeListW(table, (ParticleTypeListSetting) setting));
+    factories.put(
+        SoundEventListSetting.class, (table, setting) -> soundEventListW(table, (SoundEventListSetting) setting));
+    factories.put(StatusEffectAmplifierMapSetting.class,
+        (table, setting) -> statusEffectAmplifierMapW(table, (StatusEffectAmplifierMapSetting) setting));
+    factories.put(
+        StatusEffectListSetting.class, (table, setting) -> statusEffectListW(table, (StatusEffectListSetting) setting));
+    factories.put(
+        StorageBlockListSetting.class, (table, setting) -> storageBlockListW(table, (StorageBlockListSetting) setting));
+    factories.put(ScreenHandlerListSetting.class,
+        (table, setting) -> screenHandlerListW(table, (ScreenHandlerListSetting) setting));
     factories.put(BlockDataSetting.class, (table, setting) -> blockDataW(table, (BlockDataSetting<?>) setting));
     factories.put(PotionSetting.class, (table, setting) -> potionW(table, (PotionSetting) setting));
     factories.put(StringListSetting.class, (table, setting) -> stringListW(table, (StringListSetting) setting));
@@ -77,7 +83,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     factories.put(ColorListSetting.class, (table, setting) -> colorListW(table, (ColorListSetting) setting));
     factories.put(FontFaceSetting.class, (table, setting) -> fontW(table, (FontFaceSetting) setting));
     factories.put(Vector3dSetting.class, (table, setting) -> vector3dW(table, (Vector3dSetting) setting));
-    factories.put(KeyboardHud.CustomKeyListSetting.class, (table, setting) -> customKeyListW(table, (KeyboardHud.CustomKeyListSetting) setting));
+    factories.put(KeyboardHud.CustomKeyListSetting.class,
+        (table, setting) -> customKeyListW(table, (KeyboardHud.CustomKeyListSetting) setting));
     factories.put(FileSetting.class, (table, setting) -> fileW(table, (FileSetting) setting));
   }
 
@@ -104,7 +111,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     return list;
   }
 
-  // If a different theme uses has different heights of widgets this can method can be overwritten to account for it in the setting titles
+  // If a different theme uses has different heights of widgets this can method can be overwritten to account for it in
+  // the setting titles
   protected double settingTitleTopMargin() {
     return 6;
   }
@@ -118,24 +126,29 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     RemoveInfo removeInfo = null;
 
     for (Setting<?> setting : group) {
-      if (!Strings.CI.contains(setting.title, filter)) continue;
+      if (!Strings.CI.contains(setting.title, filter))
+        continue;
 
       boolean visible = setting.isVisible();
       setting.lastWasVisible = visible;
       if (!visible) {
-        if (removeInfo == null) removeInfo = new RemoveInfo(section, table);
+        if (removeInfo == null)
+          removeInfo = new RemoveInfo(section, table);
         removeInfo.markRowForRemoval();
       }
 
-      table.add(theme.label(setting.title)).top().marginTop(settingTitleTopMargin()).widget().tooltip = setting.description;
+      table.add(theme.label(setting.title)).top().marginTop(settingTitleTopMargin()).widget().tooltip =
+          setting.description;
 
       Factory factory = getFactory(setting.getClass());
-      if (factory != null) factory.create(table, setting);
+      if (factory != null)
+        factory.create(table, setting);
 
       table.row();
     }
 
-    if (removeInfo != null) removeInfoList.add(removeInfo);
+    if (removeInfo != null)
+      removeInfoList.add(removeInfo);
   }
 
   private static class RemoveInfo {
@@ -157,7 +170,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
         table.removeRow(rowIds.getInt(i) - i);
       }
 
-      if (table.cells.isEmpty()) list.cells.removeIf(cell -> cell.widget() == section);
+      if (table.cells.isEmpty())
+        list.cells.removeIf(cell -> cell.widget() == section);
     }
   }
 
@@ -170,10 +184,15 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
   }
 
   private void intW(WTable table, IntSetting setting) {
-    WIntEdit edit = table.add(theme.intEdit(setting.get(), setting.min, setting.max, setting.sliderMin, setting.sliderMax, setting.noSlider)).expandX().widget();
+    WIntEdit edit = table
+                        .add(theme.intEdit(setting.get(), setting.min, setting.max, setting.sliderMin,
+                            setting.sliderMax, setting.noSlider))
+                        .expandX()
+                        .widget();
 
     edit.action = () -> {
-      if (!setting.set(edit.get())) edit.set(setting.get());
+      if (!setting.set(edit.get()))
+        edit.set(setting.get());
     };
 
     reset(table, setting, () -> edit.set(setting.get()));
@@ -183,22 +202,27 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     WLongEdit edit = table.add(theme.longEdit(setting.get(), setting.min, setting.max)).expandX().widget();
 
     edit.action = () -> {
-      if (!setting.set(edit.get())) edit.set(setting.get());
+      if (!setting.set(edit.get()))
+        edit.set(setting.get());
     };
 
     reset(table, setting, () -> edit.set(setting.get()));
   }
 
   private void doubleW(WTable table, DoubleSetting setting) {
-    WDoubleEdit edit = theme.doubleEdit(setting.get(), setting.min, setting.max, setting.sliderMin, setting.sliderMax, setting.decimalPlaces, setting.noSlider);
+    WDoubleEdit edit = theme.doubleEdit(setting.get(), setting.min, setting.max, setting.sliderMin, setting.sliderMax,
+        setting.decimalPlaces, setting.noSlider);
     table.add(edit).expandX();
 
     Runnable action = () -> {
-      if (!setting.set(edit.get())) edit.set(setting.get());
+      if (!setting.set(edit.get()))
+        edit.set(setting.get());
     };
 
-    if (setting.onSliderRelease) edit.actionOnRelease = action;
-    else edit.action = action;
+    if (setting.onSliderRelease)
+      edit.actionOnRelease = action;
+    else
+      edit.action = action;
 
     reset(table, setting, () -> edit.set(setting.get()));
   }
@@ -206,7 +230,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
   private void stringW(WTable table, StringSetting setting) {
     CharFilter filter = setting.filter == null ? (_, _) -> true : setting.filter;
     Cell<WTextBox> cell = table.add(theme.textBox(setting.get(), setting.placeholder, filter, setting.renderer));
-    if (setting.wide) cell.minWidth(Utils.getWindowWidth() - Utils.getWindowWidth() / 4.0);
+    if (setting.wide)
+      cell.minWidth(Utils.getWindowWidth() - Utils.getWindowWidth() / 4.0);
 
     WTextBox textBox = cell.expandX().widget();
     textBox.action = () -> setting.set(textBox.get());
@@ -227,7 +252,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
   }
 
   private void providedStringW(WTable table, ProvidedStringSetting setting) {
-    WDropdown<String> dropdown = table.add(theme.dropdown(setting.supplier.get(), setting.get())).expandCellX().widget();
+    WDropdown<String> dropdown =
+        table.add(theme.dropdown(setting.supplier.get(), setting.get())).expandCellX().widget();
     dropdown.action = () -> setting.set(dropdown.get());
 
     reset(table, setting, () -> dropdown.set(setting.get()));
@@ -283,7 +309,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     WBlockPosEdit edit = table.add(theme.blockPosEdit(setting.get())).expandX().widget();
 
     edit.actionOnRelease = () -> {
-      if (!setting.set(edit.get())) edit.set(setting.get());
+      if (!setting.set(edit.get()))
+        edit.set(setting.get());
     };
 
     reset(table, setting, () -> edit.set(setting.get()));
@@ -426,7 +453,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
       WButton edit = t.add(theme.button(GuiRenderer.EDIT)).widget();
       edit.action = () -> {
         SettingColor defaultValue = WHITE;
-        if (_i < setting.getDefaultValue().size()) defaultValue = setting.getDefaultValue().get(_i);
+        if (_i < setting.getDefaultValue().size())
+          defaultValue = setting.getDefaultValue().get(_i);
 
         ColorSetting set = new ColorSetting(setting.name, setting.description, defaultValue, settingColor -> {
           setting.get().get(_i).set(settingColor);
@@ -464,10 +492,15 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     });
   }
 
-  private WDoubleEdit addVectorComponent(WTable table, String label, double value, DoubleConsumer update, Vector3dSetting setting) {
+  private WDoubleEdit addVectorComponent(
+      WTable table, String label, double value, DoubleConsumer update, Vector3dSetting setting) {
     table.add(theme.label(label + ": "));
 
-    WDoubleEdit component = table.add(theme.doubleEdit(value, setting.min, setting.max, setting.sliderMin, setting.sliderMax, setting.decimalPlaces, setting.noSlider)).expandX().widget();
+    WDoubleEdit component = table
+                                .add(theme.doubleEdit(value, setting.min, setting.max, setting.sliderMin,
+                                    setting.sliderMax, setting.decimalPlaces, setting.noSlider))
+                                .expandX()
+                                .widget();
     if (setting.onSliderRelease) {
       component.actionOnRelease = () -> {
         update.accept(component.get());
@@ -495,26 +528,19 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
 
     WButton selectFile = list.add(theme.button("Select File")).widget();
 
-    WLabel fileName = list.add(theme.label((setting.get() != null && setting.get().exists()) ? setting.get().getName() : "No file selected.")).widget();
+    WLabel fileName = list.add(theme.label(fileName(setting))).widget();
 
-    selectFile.action = () -> SDLDialog.SDL_ShowOpenFileDialog((_, file, _) -> {
-      if (file == 0) return;
+    selectFile.action = () -> FileDialogs.openFile(setting.filter, file -> {
+      setting.set(file);
+      fileName.set(fileName(setting));
+    });
+  }
 
-      long filePointer = MemoryUtil.memGetAddress(file);
-      if (filePointer == 0) return;
-
-      String path = MemoryUtil.memUTF8(filePointer);
-      if (!path.isEmpty()) {
-        setting.set(new File(path));
-        fileName.set(setting.get().getName());
-      }
-
-      reset(table, setting, () -> fileName.set((setting.get() != null && setting.get().exists()) ? setting.get().getName() : "No file selected."));
-    }, 0L, 0, setting.filters, "", false);
+  private static String fileName(FileSetting setting) {
+    return setting.get() != null && setting.get().exists() ? setting.get().getName() : "No file selected.";
   }
 
   // Other
-
   private void selectW(WContainer c, Setting<?> setting, Runnable action) {
     boolean addCount = WSelectedCountLabel.getSize(setting) != -1;
 
@@ -527,7 +553,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     WButton button = c2.add(theme.button("Select")).expandCellX().widget();
     button.action = action;
 
-    if (addCount) c2.add(new WSelectedCountLabel(setting).color(theme.textSecondaryColor()));
+    if (addCount)
+      c2.add(new WSelectedCountLabel(setting).color(theme.textSecondaryColor()));
 
     reset(c, setting, null);
   }
@@ -536,7 +563,8 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     WButton reset = c.add(theme.button(GuiRenderer.RESET)).widget();
     reset.action = () -> {
       setting.reset();
-      if (action != null) action.run();
+      if (action != null)
+        action.run();
     };
     reset.tooltip = "Reset";
   }
@@ -564,8 +592,10 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
     }
 
     public static int getSize(Setting<?> setting) {
-      if (setting.get() instanceof Collection<?> collection) return collection.size();
-      if (setting.get() instanceof Map<?, ?> map) return map.size();
+      if (setting.get() instanceof Collection<?> collection)
+        return collection.size();
+      if (setting.get() instanceof Map<?, ?> map)
+        return map.size();
 
       return -1;
     }
