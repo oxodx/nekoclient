@@ -5,14 +5,13 @@
 
 package nl.oxod.nekoclient;
 
+import java.util.List;
+import java.util.Set;
 import nl.oxod.nekoclient.platform.LoaderDetection;
 import nl.oxod.nekoclient.platform.LoaderSpecificMixins;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
-
-import java.util.List;
-import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
   private static final String mixinPackage = "nl.oxod.nekoclient.mixin";
@@ -30,7 +29,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
   @Override
   public void onLoad(String mixinPackage) {
-    if (loaded) return;
+    if (loaded)
+      return;
 
     isIndigoPresent = LoaderDetection.isModLoaded("fabric-renderer-indigo");
     isOriginsPresent = LoaderDetection.isModLoaded("origins");
@@ -45,8 +45,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
     // baritone-api-fabric build does not ship. This must be a resource lookup, not a class load:
     // this plugin runs while mixin configs are prepared, and loading the target here fails the
     // boot with MixinTargetAlreadyLoadedException.
-    isBaritoneMixinTargetPresent = isBaritonePresent
-      && LoaderDetection.classPresent("baritone.command.defaults.ComeCommand");
+    isBaritoneMixinTargetPresent =
+        isBaritonePresent && LoaderDetection.classPresent("baritone.command.defaults.ComeCommand");
 
     loaded = true;
   }
@@ -78,8 +78,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
   }
 
   @Override
-  public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
-  }
+  public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {}
 
   @Override
   public List<String> getMixins() {
@@ -87,10 +86,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
   }
 
   @Override
-  public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-  }
+  public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
 
   @Override
-  public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-  }
+  public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
 }
