@@ -29,6 +29,7 @@ import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.world.BlockUtils;
 
 /**
  * @author seasnail8169
@@ -201,8 +202,8 @@ public class Burrow extends Module {
       return;
     InvUtils.swap(block.slot(), true);
 
-    mc.gameMode.useItemOn(
-        mc.player, InteractionHand.MAIN_HAND, new BlockHitResult(Utils.vec3(blockPos), Direction.UP, blockPos, false));
+    BlockUtils.interact(
+        new BlockHitResult(Utils.vec3(blockPos), Direction.UP, blockPos, false), InteractionHand.MAIN_HAND, false);
 
     InvUtils.swapBack();
 

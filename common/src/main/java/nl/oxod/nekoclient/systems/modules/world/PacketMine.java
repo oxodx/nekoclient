@@ -5,6 +5,17 @@
 
 package nl.oxod.nekoclient.systems.modules.world;
 
+import java.util.ArrayList;
+import java.util.List;
+import meteordevelopment.meteorclient.utils.player.PlayerUtils;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import nl.oxod.nekoclient.events.entity.player.StartBreakingBlockEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -14,24 +25,12 @@ import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.BreakIndicators;
-import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.misc.Pool;
 import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockUtils;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.VoxelShape;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PacketMine extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -40,85 +39,75 @@ public class PacketMine extends Module {
   // General
 
   private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
-    .name("delay")
-    .description("Delay between mining blocks in ticks.")
-    .defaultValue(1)
-    .min(0)
-    .build()
-  );
+          .name("delay")
+          .description("Delay between mining blocks in ticks.")
+          .defaultValue(1)
+          .min(0)
+          .build());
 
   private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("rotate")
-    .description("Sends rotation packets to the server when mining.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("rotate")
+          .description("Sends rotation packets to the server when mining.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Boolean> autoSwitch = sgGeneral.add(new BoolSetting.Builder()
-    .name("auto-switch")
-    .description("Automatically switches to the best tool when the block is ready to be mined instantly.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("auto-switch")
+          .description("Automatically switches to the best tool when the block is ready to be mined instantly.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Boolean> notOnUse = sgGeneral.add(new BoolSetting.Builder()
-    .name("not-on-use")
-    .description("Won't auto switch if you're using an item.")
-    .defaultValue(true)
-    .visible(autoSwitch::get)
-    .build()
-  );
+          .name("not-on-use")
+          .description("Won't auto switch if you're using an item.")
+          .defaultValue(true)
+          .visible(autoSwitch::get)
+          .build());
 
   private final Setting<Boolean> obscureBreakingProgress = sgGeneral.add(new BoolSetting.Builder()
-    .name("obscure-breaking-progress")
-    .description("Spams abort breaking packets to obscure the block mining progress from other players. Does not hide it perfectly.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("obscure-breaking-progress")
+          .description("Spams abort breaking packets to obscure the block mining progress from other players. Does not "
+              + "hide it perfectly.")
+          .defaultValue(false)
+          .build());
 
   // Render
 
   private final Setting<Boolean> render = sgRender.add(new BoolSetting.Builder()
-    .name("render")
-    .description("Whether or not to render the block being mined.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("render")
+          .description("Whether or not to render the block being mined.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<ShapeMode> shapeMode = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-    .name("shape-mode")
-    .description("How the shapes are rendered.")
-    .defaultValue(ShapeMode.Both)
-    .build()
-  );
+          .name("shape-mode")
+          .description("How the shapes are rendered.")
+          .defaultValue(ShapeMode.Both)
+          .build());
 
   private final Setting<SettingColor> readySideColor = sgRender.add(new ColorSetting.Builder()
-    .name("ready-side-color")
-    .description("The color of the sides of the blocks that can be broken.")
-    .defaultValue(new SettingColor(0, 204, 0, 10))
-    .build()
-  );
+          .name("ready-side-color")
+          .description("The color of the sides of the blocks that can be broken.")
+          .defaultValue(new SettingColor(0, 204, 0, 10))
+          .build());
 
   private final Setting<SettingColor> readyLineColor = sgRender.add(new ColorSetting.Builder()
-    .name("ready-line-color")
-    .description("The color of the lines of the blocks that can be broken.")
-    .defaultValue(new SettingColor(0, 204, 0, 255))
-    .build()
-  );
+          .name("ready-line-color")
+          .description("The color of the lines of the blocks that can be broken.")
+          .defaultValue(new SettingColor(0, 204, 0, 255))
+          .build());
 
   private final Setting<SettingColor> sideColor = sgRender.add(new ColorSetting.Builder()
-    .name("side-color")
-    .description("The color of the sides of the blocks being rendered.")
-    .defaultValue(new SettingColor(204, 0, 0, 10))
-    .build()
-  );
+          .name("side-color")
+          .description("The color of the sides of the blocks being rendered.")
+          .defaultValue(new SettingColor(204, 0, 0, 10))
+          .build());
 
   private final Setting<SettingColor> lineColor = sgRender.add(new ColorSetting.Builder()
-    .name("line-color")
-    .description("The color of the lines of the blocks being rendered.")
-    .defaultValue(new SettingColor(204, 0, 0, 255))
-    .build()
-  );
+          .name("line-color")
+          .description("The color of the lines of the blocks being rendered.")
+          .defaultValue(new SettingColor(204, 0, 0, 255))
+          .build());
 
   private final Pool<MyBlock> blockPool = new Pool<>(MyBlock::new);
   public final List<MyBlock> blocks = new ArrayList<>();
@@ -147,7 +136,8 @@ public class PacketMine extends Module {
 
   @EventHandler
   private void onStartBreakingBlock(StartBreakingBlockEvent event) {
-    if (!BlockUtils.canBreak(event.blockPos)) return;
+    if (!BlockUtils.canBreak(event.blockPos))
+      return;
     event.cancel();
 
     swapped = false;
@@ -159,7 +149,8 @@ public class PacketMine extends Module {
 
   public boolean isMiningBlock(BlockPos pos) {
     for (MyBlock block : blocks) {
-      if (block.blockPos.equals(pos)) return true;
+      if (block.blockPos.equals(pos))
+        return true;
     }
 
     return false;
@@ -181,7 +172,8 @@ public class PacketMine extends Module {
 
       if (block.isReady() && !swapped && autoSwitch.get() && (!mc.player.isUsingItem() || !notOnUse.get())) {
         FindItemResult slot = InvUtils.findFastestTool(block.blockState);
-        if (!slot.found() || mc.player.getInventory().getSelectedSlot() == slot.slot()) return;
+        if (!slot.found() || mc.player.getInventory().getSelectedSlot() == slot.slot())
+          return;
         mc.player.connection.send(new ServerboundSetCarriedItemPacket(slot.slot()));
         swapped = true;
         shouldUpdateSlot = true;
@@ -191,10 +183,12 @@ public class PacketMine extends Module {
 
   @EventHandler
   private void onRender(Render3DEvent event) {
-    if (!render.get()) return;
+    if (!render.get())
+      return;
 
     for (MyBlock block : blocks) {
-      if (!Modules.get().get(BreakIndicators.class).isActive() || !Modules.get().get(BreakIndicators.class).packetMine.get() || !block.mining) {
+      if (!Modules.get().get(BreakIndicators.class).isActive()
+          || !Modules.get().get(BreakIndicators.class).packetMine.get() || !block.mining) {
         block.render(event);
       }
     }
@@ -224,7 +218,8 @@ public class PacketMine extends Module {
     public boolean shouldRemove() {
       boolean broken = mc.level.getBlockState(blockPos).getBlock() != block;
       boolean timeout = progress() > 2 && (mc.player.tickCount - startTime > 50);
-      boolean distance = Utils.distance(mc.player.getEyePosition().x, mc.player.getEyePosition().y, mc.player.getEyePosition().z, blockPos.getX() + direction.getStepX(), blockPos.getY() + direction.getStepY(), blockPos.getZ() + direction.getStepZ()) > mc.player.blockInteractionRange();
+      boolean distance = !PlayerUtils.isWithinReach(blockPos.getX() + direction.getStepX(),
+          blockPos.getY() + direction.getStepY(), blockPos.getZ() + direction.getStepZ());
 
       return broken || timeout || distance;
     }
@@ -234,23 +229,32 @@ public class PacketMine extends Module {
     }
 
     public double progress() {
-      if (!mining) return 0;
+      if (!mining)
+        return 0;
 
       FindItemResult fir = InvUtils.findFastestTool(blockState);
-      return BlockUtils.getBreakDelta(fir.found() ? fir.slot() : mc.player.getInventory().getSelectedSlot(), blockState) * ((mc.player.tickCount - startTime) + 1);
+      return BlockUtils.getBreakDelta(fir.found() ? fir.slot() : mc.player.getInventory().getSelectedSlot(), blockState)
+          * ((mc.player.tickCount - startTime) + 1);
     }
 
     public void mine() {
       if (rotate.get())
         Rotations.rotate(Rotations.getYaw(blockPos), Rotations.getPitch(blockPos), 50, this::sendMinePackets);
-      else sendMinePackets();
+      else
+        sendMinePackets();
     }
 
     private void sendMinePackets() {
       if (timer <= 0) {
         if (!mining) {
-          mc.gameMode.startPrediction(mc.level, sequence -> new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
-          mc.gameMode.startPrediction(mc.level, sequence -> new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
+          mc.gameMode.startPrediction(mc.level,
+              sequence
+              -> new ServerboundPlayerActionPacket(
+                  ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, direction, sequence));
+          mc.gameMode.startPrediction(mc.level,
+              sequence
+              -> new ServerboundPlayerActionPacket(
+                  ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, direction, sequence));
 
           mining = true;
           startTime = mc.player.tickCount;
@@ -260,7 +264,8 @@ public class PacketMine extends Module {
       }
 
       if (mining && obscureBreakingProgress.get())
-        mc.getConnection().send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, blockPos, direction));
+        mc.getConnection().send(new ServerboundPlayerActionPacket(
+            ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, blockPos, direction));
     }
 
     public void render(Render3DEvent event) {

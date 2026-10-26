@@ -7,6 +7,7 @@ package nl.oxod.nekoclient.systems.modules.player;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.util.Set;
+import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,10 +18,8 @@ import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.events.entity.player.DoItemUseEvent;
 import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
-import nl.oxod.nekoclient.utils.player.SwingMode;
 
 public class GhostHand extends Module {
-
   private final Set<BlockPos> posList = new ObjectOpenHashSet<>();
 
   public GhostHand() {
@@ -29,65 +28,38 @@ public class GhostHand extends Module {
 
   @EventHandler
   private void onTick(DoItemUseEvent event) {
-    if (!mc.options.keyUse.isDown() || mc.player.isShiftKeyDown()) return;
+    if (!mc.options.keyUse.isDown() || mc.player.isShiftKeyDown())
+      return;
 
-    if (
-      mc.level
-        .getBlockState(
-          BlockPos.containing(
-            mc.player
-              .pick(
-                mc.player.blockInteractionRange(),
-                mc.getDeltaTracker().getGameTimeDeltaPartialTick(true),
-                false
-              )
-              .getLocation()
-          )
-        )
-        .hasBlockEntity()
-    ) return;
+    if (mc.level
+            .getBlockState(BlockPos.containing(mc.player
+                    .pick(mc.player.blockInteractionRange(), mc.getDeltaTracker().getGameTimeDeltaPartialTick(true),
+                        false)
+                    .getLocation()))
+            .hasBlockEntity())
+      return;
 
     Vec3 direction = new Vec3(0, 0, 0.1)
-      .xRot(-((float) Math.toRadians(mc.player.getXRot())))
-      .yRot(-((float) Math.toRadians(mc.player.getYRot())));
+                         .xRot(-((float) Math.toRadians(mc.player.getXRot())))
+                         .yRot(-((float) Math.toRadians(mc.player.getYRot())));
 
     posList.clear();
 
     for (int i = 1; i < mc.player.blockInteractionRange() * 10; i++) {
       BlockPos pos = BlockPos.containing(
-        mc.player
-          .getEyePosition(
-            mc.getDeltaTracker().getGameTimeDeltaPartialTick(true)
-          )
-          .add(direction.scale(i))
-      );
+          mc.player.getEyePosition(mc.getDeltaTracker().getGameTimeDeltaPartialTick(true)).add(direction.scale(i)));
 
-      if (!posList.add(pos)) continue;
+      if (!posList.add(pos))
+        continue;
 
       if (mc.level.getBlockState(pos).hasBlockEntity()) {
         for (InteractionHand hand : InteractionHand.values()) {
-          InteractionResult result = mc.gameMode.useItemOn(
-            mc.player,
-            hand,
-            new BlockHitResult(
-              new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5),
-              Direction.UP,
-              pos,
-              true
-            )
-          );
+          InteractionResult result =
+              BlockUtils.interact(new BlockHitResult(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5),
+                                      Direction.UP, pos, true),
+                  hand, true);
 
-          if (
-            result instanceof InteractionResult.Success success &&
-            success.swingSource() == InteractionResult.SwingSource.PREDICTED
-          ) {
-            SwingMode.Both.interactSwing(hand);
-          }
-
-          if (
-            result instanceof InteractionResult.Success ||
-            result instanceof InteractionResult.Fail
-          ) {
+          if (result instanceof InteractionResult.Success || result instanceof InteractionResult.Fail) {
             event.cancel();
             return;
           }

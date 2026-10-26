@@ -5,6 +5,12 @@
 
 package nl.oxod.nekoclient.systems.modules.player;
 
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantments;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.settings.BoolSetting;
 import nl.oxod.nekoclient.settings.ItemListSetting;
@@ -14,43 +20,35 @@ import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.player.InvUtils;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantments;
-
-import java.util.List;
+import nl.oxod.nekoclient.utils.player.SlotUtils;
 
 public class AutoMend extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
   private final Setting<List<Item>> blacklist = sgGeneral.add(new ItemListSetting.Builder()
-    .name("blacklist")
-    .description("Item blacklist.")
-    .filter(item -> item.components().get(DataComponents.DAMAGE) != null)
-    .bypassFilterWhenSavingAndLoading()
-    .build()
-  );
+          .name("blacklist")
+          .description("Item blacklist.")
+          .filter(item -> item.components().get(DataComponents.DAMAGE) != null)
+          .bypassFilterWhenSavingAndLoading()
+          .build());
 
   private final Setting<Boolean> force = sgGeneral.add(new BoolSetting.Builder()
-    .name("force")
-    .description("Replaces item in offhand even if there is some other non-repairable item.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("force")
+          .description("Replaces item in offhand even if there is some other non-repairable item.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Boolean> autoDisable = sgGeneral.add(new BoolSetting.Builder()
-    .name("auto-disable")
-    .description("Automatically disables when there are no more items to repair.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("auto-disable")
+          .description("Automatically disables when there are no more items to repair.")
+          .defaultValue(true)
+          .build());
 
   private boolean didMove;
 
   public AutoMend() {
-    super(Categories.Player, "auto-mend", "Automatically replaces items in your offhand with mending when fully repaired.");
+    super(Categories.Player, "auto-mend",
+        "Automatically replaces items in your offhand with mending when fully repaired.");
   }
 
   @Override
@@ -60,7 +58,8 @@ public class AutoMend extends Module {
 
   @EventHandler
   private void onTick(TickEvent.Pre event) {
-    if (shouldWait()) return;
+    if (shouldWait())
+      return;
 
     int slot = getSlot();
 
@@ -84,7 +83,8 @@ public class AutoMend extends Module {
   private boolean shouldWait() {
     ItemStack itemStack = mc.player.getOffhandItem();
 
-    if (itemStack.isEmpty()) return false;
+    if (itemStack.isEmpty())
+      return false;
 
     if (Utils.hasEnchantments(itemStack, Enchantments.MENDING)) {
       return itemStack.getDamageValue() != 0;
@@ -94,23 +94,15 @@ public class AutoMend extends Module {
   }
 
   private int getSlot() {
-    for (int i = 0; i < mc.player.getInventory().getNonEquipmentItems().size(); i++) {
-      ItemStack itemStack = mc.player.getInventory().getItem(i);
-      if (blacklist.get().contains(itemStack.getItem())) continue;
-
-      if (Utils.hasEnchantments(itemStack, Enchantments.MENDING) && itemStack.getDamageValue() > 0) {
-        return i;
-      }
-    }
-
-    return -1;
+    return InvUtils
+        .find(itemStack
+            -> !blacklist.get().contains(itemStack.getItem()) && Utils.hasEnchantments(itemStack, Enchantments.MENDING)
+                && itemStack.getDamageValue() > 0,
+            SlotUtils.HOTBAR_START, SlotUtils.MAIN_END)
+        .slot();
   }
 
   private int getEmptySlot() {
-    for (int i = 0; i < mc.player.getInventory().getNonEquipmentItems().size(); i++) {
-      if (mc.player.getInventory().getItem(i).isEmpty()) return i;
-    }
-
-    return -1;
+    return InvUtils.find(ItemStack::isEmpty, SlotUtils.HOTBAR_START, SlotUtils.MAIN_END).slot();
   }
 }
