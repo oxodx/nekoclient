@@ -5,23 +5,18 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.Goal;
 import baritone.api.process.IBaritoneProcess;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.mixin.MinecraftAccessor;
-import nl.oxod.nekoclient.mixin.MultiPlayerGameModeAccessor;
-import nl.oxod.nekoclient.pathing.BaritoneUtils;
-import nl.oxod.nekoclient.pathing.PathManagers;
-import nl.oxod.nekoclient.systems.config.Config;
-import nl.oxod.nekoclient.systems.modules.Module;
-import nl.oxod.nekoclient.systems.modules.Modules;
-import nl.oxod.nekoclient.utils.PreInit;
-import nl.oxod.nekoclient.utils.Utils;
-import nl.oxod.nekoclient.utils.player.ChatUtils;
-import nl.oxod.nekoclient.utils.player.PlayerUtils;
-import nl.oxod.nekoclient.utils.world.Dimension;
-import nl.oxod.nekoclient.utils.world.TickRate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import net.minecraft.IdentifierException;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -45,6 +40,20 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.mixin.MinecraftAccessor;
+import nl.oxod.nekoclient.mixin.MultiPlayerGameModeAccessor;
+import nl.oxod.nekoclient.pathing.BaritoneUtils;
+import nl.oxod.nekoclient.pathing.PathManagers;
+import nl.oxod.nekoclient.systems.config.Config;
+import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.utils.PreInit;
+import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.player.ChatUtils;
+import nl.oxod.nekoclient.utils.player.PlayerUtils;
+import nl.oxod.nekoclient.utils.world.Dimension;
+import nl.oxod.nekoclient.utils.world.TickRate;
 import org.apache.commons.lang3.StringUtils;
 import org.meteordev.starscript.Script;
 import org.meteordev.starscript.Section;
@@ -56,16 +65,6 @@ import org.meteordev.starscript.utils.Error;
 import org.meteordev.starscript.utils.StarscriptError;
 import org.meteordev.starscript.value.Value;
 import org.meteordev.starscript.value.ValueMap;
-
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class NekoStarscript {
   public static Starscript ss = new Starscript();
@@ -86,123 +85,136 @@ public class NekoStarscript {
 
     // NekoClient. The `meteor` global is a user-facing scripting API that macros and configs
     // depend on, so it stays as an alias of `neko` rather than being renamed outright.
-    ValueMap nekoGlobals = new ValueMap()
-      .set("name", NekoClient.NAME)
-      .set("version", NekoClient.VERSION != null ? (NekoClient.BUILD_NUMBER.isEmpty() ? NekoClient.VERSION.toString() : NekoClient.VERSION + " " + NekoClient.BUILD_NUMBER) : "")
-      .set("modules", () -> Value.number(Modules.get().getAll().size()))
-      .set("active_modules", () -> Value.number(Modules.get().getActive().size()))
-      .set("is_module_active", NekoStarscript::isModuleActive)
-      .set("get_module_info", NekoStarscript::getModuleInfo)
-      .set("get_module_setting", NekoStarscript::getModuleSetting)
-      .set("prefix", NekoStarscript::getNekoPrefix);
+    ValueMap nekoGlobals =
+        new ValueMap()
+            .set("name", NekoClient.NAME)
+            .set("version",
+                NekoClient.VERSION != null
+                    ? (NekoClient.BUILD_NUMBER.isEmpty() ? NekoClient.VERSION.toString()
+                                                         : NekoClient.VERSION + " " + NekoClient.BUILD_NUMBER)
+                    : "")
+            .set("modules", () -> Value.number(Modules.get().getAll().size()))
+            .set("active_modules", () -> Value.number(Modules.get().getActive().size()))
+            .set("is_module_active", NekoStarscript::isModuleActive)
+            .set("get_module_info", NekoStarscript::getModuleInfo)
+            .set("get_module_setting", NekoStarscript::getModuleSetting)
+            .set("prefix", NekoStarscript::getNekoPrefix);
     ss.set("neko", nekoGlobals);
     ss.set("meteor", nekoGlobals);
 
     // Baritone
     if (BaritoneUtils.IS_AVAILABLE) {
-      ss.set("baritone", new ValueMap()
-        .set("is_pathing", () -> Value.bool(BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().isPathing()))
-        .set("distance_to_goal", NekoStarscript::baritoneDistanceToGoal)
-        .set("process", NekoStarscript::baritoneProcess)
-        .set("process_name", NekoStarscript::baritoneProcessName)
-        .set("eta", NekoStarscript::baritoneETA)
-      );
+      ss.set("baritone",
+          new ValueMap()
+              .set("is_pathing",
+                  () -> Value.bool(BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().isPathing()))
+              .set("distance_to_goal", NekoStarscript::baritoneDistanceToGoal)
+              .set("process", NekoStarscript::baritoneProcess)
+              .set("process_name", NekoStarscript::baritoneProcessName)
+              .set("eta", NekoStarscript::baritoneETA));
     }
 
     // Camera
-    ss.set("camera", new ValueMap()
-      .set("pos", new ValueMap()
-        .set("_toString", () -> posString(false, true))
-        .set("x", () -> Value.number(mc.gameRenderer.mainCamera().position().x))
-        .set("y", () -> Value.number(mc.gameRenderer.mainCamera().position().y))
-        .set("z", () -> Value.number(mc.gameRenderer.mainCamera().position().z))
-      )
-      .set("opposite_dim_pos", new ValueMap()
-        .set("_toString", () -> posString(true, true))
-        .set("x", () -> oppositeX(true))
-        .set("y", () -> Value.number(mc.gameRenderer.mainCamera().position().y))
-        .set("z", () -> oppositeZ(true))
-      )
+    ss.set("camera",
+        new ValueMap()
+            .set("pos",
+                new ValueMap()
+                    .set("_toString", () -> posString(false, true))
+                    .set("x", () -> Value.number(mc.gameRenderer.mainCamera().position().x))
+                    .set("y", () -> Value.number(mc.gameRenderer.mainCamera().position().y))
+                    .set("z", () -> Value.number(mc.gameRenderer.mainCamera().position().z)))
+            .set("opposite_dim_pos",
+                new ValueMap()
+                    .set("_toString", () -> posString(true, true))
+                    .set("x", () -> oppositeX(true))
+                    .set("y", () -> Value.number(mc.gameRenderer.mainCamera().position().y))
+                    .set("z", () -> oppositeZ(true)))
 
-      .set("yaw", () -> yaw(true))
-      .set("pitch", () -> pitch(true))
-      .set("direction", () -> direction(true))
-    );
+            .set("yaw", () -> yaw(true))
+            .set("pitch", () -> pitch(true))
+            .set("direction", () -> direction(true)));
 
     // Player
-    ss.set("player", new ValueMap()
-      .set("_toString", () -> Value.string(mc.getUser().getName()))
-      .set("health", () -> Value.number(mc.player != null ? mc.player.getHealth() : 0))
-      .set("absorption", () -> Value.number(mc.player != null ? mc.player.getAbsorptionAmount() : 0))
-      .set("hunger", () -> Value.number(mc.player != null ? mc.player.getFoodData().getFoodLevel() : 0))
-      .set("saturation", () -> Value.number(mc.player != null ? mc.player.getFoodData().getSaturationLevel() : 0))
+    ss.set("player",
+        new ValueMap()
+            .set("_toString", () -> Value.string(mc.getUser().getName()))
+            .set("health", () -> Value.number(mc.player != null ? mc.player.getHealth() : 0))
+            .set("absorption", () -> Value.number(mc.player != null ? mc.player.getAbsorptionAmount() : 0))
+            .set("hunger", () -> Value.number(mc.player != null ? mc.player.getFoodData().getFoodLevel() : 0))
+            .set("saturation", () -> Value.number(mc.player != null ? mc.player.getFoodData().getSaturationLevel() : 0))
 
-      .set("speed", () -> Value.number(Utils.getPlayerSpeed().horizontalDistance()))
-      .set("speed_all", new ValueMap()
-        .set("_toString", () -> Value.string(mc.player != null ? Utils.getPlayerSpeed().toString() : ""))
-        .set("x", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().x : 0))
-        .set("y", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().y : 0))
-        .set("z", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().z : 0))
-      )
+            .set("speed", () -> Value.number(Utils.getPlayerSpeed().horizontalDistance()))
+            .set("speed_all",
+                new ValueMap()
+                    .set("_toString", () -> Value.string(mc.player != null ? Utils.getPlayerSpeed().toString() : ""))
+                    .set("x", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().x : 0))
+                    .set("y", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().y : 0))
+                    .set("z", () -> Value.number(mc.player != null ? Utils.getPlayerSpeed().z : 0)))
 
-      .set("breaking_progress", () -> Value.number(mc.gameMode != null ? ((MultiPlayerGameModeAccessor) mc.gameMode).neko$getBreakingProgress() : 0))
-      .set("biome", NekoStarscript::biome)
+            .set("breaking_progress",
+                ()
+                    -> Value.number(mc.gameMode != null
+                            ? ((MultiPlayerGameModeAccessor) mc.gameMode).neko$getBreakingProgress()
+                            : 0))
+            .set("biome", NekoStarscript::biome)
 
-      .set("dimension", () -> Value.string(PlayerUtils.getDimension().name()))
-      .set("opposite_dimension", () -> Value.string(PlayerUtils.getDimension().opposite().name()))
+            .set("dimension", () -> Value.string(PlayerUtils.getDimension().name()))
+            .set("opposite_dimension", () -> Value.string(PlayerUtils.getDimension().opposite().name()))
 
-      .set("gamemode", () -> PlayerUtils.getGameMode() != null ? Value.string(StringUtils.capitalize(PlayerUtils.getGameMode().getName())) : Value.null_())
+            .set("gamemode",
+                ()
+                    -> PlayerUtils.getGameMode() != null
+                    ? Value.string(StringUtils.capitalize(PlayerUtils.getGameMode().getName()))
+                    : Value.null_())
 
-      .set("pos", new ValueMap()
-        .set("_toString", () -> posString(false, false))
-        .set("x", () -> Value.number(mc.player != null ? mc.player.getX() : 0))
-        .set("y", () -> Value.number(mc.player != null ? mc.player.getY() : 0))
-        .set("z", () -> Value.number(mc.player != null ? mc.player.getZ() : 0))
-      )
-      .set("opposite_dim_pos", new ValueMap()
-        .set("_toString", () -> posString(true, false))
-        .set("x", () -> oppositeX(false))
-        .set("y", () -> Value.number(mc.player != null ? mc.player.getY() : 0))
-        .set("z", () -> oppositeZ(false))
-      )
+            .set("pos",
+                new ValueMap()
+                    .set("_toString", () -> posString(false, false))
+                    .set("x", () -> Value.number(mc.player != null ? mc.player.getX() : 0))
+                    .set("y", () -> Value.number(mc.player != null ? mc.player.getY() : 0))
+                    .set("z", () -> Value.number(mc.player != null ? mc.player.getZ() : 0)))
+            .set("opposite_dim_pos",
+                new ValueMap()
+                    .set("_toString", () -> posString(true, false))
+                    .set("x", () -> oppositeX(false))
+                    .set("y", () -> Value.number(mc.player != null ? mc.player.getY() : 0))
+                    .set("z", () -> oppositeZ(false)))
 
-      .set("yaw", () -> yaw(false))
-      .set("pitch", () -> pitch(false))
-      .set("direction", () -> direction(false))
+            .set("yaw", () -> yaw(false))
+            .set("pitch", () -> pitch(false))
+            .set("direction", () -> direction(false))
 
-      .set("hand", () -> mc.player != null ? wrap(mc.player.getMainHandItem()) : Value.null_())
-      .set("offhand", () -> mc.player != null ? wrap(mc.player.getOffhandItem()) : Value.null_())
-      .set("hand_or_offhand", NekoStarscript::handOrOffhand)
-      .set("get_item", NekoStarscript::getItem)
-      .set("count_items", NekoStarscript::countItems)
+            .set("hand", () -> mc.player != null ? wrap(mc.player.getMainHandItem()) : Value.null_())
+            .set("offhand", () -> mc.player != null ? wrap(mc.player.getOffhandItem()) : Value.null_())
+            .set("hand_or_offhand", NekoStarscript::handOrOffhand)
+            .set("get_item", NekoStarscript::getItem)
+            .set("count_items", NekoStarscript::countItems)
 
-      .set("xp", new ValueMap()
-        .set("level", () -> Value.number(mc.player != null ? mc.player.experienceLevel : 0))
-        .set("progress", () -> Value.number(mc.player != null ? mc.player.experienceProgress : 0))
-        .set("total", () -> Value.number(mc.player != null ? mc.player.totalExperience : 0))
-      )
+            .set("xp",
+                new ValueMap()
+                    .set("level", () -> Value.number(mc.player != null ? mc.player.experienceLevel : 0))
+                    .set("progress", () -> Value.number(mc.player != null ? mc.player.experienceProgress : 0))
+                    .set("total", () -> Value.number(mc.player != null ? mc.player.totalExperience : 0)))
 
-      .set("has_potion_effect", NekoStarscript::hasPotionEffect)
-      .set("get_potion_effect", NekoStarscript::getPotionEffect)
+            .set("has_potion_effect", NekoStarscript::hasPotionEffect)
+            .set("get_potion_effect", NekoStarscript::getPotionEffect)
 
-      .set("get_stat", NekoStarscript::getStat)
-    );
+            .set("get_stat", NekoStarscript::getStat));
 
     // Crosshair target
-    ss.set("crosshair_target", new ValueMap()
-      .set("type", NekoStarscript::crosshairType)
-      .set("value", NekoStarscript::crosshairValue)
-    );
+    ss.set("crosshair_target",
+        new ValueMap().set("type", NekoStarscript::crosshairType).set("value", NekoStarscript::crosshairValue));
 
     // Server
-    ss.set("server", new ValueMap()
-      .set("_toString", () -> Value.string(Utils.getWorldName()))
-      .set("tps", () -> Value.number(TickRate.INSTANCE.getTickRate()))
-      .set("time", () -> Value.string(Utils.getWorldTime()))
-      .set("weather", NekoStarscript::weather)
-      .set("player_count", () -> Value.number(mc.getConnection() != null ? mc.getConnection().getOnlinePlayers().size() : 0))
-      .set("difficulty", () -> Value.string(mc.level != null ? mc.level.getDifficulty().name() : ""))
-    );
+    ss.set("server",
+        new ValueMap()
+            .set("_toString", () -> Value.string(Utils.getWorldName()))
+            .set("tps", () -> Value.number(TickRate.INSTANCE.getTickRate()))
+            .set("time", () -> Value.string(Utils.getWorldTime()))
+            .set("weather", NekoStarscript::weather)
+            .set("player_count",
+                () -> Value.number(mc.getConnection() != null ? mc.getConnection().getOnlinePlayers().size() : 0))
+            .set("difficulty", () -> Value.string(mc.level != null ? mc.level.getDifficulty().name() : "")));
   }
 
   // Helpers
@@ -241,19 +253,20 @@ public class NekoStarscript {
   }
 
   // Errors
-
   public static void printChatError(int i, Error error) {
     String caller = getCallerName();
 
     if (caller != null) {
       if (i != -1)
-        ChatUtils.errorPrefix("Starscript", "%d, %d '%c': %s (from %s)", i, error.character, error.ch, error.message, caller);
+        ChatUtils.errorPrefix(
+            "Starscript", "%d, %d '%c': %s (from %s)", i, error.character, error.ch, error.message, caller);
       else
         ChatUtils.errorPrefix("Starscript", "%d '%c': %s (from %s)", error.character, error.ch, error.message, caller);
     } else {
       if (i != -1)
         ChatUtils.errorPrefix("Starscript", "%d, %d '%c': %s", i, error.character, error.ch, error.message);
-      else ChatUtils.errorPrefix("Starscript", "%d '%c': %s", error.character, error.ch, error.message);
+      else
+        ChatUtils.errorPrefix("Starscript", "%d '%c': %s", error.character, error.ch, error.message);
     }
   }
 
@@ -264,19 +277,24 @@ public class NekoStarscript {
   public static void printChatError(StarscriptError e) {
     String caller = getCallerName();
 
-    if (caller != null) ChatUtils.errorPrefix("Starscript", "%s (from %s)", e.getMessage(), caller);
-    else ChatUtils.errorPrefix("Starscript", "%s", e.getMessage());
+    if (caller != null)
+      ChatUtils.errorPrefix("Starscript", "%s (from %s)", e.getMessage(), caller);
+    else
+      ChatUtils.errorPrefix("Starscript", "%s", e.getMessage());
   }
 
   private static String getCallerName() {
     StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-    if (elements.length == 0) return null;
+    if (elements.length == 0)
+      return null;
 
     for (int i = 1; i < elements.length; i++) {
       String name = elements[i].getClassName();
 
-      if (name.startsWith(Starscript.class.getPackageName())) continue;
-      if (name.equals(NekoStarscript.class.getName())) continue;
+      if (name.startsWith(Starscript.class.getPackageName()))
+        continue;
+      if (name.equals(NekoStarscript.class.getName()))
+        continue;
 
       return name.substring(name.lastIndexOf('.') + 1);
     }
@@ -289,36 +307,45 @@ public class NekoStarscript {
   private static long lastRequestedStatsTime = 0;
 
   private static Value hasPotionEffect(Starscript ss, int argCount) {
-    if (argCount < 1) ss.error("player.has_potion_effect() requires 1 argument, got %d.", argCount);
-    if (mc.player == null) return Value.bool(false);
+    if (argCount < 1)
+      ss.error("player.has_potion_effect() requires 1 argument, got %d.", argCount);
+    if (mc.player == null)
+      return Value.bool(false);
 
     Identifier name = popIdentifier(ss, "First argument to player.has_potion_effect() needs to a string.");
 
     Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.get(name);
-    if (effect.isEmpty()) return Value.bool(false);
+    if (effect.isEmpty())
+      return Value.bool(false);
 
     MobEffectInstance effectInstance = mc.player.getEffect(effect.get());
     return Value.bool(effectInstance != null);
   }
 
   private static Value getPotionEffect(Starscript ss, int argCount) {
-    if (argCount < 1) ss.error("player.get_potion_effect() requires 1 argument, got %d.", argCount);
-    if (mc.player == null) return Value.null_();
+    if (argCount < 1)
+      ss.error("player.get_potion_effect() requires 1 argument, got %d.", argCount);
+    if (mc.player == null)
+      return Value.null_();
 
     Identifier name = popIdentifier(ss, "First argument to player.get_potion_effect() needs to a string.");
 
     Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.get(name);
-    if (effect.isEmpty()) return Value.null_();
+    if (effect.isEmpty())
+      return Value.null_();
 
     MobEffectInstance effectInstance = mc.player.getEffect(effect.get());
-    if (effectInstance == null) return Value.null_();
+    if (effectInstance == null)
+      return Value.null_();
 
     return wrap(effectInstance);
   }
 
   private static Value getStat(Starscript ss, int argCount) {
-    if (argCount < 1) ss.error("player.get_stat() requires 1 argument, got %d.", argCount);
-    if (mc.player == null) return Value.number(0);
+    if (argCount < 1)
+      ss.error("player.get_stat() requires 1 argument, got %d.", argCount);
+    if (mc.player == null)
+      return Value.number(0);
 
     long time = System.currentTimeMillis();
     if ((time - lastRequestedStatsTime) / 1000.0 >= 1 && mc.getConnection() != null) {
@@ -327,7 +354,8 @@ public class NekoStarscript {
     }
 
     String type = argCount > 1 ? ss.popString("First argument to player.get_stat() needs to be a string.") : "custom";
-    Identifier name = popIdentifier(ss, (argCount > 1 ? "Second" : "First") + " argument to player.get_stat() needs to be a string.");
+    Identifier name =
+        popIdentifier(ss, (argCount > 1 ? "Second" : "First") + " argument to player.get_stat() needs to be a string.");
 
     Stat<?> stat = switch (type) {
       case "mined" -> Stats.BLOCK_MINED.get(BuiltInRegistries.BLOCK.getValue(name));
@@ -349,7 +377,8 @@ public class NekoStarscript {
   }
 
   private static Value getModuleInfo(Starscript ss, int argCount) {
-    if (argCount != 1) ss.error("meteor.get_module_info() requires 1 argument, got %d.", argCount);
+    if (argCount != 1)
+      ss.error("meteor.get_module_info() requires 1 argument, got %d.", argCount);
 
     Module module = Modules.get().get(ss.popString("First argument to meteor.get_module_info() needs to be a string."));
     if (module != null && module.isActive()) {
@@ -361,7 +390,8 @@ public class NekoStarscript {
   }
 
   private static Value getModuleSetting(Starscript ss, int argCount) {
-    if (argCount != 2) ss.error("meteor.get_module_setting() requires 2 arguments, got %d.", argCount);
+    if (argCount != 2)
+      ss.error("meteor.get_module_setting() requires 2 arguments, got %d.", argCount);
 
     var settingName = ss.popString("Second argument to meteor.get_module_setting() needs to be a string.");
     var moduleName = ss.popString("First argument to meteor.get_module_setting() needs to be a string.");
@@ -384,57 +414,63 @@ public class NekoStarscript {
   }
 
   private static Value isModuleActive(Starscript ss, int argCount) {
-    if (argCount != 1) ss.error("meteor.is_module_active() requires 1 argument, got %d.", argCount);
+    if (argCount != 1)
+      ss.error("meteor.is_module_active() requires 1 argument, got %d.", argCount);
 
-    Module module = Modules.get().get(ss.popString("First argument to meteor.is_module_active() needs to be a string."));
+    Module module =
+        Modules.get().get(ss.popString("First argument to meteor.is_module_active() needs to be a string."));
     return Value.bool(module != null && module.isActive());
   }
 
   private static Value getItem(Starscript ss, int argCount) {
-    if (argCount != 1) ss.error("player.get_item() requires 1 argument, got %d.", argCount);
+    if (argCount != 1)
+      ss.error("player.get_item() requires 1 argument, got %d.", argCount);
 
     int i = (int) ss.popNumber("First argument to player.get_item() needs to be a number.");
-    if (i < 0) ss.error("First argument to player.get_item() needs to be a non-negative integer.", i);
+    if (i < 0)
+      ss.error("First argument to player.get_item() needs to be a non-negative integer.", i);
     return mc.player != null ? wrap(mc.player.getInventory().getItem(i)) : Value.null_();
   }
 
   private static Value countItems(Starscript ss, int argCount) {
-    if (argCount != 1) ss.error("player.count_items() requires 1 argument, got %d.", argCount);
+    if (argCount != 1)
+      ss.error("player.count_items() requires 1 argument, got %d.", argCount);
 
     String idRaw = ss.popString("First argument to player.count_items() needs to be a string.");
     Identifier id = Identifier.tryParse(idRaw);
-    if (id == null) return Value.number(0);
+    if (id == null)
+      return Value.number(0);
 
     Item item = BuiltInRegistries.ITEM.getValue(id);
-    if (item == Items.AIR || mc.player == null) return Value.number(0);
+    if (item == Items.AIR || mc.player == null)
+      return Value.number(0);
 
-    int count = 0;
-    for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
-      ItemStack itemStack = mc.player.getInventory().getItem(i);
-      if (itemStack.getItem() == item) count += itemStack.getCount();
-    }
-
-    return Value.number(count);
+    return Value.number(InvUtils.find(item).count());
   }
 
   private static Value getNekoPrefix() {
-    if (Config.get() == null) return Value.null_();
+    if (Config.get() == null)
+      return Value.null_();
     return Value.string(Config.get().prefix.get());
   }
 
   // Other
 
   private static Value baritoneProcess() {
-    Optional<IBaritoneProcess> process = BaritoneAPI.getProvider().getPrimaryBaritone().getPathingControlManager().mostRecentInControl();
+    Optional<IBaritoneProcess> process =
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingControlManager().mostRecentInControl();
     return Value.string(process.isEmpty() ? "" : process.get().displayName0());
   }
 
   private static Value baritoneProcessName() {
-    Optional<IBaritoneProcess> process = BaritoneAPI.getProvider().getPrimaryBaritone().getPathingControlManager().mostRecentInControl();
-    if (process.isEmpty()) return Value.string("");
+    Optional<IBaritoneProcess> process =
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingControlManager().mostRecentInControl();
+    if (process.isEmpty())
+      return Value.string("");
 
     String className = process.get().getClass().getSimpleName();
-    if (className.endsWith("Process")) className = className.substring(0, className.length() - 7);
+    if (className.endsWith("Process"))
+      className = className.substring(0, className.length() - 7);
 
     SB.append(className);
     int i = 0;
@@ -454,8 +490,10 @@ public class NekoStarscript {
 
   // Returns the ETA in seconds
   private static Value baritoneETA() {
-    if (mc.player == null) return Value.number(0);
-    Optional<Double> ticksTillGoal = BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().estimatedTicksToGoal();
+    if (mc.player == null)
+      return Value.number(0);
+    Optional<Double> ticksTillGoal =
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().estimatedTicksToGoal();
     return ticksTillGoal.map(aDouble -> Value.number(aDouble / 20)).orElseGet(() -> Value.number(0));
   }
 
@@ -463,8 +501,10 @@ public class NekoStarscript {
     double x = camera ? mc.gameRenderer.mainCamera().position().x : (mc.player != null ? mc.player.getX() : 0);
     Dimension dimension = PlayerUtils.getDimension();
 
-    if (dimension == Dimension.Overworld) x /= 8;
-    else if (dimension == Dimension.Nether) x *= 8;
+    if (dimension == Dimension.Overworld)
+      x /= 8;
+    else if (dimension == Dimension.Nether)
+      x *= 8;
 
     return Value.number(x);
   }
@@ -473,73 +513,93 @@ public class NekoStarscript {
     double z = camera ? mc.gameRenderer.mainCamera().position().z : (mc.player != null ? mc.player.getZ() : 0);
     Dimension dimension = PlayerUtils.getDimension();
 
-    if (dimension == Dimension.Overworld) z /= 8;
-    else if (dimension == Dimension.Nether) z *= 8;
+    if (dimension == Dimension.Overworld)
+      z /= 8;
+    else if (dimension == Dimension.Nether)
+      z *= 8;
 
     return Value.number(z);
   }
 
   private static Value yaw(boolean camera) {
     float yaw;
-    if (camera) yaw = mc.gameRenderer.mainCamera().yRot();
-    else yaw = mc.player != null ? mc.player.getYRot() : 0;
+    if (camera)
+      yaw = mc.gameRenderer.mainCamera().yRot();
+    else
+      yaw = mc.player != null ? mc.player.getYRot() : 0;
     yaw %= 360;
 
-    if (yaw < 0) yaw += 360;
-    if (yaw > 180) yaw -= 360;
+    if (yaw < 0)
+      yaw += 360;
+    if (yaw > 180)
+      yaw -= 360;
 
     return Value.number(yaw);
   }
 
   private static Value pitch(boolean camera) {
     float pitch;
-    if (camera) pitch = mc.gameRenderer.mainCamera().xRot();
-    else pitch = mc.player != null ? mc.player.getXRot() : 0;
+    if (camera)
+      pitch = mc.gameRenderer.mainCamera().xRot();
+    else
+      pitch = mc.player != null ? mc.player.getXRot() : 0;
     pitch %= 360;
 
-    if (pitch < 0) pitch += 360;
-    if (pitch > 180) pitch -= 360;
+    if (pitch < 0)
+      pitch += 360;
+    if (pitch > 180)
+      pitch -= 360;
 
     return Value.number(pitch);
   }
 
   private static Value direction(boolean camera) {
     float yaw;
-    if (camera) yaw = mc.gameRenderer.mainCamera().yRot();
-    else yaw = mc.player != null ? mc.player.getYRot() : 0;
+    if (camera)
+      yaw = mc.gameRenderer.mainCamera().yRot();
+    else
+      yaw = mc.player != null ? mc.player.getYRot() : 0;
 
     return wrap(HorizontalDirection.get(yaw));
   }
 
   private static Value biome() {
-    if (mc.player == null || mc.level == null) return Value.string("");
+    if (mc.player == null || mc.level == null)
+      return Value.string("");
 
     BP.set(mc.player.getX(), mc.player.getY(), mc.player.getZ());
-    return mc.level.registryAccess().lookup(Registries.BIOME)
-      .map(biomeRegistry -> {
-        Identifier id = biomeRegistry.getKey(mc.level.getBiome(BP).value());
-        if (id == null) return Value.string("Unknown");
-        return Value.string(Arrays.stream(id.getPath().split("_")).map(StringUtils::capitalize).collect(Collectors.joining(" ")));
-      })
-      .orElse(Value.string("Unknown"));
+    return mc.level.registryAccess()
+        .lookup(Registries.BIOME)
+        .map(biomeRegistry -> {
+          Identifier id = biomeRegistry.getKey(mc.level.getBiome(BP).value());
+          if (id == null)
+            return Value.string("Unknown");
+          return Value.string(
+              Arrays.stream(id.getPath().split("_")).map(StringUtils::capitalize).collect(Collectors.joining(" ")));
+        })
+        .orElse(Value.string("Unknown"));
   }
 
   private static Value weather() {
-    if (mc.level == null) return Value.string("");
+    if (mc.level == null)
+      return Value.string("");
     return Value.string(mc.level.isThundering() ? "Thunder" : mc.level.isRaining() ? "Rain" : "Clear");
   }
 
   private static Value handOrOffhand() {
-    if (mc.player == null) return Value.null_();
+    if (mc.player == null)
+      return Value.null_();
 
     ItemStack itemStack = mc.player.getMainHandItem();
-    if (itemStack.isEmpty()) itemStack = mc.player.getOffhandItem();
+    if (itemStack.isEmpty())
+      itemStack = mc.player.getOffhandItem();
 
     return itemStack != null ? wrap(itemStack) : Value.null_();
   }
 
   private static Value ping() {
-    if (mc.getConnection() == null || mc.player == null) return Value.number(0);
+    if (mc.getConnection() == null || mc.player == null)
+      return Value.number(0);
 
     PlayerInfo playerListEntry = mc.getConnection().getPlayerInfo(mc.player.getUUID());
     return Value.number(playerListEntry != null ? playerListEntry.getLatency() : 0);
@@ -552,8 +612,10 @@ public class NekoStarscript {
 
   private static Value posString(boolean opposite, boolean camera) {
     Vec3 pos;
-    if (camera) pos = mc.gameRenderer.mainCamera().position();
-    else pos = mc.player != null ? mc.player.position() : Vec3.ZERO;
+    if (camera)
+      pos = mc.gameRenderer.mainCamera().position();
+    else
+      pos = mc.player != null ? mc.player.position() : Vec3.ZERO;
 
     double x = pos.x;
     double z = pos.z;
@@ -578,7 +640,8 @@ public class NekoStarscript {
   }
 
   private static Value crosshairType() {
-    if (mc.hitResult == null) return Value.string("miss");
+    if (mc.hitResult == null)
+      return Value.string("miss");
 
     return Value.string(switch (mc.hitResult.getType()) {
       case MISS -> "miss";
@@ -588,9 +651,11 @@ public class NekoStarscript {
   }
 
   private static Value crosshairValue() {
-    if (mc.level == null || mc.hitResult == null) return Value.null_();
+    if (mc.level == null || mc.hitResult == null)
+      return Value.null_();
 
-    if (mc.hitResult.getType() == HitResult.Type.MISS) return Value.string("");
+    if (mc.hitResult.getType() == HitResult.Type.MISS)
+      return Value.string("");
     if (mc.hitResult instanceof BlockHitResult hit)
       return wrap(hit.getBlockPos(), mc.level.getBlockState(hit.getBlockPos()));
     return wrap(((EntityHitResult) mc.hitResult).getEntity());
@@ -617,55 +682,50 @@ public class NekoStarscript {
       durability = itemStack.getMaxDamage() - itemStack.getDamageValue();
 
     return Value.map(new ValueMap()
-      .set("_toString", Value.string(itemStack.getCount() <= 1 ? name : String.format("%s %dx", name, itemStack.getCount())))
-      .set("name", Value.string(name))
-      .set("id", Value.string(BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString()))
-      .set("count", Value.number(itemStack.getCount()))
-      .set("durability", Value.number(durability))
-      .set("max_durability", Value.number(itemStack.getMaxDamage()))
-    );
+            .set("_toString",
+                Value.string(itemStack.getCount() <= 1 ? name : String.format("%s %dx", name, itemStack.getCount())))
+            .set("name", Value.string(name))
+            .set("id", Value.string(BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString()))
+            .set("count", Value.number(itemStack.getCount()))
+            .set("durability", Value.number(durability))
+            .set("max_durability", Value.number(itemStack.getMaxDamage())));
   }
 
   public static Value wrap(BlockPos blockPos, BlockState blockState) {
     return Value.map(new ValueMap()
-      .set("_toString", Value.string(Names.get(blockState.getBlock())))
-      .set("id", Value.string(BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString()))
-      .set("pos", Value.map(new ValueMap()
-        .set("_toString", posString(blockPos.getX(), blockPos.getY(), blockPos.getZ()))
-        .set("x", Value.number(blockPos.getX()))
-        .set("y", Value.number(blockPos.getY()))
-        .set("z", Value.number(blockPos.getZ()))
-      ))
-    );
+            .set("_toString", Value.string(Names.get(blockState.getBlock())))
+            .set("id", Value.string(BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString()))
+            .set("pos",
+                Value.map(new ValueMap()
+                        .set("_toString", posString(blockPos.getX(), blockPos.getY(), blockPos.getZ()))
+                        .set("x", Value.number(blockPos.getX()))
+                        .set("y", Value.number(blockPos.getY()))
+                        .set("z", Value.number(blockPos.getZ())))));
   }
 
   public static Value wrap(Entity entity) {
     return Value.map(new ValueMap()
-      .set("_toString", Value.string(entity.getName().getString()))
-      .set("id", Value.string(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString()))
-      .set("health", Value.number(entity instanceof LivingEntity e ? e.getHealth() : 0))
-      .set("absorption", Value.number(entity instanceof LivingEntity e ? e.getAbsorptionAmount() : 0))
-      .set("pos", Value.map(new ValueMap()
-        .set("_toString", posString(entity.getX(), entity.getY(), entity.getZ()))
-        .set("x", Value.number(entity.getX()))
-        .set("y", Value.number(entity.getY()))
-        .set("z", Value.number(entity.getZ()))
-      ))
-    );
+            .set("_toString", Value.string(entity.getName().getString()))
+            .set("id", Value.string(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString()))
+            .set("health", Value.number(entity instanceof LivingEntity e ? e.getHealth() : 0))
+            .set("absorption", Value.number(entity instanceof LivingEntity e ? e.getAbsorptionAmount() : 0))
+            .set("pos",
+                Value.map(new ValueMap()
+                        .set("_toString", posString(entity.getX(), entity.getY(), entity.getZ()))
+                        .set("x", Value.number(entity.getX()))
+                        .set("y", Value.number(entity.getY()))
+                        .set("z", Value.number(entity.getZ())))));
   }
 
   public static Value wrap(HorizontalDirection dir) {
     return Value.map(new ValueMap()
-      .set("_toString", Value.string(dir.name + " " + dir.axis))
-      .set("name", Value.string(dir.name))
-      .set("axis", Value.string(dir.axis))
-    );
+            .set("_toString", Value.string(dir.name + " " + dir.axis))
+            .set("name", Value.string(dir.name))
+            .set("axis", Value.string(dir.axis)));
   }
 
   public static Value wrap(MobEffectInstance effectInstance) {
-    return Value.map(new ValueMap()
-      .set("duration", effectInstance.getDuration())
-      .set("level", effectInstance.getAmplifier() + 1)
-    );
+    return Value.map(
+        new ValueMap().set("duration", effectInstance.getDuration()).set("level", effectInstance.getAmplifier() + 1));
   }
 }

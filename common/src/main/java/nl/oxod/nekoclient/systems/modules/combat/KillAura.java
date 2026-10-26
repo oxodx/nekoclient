@@ -86,6 +86,7 @@ import nl.oxod.nekoclient.utils.KillAuraRenderer;
 import nl.oxod.nekoclient.utils.KillAuraRotation;
 import nl.oxod.nekoclient.utils.RotationUtil;
 import nl.oxod.nekoclient.utils.entity.fakeplayer.FakePlayerEntity;
+import nl.oxod.nekoclient.utils.player.SwingMode;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;

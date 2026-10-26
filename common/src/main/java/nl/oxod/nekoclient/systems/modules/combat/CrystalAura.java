@@ -56,6 +56,7 @@ import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.player.SwingMode;
 import nl.oxod.nekoclient.utils.render.NametagUtils;
 import nl.oxod.nekoclient.utils.render.RenderUtils;
 import nl.oxod.nekoclient.utils.render.color.Color;

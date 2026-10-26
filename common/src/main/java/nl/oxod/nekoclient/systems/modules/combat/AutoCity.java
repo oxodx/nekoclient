@@ -26,6 +26,7 @@ import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.player.SwingMode;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockUtils;
 
