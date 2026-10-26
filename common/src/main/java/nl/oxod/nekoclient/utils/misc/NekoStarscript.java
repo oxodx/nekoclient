@@ -51,6 +51,7 @@ import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.utils.PreInit;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.player.ChatUtils;
+import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.world.Dimension;
 import nl.oxod.nekoclient.utils.world.TickRate;
