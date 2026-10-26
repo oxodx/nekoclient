@@ -7,7 +7,6 @@ package nl.oxod.nekoclient.systems.modules.player;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.util.Set;
-import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.events.entity.player.DoItemUseEvent;
 import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
+import nl.oxod.nekoclient.utils.world.BlockUtils;
 
 public class GhostHand extends Module {
   private final Set<BlockPos> posList = new ObjectOpenHashSet<>();

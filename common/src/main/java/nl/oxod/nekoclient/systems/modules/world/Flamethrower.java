@@ -6,7 +6,6 @@
 package nl.oxod.nekoclient.systems.modules.world;
 
 import java.util.Set;
-import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -28,6 +27,7 @@ import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.world.BlockUtils;
 
 public class Flamethrower extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();

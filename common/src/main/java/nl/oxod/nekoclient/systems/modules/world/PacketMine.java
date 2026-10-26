@@ -7,7 +7,6 @@ package nl.oxod.nekoclient.systems.modules.world;
 
 import java.util.ArrayList;
 import java.util.List;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,6 +27,7 @@ import nl.oxod.nekoclient.systems.modules.render.BreakIndicators;
 import nl.oxod.nekoclient.utils.misc.Pool;
 import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
+import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockUtils;

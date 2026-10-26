@@ -1513,16 +1513,16 @@ public class HighwayBuilder extends Module {
         if (slot == -1) {
           boolean restockOccurred =
               (b.restockTask.materials
-                  && (hasItem(b,
+                  && (hasItem(
                           stack
                           -> stack.getItem() instanceof BlockItem bi && b.blocksToPlace.get().contains(bi.getBlock()))
                       || (b.blocksToPlace.get().contains(Blocks.OBSIDIAN)
-                          && countItem(b, itemStack -> itemStack.getItem() == Items.ENDER_CHEST)
+                          && countItem(itemStack -> itemStack.getItem() == Items.ENDER_CHEST)
                               > b.saveEchests.get())))
               || (b.restockTask.pickaxes
-                  && countItem(b, itemStack -> itemStack.is(ItemTags.PICKAXES)) > b.savePickaxes.get())
+                  && countItem(itemStack -> itemStack.is(ItemTags.PICKAXES)) > b.savePickaxes.get())
               || (b.restockTask.food
-                  && hasItem(b,
+                  && hasItem(
                       itemStack
                       -> Utils.isFood(itemStack)
                           && !Modules.get().get(AutoEat.class).blacklist.get().contains(itemStack.getItem())));
@@ -1605,7 +1605,7 @@ public class HighwayBuilder extends Module {
               -> itemStack.getItem() instanceof BlockItem bi && b.blocksToPlace.get().contains(bi.getBlock()));
           if (b.blocksToPlace.get().contains(Blocks.OBSIDIAN))
             slotsPulled +=
-                ((countItem(b, itemStack -> itemStack.getItem() == Items.ENDER_CHEST) - b.saveEchests.get()) * 8) / 64;
+                ((countItem(itemStack -> itemStack.getItem() == Items.ENDER_CHEST) - b.saveEchests.get()) * 8) / 64;
         }
         if (b.restockTask.pickaxes)
           slotsPulled += countSlots(b, itemStack -> itemStack.is(ItemTags.PICKAXES)) - b.savePickaxes.get();
@@ -2224,7 +2224,7 @@ public class HighwayBuilder extends Module {
 
     protected int findAndMoveToHotbar(HighwayBuilder b, Predicate<ItemStack> predicate) {
       // Check hotbar
-      int slot = findSlot(b, predicate, true);
+      int slot = findSlot(predicate, true);
       if (slot != -1)
         return slot;
 
@@ -2234,7 +2234,7 @@ public class HighwayBuilder extends Module {
         return -1;
 
       // Check inventory
-      slot = findSlot(b, predicate, false);
+      slot = findSlot(predicate, false);
 
       // Return if no items were found
       if (slot == -1)
