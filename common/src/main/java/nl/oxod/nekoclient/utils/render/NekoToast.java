@@ -5,7 +5,8 @@
 
 package nl.oxod.nekoclient.utils.render;
 
-import nl.oxod.nekoclient.utils.render.color.Color;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.toasts.Toast;
@@ -19,17 +20,17 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class NekoToast implements Toast {
   private static final int TITLE_COLOR = Color.fromRGBA(145, 61, 226, 255);
   private static final int TEXT_COLOR = Color.fromRGBA(220, 220, 220, 255);
   private static final Identifier TEXTURE = Identifier.parse("toast/advancement");
   private static final long DEFAULT_DURATION = 6000;
-  private static final SimpleSoundInstance DEFAULT_SOUND = SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.2f, 1);
+  private static final SimpleSoundInstance DEFAULT_SOUND =
+      SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.2f, 1);
 
   // Toast fields
   private final @NonNull Component title;
@@ -63,9 +64,9 @@ public class NekoToast implements Toast {
     }
 
     public Builder text(@Nullable String text) {
-      this.text = text != null && !text.trim().isEmpty() ?
-        Component.literal(text).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(TEXT_COLOR))) :
-        null;
+      this.text = text != null && !text.trim().isEmpty()
+          ? Component.literal(text).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(TEXT_COLOR)))
+          : null;
       return this;
     }
 
@@ -96,7 +97,8 @@ public class NekoToast implements Toast {
 
   @Override
   public void update(@NonNull ToastManager manager, long time) {
-    if (start == -1) start = time;
+    if (start == -1)
+      start = time;
 
     visibility = time - start >= duration ? Visibility.HIDE : Visibility.SHOW;
 
@@ -120,6 +122,7 @@ public class NekoToast implements Toast {
 
     graphics.text(font, title, textX, titleY, TITLE_COLOR, false);
 
-    if (icon != null) graphics.item(icon, 8, 8);
+    if (icon != null)
+      graphics.item(icon, 8, 8);
   }
 }

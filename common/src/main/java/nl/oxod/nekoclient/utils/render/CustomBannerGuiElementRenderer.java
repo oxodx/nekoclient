@@ -27,21 +27,12 @@ public class CustomBannerGuiElementRenderer extends PictureInPictureRenderer<Cus
     return CustomBannerGuiElementRenderState.class;
   }
 
-    protected void renderToTexture(CustomBannerGuiElementRenderState state, PoseStack poseStack, @NonNull SubmitNodeCollector submitNodeCollector) {
+  protected void renderToTexture(
+      CustomBannerGuiElementRenderState state, PoseStack poseStack, @NonNull SubmitNodeCollector submitNodeCollector) {
     Minecraft.getInstance().gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_FLAT);
-        poseStack.translate(0.0F, 0.25F, 0.0F);
-    BannerRenderer.submitPatterns(
-      this.sprites,
-            poseStack,
-      submitNodeCollector,
-      15728880,
-      OverlayTexture.NO_OVERLAY,
-      state.flag(),
-      0.0F,
-      true,
-      state.baseColor(),
-            state.resultBannerPatterns()
-    );
+    poseStack.translate(0.0F, 0.25F, 0.0F);
+    BannerRenderer.submitPatterns(this.sprites, poseStack, submitNodeCollector, 15728880, OverlayTexture.NO_OVERLAY,
+        state.flag(), 0.0F, true, state.baseColor(), state.resultBannerPatterns());
   }
 
   @Override

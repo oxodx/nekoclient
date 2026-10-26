@@ -5,18 +5,18 @@
 
 package nl.oxod.nekoclient.utils;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.function.Predicate;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 
-import java.util.function.Predicate;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
-
 public class RaycastUtils {
-  public static EntityHitResult raycastEntity(final double range, final float yaw, final float pitch, double boxexpand) {
+  public static EntityHitResult raycastEntity(
+      final double range, final float yaw, final float pitch, double boxexpand) {
     Entity camera = mc.getCameraEntity();
     Vec3 cameraVec = mc.player.getEyePosition();
 
@@ -48,11 +48,13 @@ public class RaycastUtils {
     return new Vec3(i * j, -k, h * j);
   }
 
-  public static HitResult raycast(Vec3 camera, Vec3 rotation, double maxDistance, float tickDelta, boolean includeFluids) {
+  public static HitResult raycast(
+      Vec3 camera, Vec3 rotation, double maxDistance, float tickDelta, boolean includeFluids) {
     Vec3 vec3d = camera;
     Vec3 vec3d2 = rotation;
     Vec3 vec3d3 = vec3d.add(vec3d2.x * maxDistance, vec3d2.y * maxDistance, vec3d2.z * maxDistance);
-    return mc.level.clip(new ClipContext(vec3d, vec3d3, ClipContext.Block.OUTLINE, includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, mc.player));
+    return mc.level.clip(new ClipContext(vec3d, vec3d3, ClipContext.Block.OUTLINE,
+        includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, mc.player));
   }
 
   public static BlockHitResult bucketRaycast(Vec3 camera, float pitch, float yaw, ClipContext.Fluid fluidHandling) {
@@ -70,4 +72,3 @@ public class RaycastUtils {
     return mc.level.clip(new ClipContext(vec3d, vec3d2, ClipContext.Block.OUTLINE, fluidHandling, mc.player));
   }
 }
-

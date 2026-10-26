@@ -7,9 +7,6 @@ package nl.oxod.nekoclient.utils.network;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import nl.oxod.nekoclient.utils.other.JsonDateDeserializer;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -22,6 +19,8 @@ import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import nl.oxod.nekoclient.utils.other.JsonDateDeserializer;
+import org.jspecify.annotations.Nullable;
 
 public class Http {
   public static final int SUCCESS = 200;
@@ -30,18 +29,13 @@ public class Http {
   public static final int FORBIDDEN = 403;
   public static final int NOT_FOUND = 404;
 
-  private static final HttpClient CLIENT = HttpClient.newBuilder()
-    .executor(Executors.newVirtualThreadPerTaskExecutor())
-    .build();
+  private static final HttpClient CLIENT =
+      HttpClient.newBuilder().executor(Executors.newVirtualThreadPerTaskExecutor()).build();
 
-  private static final Gson GSON = new GsonBuilder()
-    .registerTypeAdapter(Date.class, new JsonDateDeserializer())
-    .create();
+  private static final Gson GSON =
+      new GsonBuilder().registerTypeAdapter(Date.class, new JsonDateDeserializer()).create();
 
-  private enum Method {
-    GET,
-    POST
-  }
+  private enum Method { GET, POST }
 
   public static class Request {
     private final HttpRequest.Builder builder;
@@ -50,7 +44,11 @@ public class Http {
 
     private Request(Method method, String url) {
       try {
-        this.builder = HttpRequest.newBuilder().uri(new URI(url)).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+        this.builder = HttpRequest.newBuilder()
+                           .uri(new URI(url))
+                           .header("User-Agent",
+                               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                               + "Chrome/112.0.0.0 Safari/537.36");
         this.method = method;
       } catch (URISyntaxException e) {
         throw new IllegalArgumentException(e);
@@ -102,8 +100,7 @@ public class Http {
     }
 
     public Request ignoreExceptions() {
-      exceptionHandler = _ -> {
-      };
+      exceptionHandler = _ -> {};
       return this;
     }
 
@@ -114,7 +111,8 @@ public class Http {
 
     private <T> HttpResponse<T> _sendResponse(String accept, HttpResponse.BodyHandler<T> responseBodyHandler) {
       builder.header("Accept", accept);
-      if (method != null) builder.method(method.name(), HttpRequest.BodyPublishers.noBody());
+      if (method != null)
+        builder.method(method.name(), HttpRequest.BodyPublishers.noBody());
 
       HttpRequest request = builder.build();
 

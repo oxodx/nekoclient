@@ -5,13 +5,12 @@
 
 package nl.oxod.nekoclient.utils;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 public final class ChamsHit {
   private static final long FLASH_MS = 500L;
@@ -21,24 +20,25 @@ public final class ChamsHit {
   private static final Map<Integer, Long> FLASH = new ConcurrentHashMap<>();
   private static final Map<Integer, Pending> PENDING = new ConcurrentHashMap<>();
 
-  private record Pending(int prevHurtTime, int ticksLeft) {
-  }
+  private record Pending(int prevHurtTime, int ticksLeft) {}
 
-  private ChamsHit() {
-  }
+  private ChamsHit() {}
 
   public static void onAttack(Entity entity) {
-    if (!(entity instanceof LivingEntity living)) return;
+    if (!(entity instanceof LivingEntity living))
+      return;
     PENDING.put(living.getId(), new Pending(living.hurtTime, PENDING_TICKS));
   }
 
   public static void mark(Entity entity) {
-    if (entity == null) return;
+    if (entity == null)
+      return;
     FLASH.put(entity.getId(), System.currentTimeMillis());
   }
 
   public static void tick() {
-    if (PENDING.isEmpty()) return;
+    if (PENDING.isEmpty())
+      return;
     Minecraft mc = Minecraft.getInstance();
     if (mc == null || mc.level == null) {
       PENDING.clear();
@@ -50,8 +50,7 @@ public final class ChamsHit {
       Entity entity = mc.level.getEntity(e.getKey());
       Pending p = e.getValue();
       boolean landed = entity instanceof LivingEntity living
-        && (living.hurtTime > p.prevHurtTime()
-        || p.prevHurtTime() >= HURT_TIME && living.hurtTime >= HURT_TIME);
+          && (living.hurtTime > p.prevHurtTime() || p.prevHurtTime() >= HURT_TIME && living.hurtTime >= HURT_TIME);
       if (landed) {
         FLASH.put(e.getKey(), System.currentTimeMillis());
         it.remove();
@@ -64,10 +63,13 @@ public final class ChamsHit {
   }
 
   public static boolean isFlashing(Entity entity) {
-    if (entity == null) return false;
+    if (entity == null)
+      return false;
     Long at = FLASH.get(entity.getId());
-    if (at == null) return false;
-    if (System.currentTimeMillis() - at < FLASH_MS) return true;
+    if (at == null)
+      return false;
+    if (System.currentTimeMillis() - at < FLASH_MS)
+      return true;
     FLASH.remove(entity.getId());
     return false;
   }

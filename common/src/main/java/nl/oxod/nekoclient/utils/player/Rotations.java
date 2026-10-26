@@ -5,6 +5,16 @@
 
 package nl.oxod.nekoclient.utils.player;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.ArrayList;
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.entity.player.SendMovementPacketsEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -12,17 +22,6 @@ import nl.oxod.nekoclient.systems.config.Config;
 import nl.oxod.nekoclient.utils.PreInit;
 import nl.oxod.nekoclient.utils.entity.Target;
 import nl.oxod.nekoclient.utils.misc.Pool;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class Rotations {
   private static final Pool<Rotation> rotationPool = new Pool<>(Rotation::new);
@@ -38,8 +37,7 @@ public class Rotations {
   private static boolean sentLastRotation;
   public static boolean rotating = false;
 
-  private Rotations() {
-  }
+  private Rotations() {}
 
   @PreInit
   public static void init() {
@@ -52,7 +50,8 @@ public class Rotations {
 
     int i = 0;
     for (; i < rotations.size(); i++) {
-      if (priority > rotations.get(i).priority) break;
+      if (priority > rotations.get(i).priority)
+        break;
     }
 
     rotations.add(i, rotation);
@@ -85,7 +84,8 @@ public class Rotations {
 
   @EventHandler
   private static void onSendMovementPacketsPre(SendMovementPacketsEvent.Pre event) {
-    if (mc.getCameraEntity() != mc.player) return;
+    if (mc.getCameraEntity() != mc.player)
+      return;
     sentLastRotation = false;
 
     if (!rotations.isEmpty()) {
@@ -95,7 +95,8 @@ public class Rotations {
       Rotation rotation = rotations.get(i);
       setupMovementPacketRotation(rotation);
 
-      if (rotations.size() > 1) rotationPool.free(rotation);
+      if (rotations.size() > 1)
+        rotationPool.free(rotation);
 
       i++;
     } else if (lastRotation != null) {
@@ -130,7 +131,8 @@ public class Rotations {
       if (mc.getCameraEntity() == mc.player) {
         rotations.get(i - 1).runCallback();
 
-        if (rotations.size() == 1) lastRotation = rotations.get(i - 1);
+        if (rotations.size() == 1)
+          lastRotation = rotations.get(i - 1);
 
         resetPreRotation();
       }
@@ -139,12 +141,16 @@ public class Rotations {
         Rotation rotation = rotations.get(i);
 
         setCamRotation(rotation.yaw, rotation.pitch);
-        if (rotation.clientSide) setClientRotation(rotation);
+        if (rotation.clientSide)
+          setClientRotation(rotation);
         rotation.sendPacket();
-        if (rotation.clientSide) resetPreRotation();
+        if (rotation.clientSide)
+          resetPreRotation();
 
-        if (i == rotations.size() - 1) lastRotation = rotation;
-        else rotationPool.free(rotation);
+        if (i == rotations.size() - 1)
+          lastRotation = rotation;
+        else
+          rotationPool.free(rotation);
       }
 
       rotations.clear();
@@ -165,11 +171,16 @@ public class Rotations {
   }
 
   public static double getYaw(Entity entity) {
-    return mc.player.getYRot() + Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(entity.getZ() - mc.player.getZ(), entity.getX() - mc.player.getX())) - 90f - mc.player.getYRot());
+    return mc.player.getYRot()
+        + Mth.wrapDegrees(
+            (float) Math.toDegrees(Math.atan2(entity.getZ() - mc.player.getZ(), entity.getX() - mc.player.getX())) - 90f
+            - mc.player.getYRot());
   }
 
   public static double getYaw(Vec3 pos) {
-    return mc.player.getYRot() + Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.z() - mc.player.getZ(), pos.x() - mc.player.getX())) - 90f - mc.player.getYRot());
+    return mc.player.getYRot()
+        + Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.z() - mc.player.getZ(), pos.x() - mc.player.getX()))
+            - 90f - mc.player.getYRot());
   }
 
   public static double getPitch(Vec3 pos) {
@@ -179,7 +190,8 @@ public class Rotations {
 
     double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-    return mc.player.getXRot() + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
+    return mc.player.getXRot()
+        + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
   }
 
   public static double getPitch(Entity entity, Target target) {
@@ -195,7 +207,8 @@ public class Rotations {
 
     double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-    return mc.player.getXRot() + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
+    return mc.player.getXRot()
+        + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
   }
 
   public static double getPitch(Entity entity) {
@@ -203,7 +216,10 @@ public class Rotations {
   }
 
   public static double getYaw(BlockPos pos) {
-    return mc.player.getYRot() + Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.getZ() + 0.5 - mc.player.getZ(), pos.getX() + 0.5 - mc.player.getX())) - 90f - mc.player.getYRot());
+    return mc.player.getYRot()
+        + Mth.wrapDegrees(
+            (float) Math.toDegrees(Math.atan2(pos.getZ() + 0.5 - mc.player.getZ(), pos.getX() + 0.5 - mc.player.getX()))
+            - 90f - mc.player.getYRot());
   }
 
   public static double getPitch(BlockPos pos) {
@@ -213,7 +229,8 @@ public class Rotations {
 
     double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-    return mc.player.getXRot() + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
+    return mc.player.getXRot()
+        + Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getXRot());
   }
 
   public static void setCamRotation(double yaw, double pitch) {
@@ -237,12 +254,14 @@ public class Rotations {
     }
 
     public void sendPacket() {
-      mc.getConnection().send(new ServerboundMovePlayerPacket.Rot((float) yaw, (float) pitch, mc.player.onGround(), mc.player.horizontalCollision));
+      mc.getConnection().send(new ServerboundMovePlayerPacket.Rot(
+          (float) yaw, (float) pitch, mc.player.onGround(), mc.player.horizontalCollision));
       runCallback();
     }
 
     public void runCallback() {
-      if (callback != null) callback.run();
+      if (callback != null)
+        callback.run();
     }
   }
 }

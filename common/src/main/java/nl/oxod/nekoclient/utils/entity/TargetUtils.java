@@ -5,27 +5,25 @@
 
 package nl.oxod.nekoclient.utils.entity;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import nl.oxod.nekoclient.systems.friends.Friends;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.entity.fakeplayer.FakePlayerEntity;
 import nl.oxod.nekoclient.utils.entity.fakeplayer.FakePlayerManager;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.GameType;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class TargetUtils {
   private static final List<Entity> ENTITIES = new ArrayList<>();
 
-  private TargetUtils() {
-  }
+  private TargetUtils() {}
 
   @Nullable
   public static Entity get(Predicate<Entity> isGood, SortPriority sortPriority) {
@@ -38,15 +36,18 @@ public class TargetUtils {
     return null;
   }
 
-  public static void getList(List<Entity> targetList, Predicate<Entity> isGood, SortPriority sortPriority, int maxCount) {
+  public static void getList(
+      List<Entity> targetList, Predicate<Entity> isGood, SortPriority sortPriority, int maxCount) {
     targetList.clear();
 
     for (Entity entity : mc.level.entitiesForRendering()) {
-      if (entity != null && isGood.test(entity)) targetList.add(entity);
+      if (entity != null && isGood.test(entity))
+        targetList.add(entity);
     }
 
     FakePlayerManager.forEach(fp -> {
-      if (fp != null && isGood.test(fp)) targetList.add(fp);
+      if (fp != null && isGood.test(fp))
+        targetList.add(fp);
     });
 
     targetList.sort(sortPriority);
@@ -58,19 +59,27 @@ public class TargetUtils {
 
   @Nullable
   public static Player getPlayerTarget(double range, SortPriority priority) {
-    if (!Utils.canUpdate()) return null;
+    if (!Utils.canUpdate())
+      return null;
     return (Player) get(entity -> {
-      if (!(entity instanceof Player player) || entity == mc.player) return false;
-      if (player.isDeadOrDying() || player.getHealth() <= 0) return false;
-      if (!PlayerUtils.isWithin(entity, range)) return false;
-      if (!Friends.get().shouldAttack(player)) return false;
-      if (entity instanceof FakePlayerEntity fakePlayer) return !fakePlayer.noHit;
+      if (!(entity instanceof Player player) || entity == mc.player)
+        return false;
+      if (player.isDeadOrDying() || player.getHealth() <= 0)
+        return false;
+      if (!PlayerUtils.isWithin(entity, range))
+        return false;
+      if (!Friends.get().shouldAttack(player))
+        return false;
+      if (entity instanceof FakePlayerEntity fakePlayer)
+        return !fakePlayer.noHit;
       return EntityUtils.getGameMode(player) == GameType.SURVIVAL;
     }, priority);
   }
 
   public static boolean isBadTarget(Player target, double range) {
-    if (target == null) return true;
-    return !PlayerUtils.isWithin(target, range) || !target.isAlive() || target.isDeadOrDying() || target.getHealth() <= 0;
+    if (target == null)
+      return true;
+    return !PlayerUtils.isWithin(target, range) || !target.isAlive() || target.isDeadOrDying()
+        || target.getHealth() <= 0;
   }
 }

@@ -5,9 +5,6 @@
 
 package nl.oxod.nekoclient.utils.network;
 
-import org.jspecify.annotations.Nullable;
-
-import javax.net.ssl.SSLSession;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -15,6 +12,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.Optional;
+import javax.net.ssl.SSLSession;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Failed {@link HttpResponse} object that is returned from {@link Http} {@code sendRequest} methods when

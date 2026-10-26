@@ -5,7 +5,7 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
-import nl.oxod.nekoclient.utils.render.DisplayItemUtils;
+import java.util.function.Supplier;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
@@ -14,8 +14,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
-
-import java.util.function.Supplier;
+import nl.oxod.nekoclient.utils.render.DisplayItemUtils;
 
 public enum MyPotion {
   Swiftness(Potions.SWIFTNESS, Items.NETHER_WART, Items.SUGAR),
@@ -24,7 +23,8 @@ public enum MyPotion {
 
   Slowness(Potions.SLOWNESS, Items.NETHER_WART, Items.SUGAR, Items.FERMENTED_SPIDER_EYE),
   SlownessLong(Potions.LONG_SLOWNESS, Items.NETHER_WART, Items.SUGAR, Items.FERMENTED_SPIDER_EYE, Items.REDSTONE),
-  SlownessStrong(Potions.STRONG_SLOWNESS, Items.NETHER_WART, Items.SUGAR, Items.FERMENTED_SPIDER_EYE, Items.GLOWSTONE_DUST),
+  SlownessStrong(
+      Potions.STRONG_SLOWNESS, Items.NETHER_WART, Items.SUGAR, Items.FERMENTED_SPIDER_EYE, Items.GLOWSTONE_DUST),
 
   JumpBoost(Potions.LEAPING, Items.NETHER_WART, Items.RABBIT_FOOT),
   JumpBoostLong(Potions.LONG_LEAPING, Items.NETHER_WART, Items.RABBIT_FOOT, Items.REDSTONE),
@@ -38,7 +38,8 @@ public enum MyPotion {
   HealingStrong(Potions.STRONG_HEALING, Items.NETHER_WART, Items.GLISTERING_MELON_SLICE, Items.GLOWSTONE_DUST),
 
   Harming(Potions.HARMING, Items.NETHER_WART, Items.GLISTERING_MELON_SLICE, Items.FERMENTED_SPIDER_EYE),
-  HarmingStrong(Potions.STRONG_HARMING, Items.NETHER_WART, Items.GLISTERING_MELON_SLICE, Items.FERMENTED_SPIDER_EYE, Items.GLOWSTONE_DUST),
+  HarmingStrong(Potions.STRONG_HARMING, Items.NETHER_WART, Items.GLISTERING_MELON_SLICE, Items.FERMENTED_SPIDER_EYE,
+      Items.GLOWSTONE_DUST),
 
   Poison(Potions.POISON, Items.NETHER_WART, Items.SPIDER_EYE),
   PoisonLong(Potions.LONG_POISON, Items.NETHER_WART, Items.SPIDER_EYE, Items.REDSTONE),
@@ -58,7 +59,8 @@ public enum MyPotion {
   NightVisionLong(Potions.LONG_NIGHT_VISION, Items.NETHER_WART, Items.GOLDEN_CARROT, Items.REDSTONE),
 
   Invisibility(Potions.INVISIBILITY, Items.NETHER_WART, Items.GOLDEN_CARROT, Items.FERMENTED_SPIDER_EYE),
-  InvisibilityLong(Potions.LONG_INVISIBILITY, Items.NETHER_WART, Items.GOLDEN_CARROT, Items.FERMENTED_SPIDER_EYE, Items.REDSTONE),
+  InvisibilityLong(
+      Potions.LONG_INVISIBILITY, Items.NETHER_WART, Items.GOLDEN_CARROT, Items.FERMENTED_SPIDER_EYE, Items.REDSTONE),
 
   TurtleMaster(Potions.TURTLE_MASTER, Items.NETHER_WART, Items.TURTLE_HELMET),
   TurtleMasterLong(Potions.LONG_TURTLE_MASTER, Items.NETHER_WART, Items.TURTLE_HELMET, Items.REDSTONE),

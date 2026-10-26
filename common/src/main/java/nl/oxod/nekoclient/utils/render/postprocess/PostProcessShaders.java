@@ -1,19 +1,18 @@
 package nl.oxod.nekoclient.utils.render.postprocess;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import meteordevelopment.orbit.EventHandler;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.render.Render2DEvent;
 import nl.oxod.nekoclient.utils.PreInit;
-import meteordevelopment.orbit.EventHandler;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class PostProcessShaders {
   public static EntityShader CHAMS;
   public static EntityShader ENTITY_OUTLINE;
   public static PostProcessShader STORAGE_OUTLINE;
 
-  private PostProcessShaders() {
-  }
+  private PostProcessShaders() {}
 
   @PreInit
   public static void init() {
@@ -42,7 +41,8 @@ public class PostProcessShaders {
   }
 
   public static void onResized(int width, int height) {
-    if (mc == null) return;
+    if (mc == null)
+      return;
 
     CHAMS.onResized(width, height);
     ENTITY_OUTLINE.onResized(width, height);

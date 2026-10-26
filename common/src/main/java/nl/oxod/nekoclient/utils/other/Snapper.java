@@ -26,8 +26,10 @@ public class Snapper {
       return;
     }
 
-    if (snappedTo == null) moveUnsnapped(element, deltaX, deltaY);
-    else moveSnapped(element, deltaX, deltaY);
+    if (snappedTo == null)
+      moveUnsnapped(element, deltaX, deltaY);
+    else
+      moveSnapped(element, deltaX, deltaY);
   }
 
   public void unsnap() {
@@ -43,10 +45,12 @@ public class Snapper {
       int closestDist = Integer.MAX_VALUE;
 
       for (Element e : container.getElements()) {
-        if (container.shouldNotSnapTo(e)) continue;
+        if (container.shouldNotSnapTo(e))
+          continue;
 
         int dist = e.getX() - element.getX2();
-        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist) && isNextToHorizontally(element, e)) {
+        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist)
+            && isNextToHorizontally(element, e)) {
           closest = e;
           closestDist = dist;
         }
@@ -63,10 +67,12 @@ public class Snapper {
       int closestDist = Integer.MAX_VALUE;
 
       for (Element e : container.getElements()) {
-        if (container.shouldNotSnapTo(e)) continue;
+        if (container.shouldNotSnapTo(e))
+          continue;
 
         int dist = element.getX() - e.getX2();
-        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist) && isNextToHorizontally(element, e)) {
+        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist)
+            && isNextToHorizontally(element, e)) {
           closest = e;
           closestDist = dist;
         }
@@ -83,10 +89,12 @@ public class Snapper {
       int closestDist = Integer.MAX_VALUE;
 
       for (Element e : container.getElements()) {
-        if (container.shouldNotSnapTo(e)) continue;
+        if (container.shouldNotSnapTo(e))
+          continue;
 
         int dist = e.getY() - element.getY2();
-        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist) && isNextToVertically(element, e)) {
+        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist)
+            && isNextToVertically(element, e)) {
           closest = e;
           closestDist = dist;
         }
@@ -103,10 +111,12 @@ public class Snapper {
       int closestDist = Integer.MAX_VALUE;
 
       for (Element e : container.getElements()) {
-        if (container.shouldNotSnapTo(e)) continue;
+        if (container.shouldNotSnapTo(e))
+          continue;
 
         int dist = element.getY() - e.getY2();
-        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist) && isNextToVertically(element, e)) {
+        if (dist > 0 && dist <= container.getSnappingRange() && (closest == null || dist < closestDist)
+            && isNextToVertically(element, e)) {
           closest = e;
           closestDist = dist;
         }
@@ -122,11 +132,14 @@ public class Snapper {
   private void moveSnapped(Element element, int deltaX, int deltaY) {
     switch (mainDir) {
       case Right, Left -> {
-        if (secondary) secondaryPos += deltaY;
-        else element.move(0, deltaY);
+        if (secondary)
+          secondaryPos += deltaY;
+        else
+          element.move(0, deltaY);
         mainPos += deltaX;
 
-        if (!isNextToHorizontally(element, snappedTo)) unsnap();
+        if (!isNextToHorizontally(element, snappedTo))
+          unsnap();
         else if (!secondary) {
           // Secondary Bottom
           if (deltaY > 0) {
@@ -147,11 +160,14 @@ public class Snapper {
         }
       }
       case Top, Bottom -> {
-        if (secondary) secondaryPos += deltaX;
-        else element.move(deltaX, 0);
+        if (secondary)
+          secondaryPos += deltaX;
+        else
+          element.move(deltaX, 0);
         mainPos += deltaY;
 
-        if (!isNextToVertically(element, snappedTo)) unsnap();
+        if (!isNextToVertically(element, snappedTo))
+          unsnap();
         else if (!secondary) {
           // Secondary Right
           if (deltaX > 0) {
@@ -173,8 +189,10 @@ public class Snapper {
       }
     }
 
-    if (Math.abs(mainPos) > container.getSnappingRange() * 5) unsnap();
-    else if (Math.abs(secondaryPos) > container.getSnappingRange() * 5) secondary = false;
+    if (Math.abs(mainPos) > container.getSnappingRange() * 5)
+      unsnap();
+    else if (Math.abs(secondaryPos) > container.getSnappingRange() * 5)
+      secondary = false;
   }
 
   private void snapMain(Element element, Direction dir) {
@@ -199,7 +217,8 @@ public class Snapper {
     int h1 = e1.getHeight();
     int y2 = e2.getY();
     int h2 = e2.getHeight();
-    return isBetween(y1, y2, y2 + h2) || isBetween(y1 + h1, y2, y2 + h2) || isBetween(y2, y1, y1 + h1) || isBetween(y2 + h2, y1, y1 + h1);
+    return isBetween(y1, y2, y2 + h2) || isBetween(y1 + h1, y2, y2 + h2) || isBetween(y2, y1, y1 + h1)
+        || isBetween(y2 + h2, y1, y1 + h1);
   }
 
   private boolean isNextToVertically(Element e1, Element e2) {
@@ -207,7 +226,8 @@ public class Snapper {
     int w1 = e1.getWidth();
     int x2 = e2.getX();
     int w2 = e2.getWidth();
-    return isBetween(x1, x2, x2 + w2) || isBetween(x1 + w1, x2, x2 + w2) || isBetween(x2, x1, x1 + w1) || isBetween(x2 + w2, x1, x1 + w1);
+    return isBetween(x1, x2, x2 + w2) || isBetween(x1 + w1, x2, x2 + w2) || isBetween(x2, x1, x1 + w1)
+        || isBetween(x2 + w2, x1, x1 + w1);
   }
 
   public interface Container {
@@ -240,10 +260,5 @@ public class Snapper {
     void move(int deltaX, int deltaY);
   }
 
-  private enum Direction {
-    Right,
-    Left,
-    Top,
-    Bottom
-  }
+  private enum Direction { Right, Left, Top, Bottom }
 }

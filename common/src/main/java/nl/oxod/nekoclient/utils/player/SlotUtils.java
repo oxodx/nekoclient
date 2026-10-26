@@ -5,9 +5,8 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import nl.oxod.nekoclient.mixin.AbstractMountInventoryMenuAccessor;
-import nl.oxod.nekoclient.mixin.CreativeModeInventoryScreenAccessor;
-import nl.oxod.nekoclient.mixin.CreativeModeTabsAccessor;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,8 +15,9 @@ import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.equine.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.mixin.AbstractMountInventoryMenuAccessor;
+import nl.oxod.nekoclient.mixin.CreativeModeInventoryScreenAccessor;
+import nl.oxod.nekoclient.mixin.CreativeModeTabsAccessor;
 
 public class SlotUtils {
   /**
@@ -36,21 +36,22 @@ public class SlotUtils {
   public static final int ARMOR_END = 39;
   public static final int OFFHAND = 40;
 
-  private SlotUtils() {
-  }
+  private SlotUtils() {}
 
   /**
    * Slot ids are used when inventory interactions have to be communicated to the server - you'll only find references
    * to slot ids when dealing with screen handlers or slot/inventory packets. All the methods in this class are used
    * to translate slot indices to the ids for each handled screen.
    *
-   * @see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Inventory">the minecraft.wiki page</a> for every slot id
+   * @see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Inventory">the minecraft.wiki page</a> for every slot
+   *     id
    * @see MultiPlayerGameMode#handleContainerInput(int, int, int, ContainerInput, Player)
    * @see AbstractContainerMenu#doClick(int, int, ContainerInput, Player)
    * @see Slot#index
    */
   public static int indexToId(int i) {
-    if (mc.player == null) return -1;
+    if (mc.player == null)
+      return -1;
     AbstractContainerMenu handler = mc.player.containerMenu;
 
     return switch (handler) {
@@ -77,79 +78,102 @@ public class SlotUtils {
       case SmithingMenu _ -> smithingTable(i);
       default -> -1;
     };
-
   }
 
   private static int survivalInventory(int i) {
-    if (isHotbar(i)) return 36 + i;
-    if (isArmor(i)) return 5 + (i - 36);
-    if (i == OFFHAND) return 45;
+    if (isHotbar(i))
+      return 36 + i;
+    if (isArmor(i))
+      return 5 + (i - 36);
+    if (i == OFFHAND)
+      return 45;
     return i;
   }
 
   private static int creativeInventory(int i) {
-    if (CreativeModeInventoryScreenAccessor.neko$getSelectedTab() != BuiltInRegistries.CREATIVE_MODE_TAB.getValue(CreativeModeTabsAccessor.neko$getInventory()))
+    if (CreativeModeInventoryScreenAccessor.neko$getSelectedTab()
+        != BuiltInRegistries.CREATIVE_MODE_TAB.getValue(CreativeModeTabsAccessor.neko$getInventory()))
       return -1;
     return survivalInventory(i);
   }
 
   private static int genericContainer(int i, int rows) {
-    if (isHotbar(i)) return (rows + 3) * 9 + i;
-    if (isMain(i)) return rows * 9 + (i - 9);
+    if (isHotbar(i))
+      return (rows + 3) * 9 + i;
+    if (isMain(i))
+      return rows * 9 + (i - 9);
     return -1;
   }
 
   private static int craftingTable(int i) {
-    if (isHotbar(i)) return 37 + i;
-    if (isMain(i)) return i + 1;
+    if (isHotbar(i))
+      return 37 + i;
+    if (isMain(i))
+      return i + 1;
     return -1;
   }
 
   private static int furnace(int i) {
-    if (isHotbar(i)) return 30 + i;
-    if (isMain(i)) return 3 + (i - 9);
+    if (isHotbar(i))
+      return 30 + i;
+    if (isMain(i))
+      return 3 + (i - 9);
     return -1;
   }
 
   private static int generic3x3(int i) {
-    if (isHotbar(i)) return 36 + i;
-    if (isMain(i)) return i;
+    if (isHotbar(i))
+      return 36 + i;
+    if (isMain(i))
+      return i;
     return -1;
   }
 
   private static int enchantmentTable(int i) {
-    if (isHotbar(i)) return 29 + i;
-    if (isMain(i)) return 2 + (i - 9);
+    if (isHotbar(i))
+      return 29 + i;
+    if (isMain(i))
+      return 2 + (i - 9);
     return -1;
   }
 
   private static int brewingStand(int i) {
-    if (isHotbar(i)) return 32 + i;
-    if (isMain(i)) return 5 + (i - 9);
+    if (isHotbar(i))
+      return 32 + i;
+    if (isMain(i))
+      return 5 + (i - 9);
     return -1;
   }
 
   private static int villager(int i) {
-    if (isHotbar(i)) return 30 + i;
-    if (isMain(i)) return 3 + (i - 9);
+    if (isHotbar(i))
+      return 30 + i;
+    if (isMain(i))
+      return 3 + (i - 9);
     return -1;
   }
 
   private static int beacon(int i) {
-    if (isHotbar(i)) return 28 + i;
-    if (isMain(i)) return 1 + (i - 9);
+    if (isHotbar(i))
+      return 28 + i;
+    if (isMain(i))
+      return 1 + (i - 9);
     return -1;
   }
 
   private static int anvil(int i) {
-    if (isHotbar(i)) return 30 + i;
-    if (isMain(i)) return 3 + (i - 9);
+    if (isHotbar(i))
+      return 30 + i;
+    if (isMain(i))
+      return 3 + (i - 9);
     return -1;
   }
 
   private static int hopper(int i) {
-    if (isHotbar(i)) return 32 + i;
-    if (isMain(i)) return 5 + (i - 9);
+    if (isHotbar(i))
+      return 32 + i;
+    if (isMain(i))
+      return 5 + (i - 9);
     return -1;
   }
 
@@ -158,30 +182,40 @@ public class SlotUtils {
 
     if (entity instanceof Llama llamaEntity) {
       int strength = llamaEntity.getStrength();
-      if (isHotbar(i)) return (2 + 3 * strength) + 28 + i;
-      if (isMain(i)) return (2 + 3 * strength) + 1 + (i - 9);
-    } else if (entity instanceof Horse || entity instanceof SkeletonHorse
-      || entity instanceof ZombieHorse || entity instanceof Camel) {
-      if (isHotbar(i)) return 29 + i;
-      if (isMain(i)) return 2 + (i - 9);
+      if (isHotbar(i))
+        return (2 + 3 * strength) + 28 + i;
+      if (isMain(i))
+        return (2 + 3 * strength) + 1 + (i - 9);
+    } else if (entity instanceof Horse || entity instanceof SkeletonHorse || entity instanceof ZombieHorse
+        || entity instanceof Camel) {
+      if (isHotbar(i))
+        return 29 + i;
+      if (isMain(i))
+        return 2 + (i - 9);
     } else if (entity instanceof AbstractChestedHorse abstractDonkeyEntity) {
       boolean chest = abstractDonkeyEntity.hasChest();
-      if (isHotbar(i)) return (chest ? 44 : 29) + i;
-      if (isMain(i)) return (chest ? 17 : 2) + (i - 9);
+      if (isHotbar(i))
+        return (chest ? 44 : 29) + i;
+      if (isMain(i))
+        return (chest ? 17 : 2) + (i - 9);
     }
 
     return -1;
   }
 
   private static int cartographyTable(int i) {
-    if (isHotbar(i)) return 30 + i;
-    if (isMain(i)) return 3 + (i - 9);
+    if (isHotbar(i))
+      return 30 + i;
+    if (isMain(i))
+      return 3 + (i - 9);
     return -1;
   }
 
   private static int grindstone(int i) {
-    if (isHotbar(i)) return 30 + i;
-    if (isMain(i)) return 3 + (i - 9);
+    if (isHotbar(i))
+      return 30 + i;
+    if (isMain(i))
+      return 3 + (i - 9);
     return -1;
   }
 
@@ -190,26 +224,34 @@ public class SlotUtils {
   }
 
   private static int loom(int i) {
-    if (isHotbar(i)) return 31 + i;
-    if (isMain(i)) return 4 + (i - 9);
+    if (isHotbar(i))
+      return 31 + i;
+    if (isMain(i))
+      return 4 + (i - 9);
     return -1;
   }
 
   private static int stonecutter(int i) {
-    if (isHotbar(i)) return 29 + i;
-    if (isMain(i)) return 2 + (i - 9);
+    if (isHotbar(i))
+      return 29 + i;
+    if (isMain(i))
+      return 2 + (i - 9);
     return -1;
   }
 
   private static int crafter(int i) {
-    if (isHotbar(i)) return 36 + i;
-    if (isMain(i)) return i;
+    if (isHotbar(i))
+      return 36 + i;
+    if (isMain(i))
+      return i;
     return -1;
   }
 
   private static int smithingTable(int i) {
-    if (isHotbar(i)) return 31 + i;
-    if (isMain(i)) return 4 + (i - 9);
+    if (isHotbar(i))
+      return 31 + i;
+    if (isMain(i))
+      return 4 + (i - 9);
     return -1;
   }
 

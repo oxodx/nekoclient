@@ -5,8 +5,9 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.entity.player.PlayerMoveEvent;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.ArrayList;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -15,10 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.ArrayList;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.entity.player.PlayerMoveEvent;
 
 public class PathFinder {
   private static final int PATH_AHEAD = 3;
@@ -34,7 +33,8 @@ public class PathFinder {
     } else if (!isSolidFloor(nextBlock.blockPos) && isAirAbove(nextBlock.blockPos)) {
       int drop = getDrop(nextBlock.blockPos);
       if (getDrop(nextBlock.blockPos) < 3) {
-        nextBlock = new PathBlock(new BlockPos(nextBlock.blockPos.getX(), nextBlock.blockPos.getY() - drop, nextBlock.blockPos.getZ()));
+        nextBlock = new PathBlock(
+            new BlockPos(nextBlock.blockPos.getX(), nextBlock.blockPos.getY() - drop, nextBlock.blockPos.getZ()));
       }
     }
 
@@ -60,14 +60,17 @@ public class PathFinder {
     Vec3 nextPos = new Vec3(mc.player.getX(), mc.player.getY(), mc.player.getZ());
     double multiplier = 1.0;
     while (nextPos == mc.player.position()) {
-      nextPos = new Vec3((int) (mc.player.getX() + multiplier * Math.cos(Math.toRadians(mc.player.getYRot()))), (int) (mc.player.getY()), (int) (mc.player.getZ() + multiplier * Math.sin(Math.toRadians(mc.player.getYRot()))));
+      nextPos = new Vec3((int) (mc.player.getX() + multiplier * Math.cos(Math.toRadians(mc.player.getYRot()))),
+          (int) (mc.player.getY()),
+          (int) (mc.player.getZ() + multiplier * Math.sin(Math.toRadians(mc.player.getYRot()))));
       multiplier += .1;
     }
     return nextPos;
   }
 
   public int getYawToTarget() {
-    if (target == null || mc.player == null) return Integer.MAX_VALUE;
+    if (target == null || mc.player == null)
+      return Integer.MAX_VALUE;
     Vec3 tPos = target.position();
     Vec3 pPos = mc.player.position();
     int yaw;
@@ -84,7 +87,8 @@ public class PathFinder {
   }
 
   public int getDirection() {
-    if (target == null || mc.player == null) return 0;
+    if (target == null || mc.player == null)
+      return 0;
     Vec3 targetPos = target.position();
     Vec3 playerPos = mc.player.position();
     if (targetPos.x == playerPos.x && targetPos.z > playerPos.z)
@@ -130,7 +134,9 @@ public class PathFinder {
 
   public void lookAtDestination(PathBlock pathBlock) {
     if (mc.player != null) {
-      mc.player.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(pathBlock.blockPos.getX(), pathBlock.blockPos.getY() + mc.player.getEyeHeight(), pathBlock.blockPos.getZ()));
+      mc.player.lookAt(EntityAnchorArgument.Anchor.EYES,
+          new Vec3(pathBlock.blockPos.getX(), pathBlock.blockPos.getY() + mc.player.getEyeHeight(),
+              pathBlock.blockPos.getZ()));
     }
   }
 
@@ -138,8 +144,11 @@ public class PathFinder {
   private void moveEventListener(PlayerMoveEvent event) {
     if (target != null && mc.player != null) {
       if (!PlayerUtils.isWithin(target, 3)) {
-        if (currentPathBlock == null) currentPathBlock = getNextPathBlock();
-        if (mc.player.position().distanceToSqr(new Vec3(currentPathBlock.blockPos.getX(), currentPathBlock.blockPos.getY(), currentPathBlock.blockPos.getZ())) < .01)
+        if (currentPathBlock == null)
+          currentPathBlock = getNextPathBlock();
+        if (mc.player.position().distanceToSqr(new Vec3(
+                currentPathBlock.blockPos.getX(), currentPathBlock.blockPos.getY(), currentPathBlock.blockPos.getZ()))
+            < .01)
           currentPathBlock = getNextPathBlock();
         lookAtDestination(currentPathBlock);
         if (!mc.options.keyUp.isDown())
@@ -155,14 +164,16 @@ public class PathFinder {
 
   public void initiate(Entity entity) {
     target = entity;
-    if (target != null) currentPathBlock = getNextPathBlock();
+    if (target != null)
+      currentPathBlock = getNextPathBlock();
     NekoClient.EVENT_BUS.subscribe(this);
   }
 
   public void disable() {
     target = null;
     path.clear();
-    if (mc.options.keyUp.isDown()) mc.options.keyUp.setDown(false);
+    if (mc.options.keyUp.isDown())
+      mc.options.keyUp.setDown(false);
     NekoClient.EVENT_BUS.unsubscribe(this);
   }
 
@@ -189,6 +200,5 @@ public class PathFinder {
       block = getBlockAtPos(pos);
       blockState = getBlockStateAtPos(blockPos);
     }
-
   }
 }

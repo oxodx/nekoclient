@@ -5,8 +5,12 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -33,11 +37,6 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
-
 @NullMarked
 public abstract class SimpleBlockRenderer {
   private static final PoseStack MATRICES = new PoseStack();
@@ -54,7 +53,8 @@ public abstract class SimpleBlockRenderer {
     }
   };
 
-    private static final SubmitNodeCollection MESH_NODES = new SubmitNodeCollection(true, new TranslucentFeatureRenderPhase()) {
+  private static final SubmitNodeCollection MESH_NODES =
+      new SubmitNodeCollection(true, new TranslucentFeatureRenderPhase()) {
     @Override
         public <S> void submitModel(final Model<? super S> model, final S state, final PoseStack poseStack, final RenderType renderType, final int lightCoords, final int overlayCoords, final int tintedColor, final @Nullable UvMapping uvMapping, final int outlineColor) {
       if (CONSUMER.isBound()) {
@@ -64,32 +64,39 @@ public abstract class SimpleBlockRenderer {
     }
 
     @Override
-        public void submitItem(final PoseStack poseStack, final ItemDisplayContext displayContext, final int lightCoords, final int overlayCoords, final int outlineColor, final int[] tintLayers, final ItemQuads quads, final ItemStackRenderState.FoilType foilType) {
-    }
-  };
+    public void submitItem(final PoseStack poseStack, final ItemDisplayContext displayContext, final int lightCoords,
+        final int overlayCoords, final int outlineColor, final int[] tintLayers, final ItemQuads quads,
+        final ItemStackRenderState.FoilType foilType) {}
+      };
 
-  private SimpleBlockRenderer() {
-  }
+  private SimpleBlockRenderer() {}
 
-  public static void renderWithBlockEntity(BlockEntity blockEntity, float tickDelta, IVertexConsumerProvider vertexConsumerProvider) {
-    vertexConsumerProvider.setOffset(blockEntity.getBlockPos().getX(), blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ());
+  public static void renderWithBlockEntity(
+      BlockEntity blockEntity, float tickDelta, IVertexConsumerProvider vertexConsumerProvider) {
+    vertexConsumerProvider.setOffset(
+        blockEntity.getBlockPos().getX(), blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ());
     SimpleBlockRenderer.render(blockEntity.getBlockPos(), blockEntity.getBlockState(), vertexConsumerProvider);
 
-    BlockEntityRenderer<BlockEntity, BlockEntityRenderState> renderer = mc.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
+    BlockEntityRenderer<BlockEntity, BlockEntityRenderState> renderer =
+        mc.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
 
     if (renderer != null && blockEntity.hasLevel() && blockEntity.getType().isValid(blockEntity.getBlockState())) {
       BlockEntityRenderState state = renderer.createRenderState();
-      renderer.extractRenderState(blockEntity, state, tickDelta, mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState.pos, null);
+      renderer.extractRenderState(blockEntity, state, tickDelta,
+          mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState.pos, null);
 
       ScopedValue.where(CONSUMER, vertexConsumerProvider.getBuffer(RenderTypes.solidMovingBlock()))
-        .run(() -> renderer.submit(state, MATRICES, SUBMIT_NODES, mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState));
+          .run(()
+                   -> renderer.submit(state, MATRICES, SUBMIT_NODES,
+                       mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState));
     }
 
     vertexConsumerProvider.setOffset(0, 0, 0);
   }
 
   public static void render(BlockPos pos, BlockState state, IVertexConsumerProvider consumerProvider) {
-    if (state.getRenderShape() != RenderShape.MODEL) return;
+    if (state.getRenderShape() != RenderShape.MODEL)
+      return;
 
     VertexConsumer consumer = consumerProvider.getBuffer(RenderTypes.solidMovingBlock());
 
@@ -104,17 +111,20 @@ public abstract class SimpleBlockRenderer {
     for (BlockStateModelPart part : PARTS) {
       for (Direction direction : DIRECTIONS) {
         List<BakedQuad> quads = part.getQuads(direction);
-        if (!quads.isEmpty()) renderQuads(quads, offsetX, offsetY, offsetZ, consumer);
+        if (!quads.isEmpty())
+          renderQuads(quads, offsetX, offsetY, offsetZ, consumer);
       }
 
       List<BakedQuad> quads = part.getQuads(null);
-      if (!quads.isEmpty()) renderQuads(quads, offsetX, offsetY, offsetZ, consumer);
+      if (!quads.isEmpty())
+        renderQuads(quads, offsetX, offsetY, offsetZ, consumer);
     }
 
     PARTS.clear();
   }
 
-  private static void renderQuads(List<BakedQuad> quads, float offsetX, float offsetY, float offsetZ, VertexConsumer consumer) {
+  private static void renderQuads(
+      List<BakedQuad> quads, float offsetX, float offsetY, float offsetZ, VertexConsumer consumer) {
     for (BakedQuad quad : quads) {
       for (int j = 0; j < 4; j++) {
         Vector3fc vec = quad.position(j);

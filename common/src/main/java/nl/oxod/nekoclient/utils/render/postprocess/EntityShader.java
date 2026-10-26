@@ -1,10 +1,10 @@
 package nl.oxod.nekoclient.utils.render.postprocess;
 
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import nl.oxod.nekoclient.mixininterface.ILevelRenderer;
-import net.minecraft.world.entity.Entity;
-
 import static nl.oxod.nekoclient.NekoClient.mc;
+
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import net.minecraft.world.entity.Entity;
+import nl.oxod.nekoclient.mixininterface.ILevelRenderer;
 
 public abstract class EntityShader extends PostProcessShader {
   protected EntityShader(RenderPipeline pipeline) {
@@ -23,6 +23,5 @@ public abstract class EntityShader extends PostProcessShader {
     ((ILevelRenderer) mc.levelRenderer).neko$popEntityOutlineFramebuffer();
   }
 
-  public void submitVertices() {
-  }
+  public void submitVertices() {}
 }

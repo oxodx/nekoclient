@@ -5,11 +5,8 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.game.GameLeftEvent;
-import nl.oxod.nekoclient.events.game.OpenScreenEvent;
-import nl.oxod.nekoclient.events.world.BlockActivateEvent;
-import nl.oxod.nekoclient.utils.PreInit;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.core.NonNullList;
@@ -17,16 +14,18 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.EnderChestBlock;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.game.GameLeftEvent;
+import nl.oxod.nekoclient.events.game.OpenScreenEvent;
+import nl.oxod.nekoclient.events.world.BlockActivateEvent;
+import nl.oxod.nekoclient.utils.PreInit;
 
 public class EChestMemory {
   public static final NonNullList<ItemStack> ITEMS = NonNullList.withSize(27, ItemStack.EMPTY);
   private static int echestOpenedState;
   private static boolean isKnown = false;
 
-  private EChestMemory() {
-  }
+  private EChestMemory() {}
 
   @PreInit
   public static void init() {
@@ -35,7 +34,8 @@ public class EChestMemory {
 
   @EventHandler
   private static void onBlockActivate(BlockActivateEvent event) {
-    if (event.blockState.getBlock() instanceof EnderChestBlock && echestOpenedState == 0) echestOpenedState = 1;
+    if (event.blockState.getBlock() instanceof EnderChestBlock && echestOpenedState == 0)
+      echestOpenedState = 1;
   }
 
   @EventHandler
@@ -44,11 +44,14 @@ public class EChestMemory {
       echestOpenedState = 2;
       return;
     }
-    if (echestOpenedState == 0) return;
+    if (echestOpenedState == 0)
+      return;
 
-    if (!(mc.gui.screen() instanceof ContainerScreen)) return;
+    if (!(mc.gui.screen() instanceof ContainerScreen))
+      return;
     ChestMenu container = ((ContainerScreen) mc.gui.screen()).getMenu();
-    if (container == null) return;
+    if (container == null)
+      return;
     Container inv = container.getContainer();
 
     for (int i = 0; i < 27; i++) {

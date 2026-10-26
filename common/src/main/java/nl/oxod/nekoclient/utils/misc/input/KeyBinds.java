@@ -6,17 +6,18 @@
 package nl.oxod.nekoclient.utils.misc.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import nl.oxod.nekoclient.NekoClient;
 import net.minecraft.client.KeyMapping;
+import nl.oxod.nekoclient.NekoClient;
 
 public class KeyBinds {
   private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(NekoClient.identifier("nekoclient"));
 
-    public static KeyMapping OPEN_GUI = new KeyMapping("key.nekoclient.open-gui", InputConstants.Type.KEYBOARD, InputConstants.KEY_RSHIFT, CATEGORY);
-    public static KeyMapping OPEN_COMMANDS = new KeyMapping("key.nekoclient.open-commands", InputConstants.Type.KEYBOARD, InputConstants.KEY_PERIOD, CATEGORY);
+  public static KeyMapping OPEN_GUI =
+      new KeyMapping("key.nekoclient.open-gui", InputConstants.Type.KEYBOARD, InputConstants.KEY_RSHIFT, CATEGORY);
+  public static KeyMapping OPEN_COMMANDS =
+      new KeyMapping("key.nekoclient.open-commands", InputConstants.Type.KEYBOARD, InputConstants.KEY_PERIOD, CATEGORY);
 
-  private KeyBinds() {
-  }
+  private KeyBinds() {}
 
   public static KeyMapping[] apply(KeyMapping[] binds) {
     // Add key binding

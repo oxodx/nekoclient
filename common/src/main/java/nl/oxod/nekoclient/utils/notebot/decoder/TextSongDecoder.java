@@ -7,17 +7,15 @@ package nl.oxod.nekoclient.utils.notebot.decoder;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import nl.oxod.nekoclient.utils.notebot.song.Note;
-import nl.oxod.nekoclient.utils.notebot.song.Song;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import nl.oxod.nekoclient.utils.notebot.song.Note;
+import nl.oxod.nekoclient.utils.notebot.song.Song;
+import org.apache.commons.io.FilenameUtils;
 
 public class TextSongDecoder extends SongDecoder {
-
   @Override
   public Song parse(File file) throws Exception {
     List<String> data = Files.readAllLines(file.toPath());
@@ -36,7 +34,8 @@ public class TextSongDecoder extends SongDecoder {
         author = line.substring(11);
         continue;
       }
-      if (line.isEmpty()) continue;
+      if (line.isEmpty())
+        continue;
 
       String[] parts = data.get(lineNumber).split(":");
       if (parts.length < 2) {

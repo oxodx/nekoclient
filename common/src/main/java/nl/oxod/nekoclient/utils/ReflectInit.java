@@ -16,7 +16,6 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 
 public class ReflectInit {
-
   private static final List<Reflections> reflections = new ArrayList<>();
 
   private ReflectInit() {}
@@ -26,42 +25,36 @@ public class ReflectInit {
       try {
         add(addon);
       } catch (AbstractMethodError e) {
-        throw new RuntimeException(
-          "Addon \"%s\" is too old and cannot be ran.".formatted(addon.name),
-          e
-        );
+        throw new RuntimeException("Addon \"%s\" is too old and cannot be ran.".formatted(addon.name), e);
       }
     }
   }
 
   private static void add(NekoAddon addon) {
     String pkg = addon.getPackage();
-    if (pkg == null || pkg.isBlank()) return;
+    if (pkg == null || pkg.isBlank())
+      return;
     reflections.add(new Reflections(pkg, Scanners.MethodsAnnotated));
   }
 
   public static void init(Class<? extends Annotation> annotation) {
     for (Reflections reflection : reflections) {
       Set<Method> initTasks = reflection.getMethodsAnnotatedWith(annotation);
-      if (initTasks == null) continue;
+      if (initTasks == null)
+        continue;
 
-      Map<Class<?>, List<Method>> byClass = initTasks
-        .stream()
-        .collect(Collectors.groupingBy(Method::getDeclaringClass));
+      Map<Class<?>, List<Method>> byClass =
+          initTasks.stream().collect(Collectors.groupingBy(Method::getDeclaringClass));
       Set<Method> left = new HashSet<>(initTasks);
 
-      for (Method m; (m = left.stream().findAny().orElse(null)) != null; ) {
+      for (Method m; (m = left.stream().findAny().orElse(null)) != null;) {
         reflectInit(m, annotation, left, byClass);
       }
     }
   }
 
   private static <T extends Annotation> void reflectInit(
-    Method task,
-    Class<T> annotation,
-    Set<Method> left,
-    Map<Class<?>, List<Method>> byClass
-  ) {
+      Method task, Class<T> annotation, Set<Method> left, Map<Class<?>, List<Method>> byClass) {
     left.remove(task);
 
     for (Class<?> clazz : getDependencies(task, annotation)) {
@@ -75,28 +68,16 @@ public class ReflectInit {
     try {
       task.invoke(null);
     } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new IllegalStateException(
-        "Error running @%s task '%s.%s'".formatted(
-          annotation.getSimpleName(),
-          task.getDeclaringClass().getSimpleName(),
-          task.getName()
-        ),
-        e
-      );
+      throw new IllegalStateException("Error running @%s task '%s.%s'".formatted(annotation.getSimpleName(),
+                                          task.getDeclaringClass().getSimpleName(), task.getName()),
+          e);
     } catch (NullPointerException e) {
       throw new RuntimeException(
-        "Method \"%s\" using Init annotations from non-static context".formatted(
-          task.getName()
-        ),
-        e
-      );
+          "Method \"%s\" using Init annotations from non-static context".formatted(task.getName()), e);
     }
   }
 
-  private static <T extends Annotation> Class<?>[] getDependencies(
-    Method task,
-    Class<T> annotation
-  ) {
+  private static <T extends Annotation> Class<?>[] getDependencies(Method task, Class<T> annotation) {
     T init = task.getAnnotation(annotation);
 
     return switch (init) {

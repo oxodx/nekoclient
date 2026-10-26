@@ -5,17 +5,16 @@
 
 package nl.oxod.nekoclient.utils.entity.fakeplayer;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.authlib.GameProfile;
-import nl.oxod.nekoclient.mixin.AbstractClientPlayerAccessor;
-import nl.oxod.nekoclient.mixin.EntityAccessor;
+import java.util.UUID;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.entity.player.Player;
+import nl.oxod.nekoclient.mixin.AbstractClientPlayerAccessor;
+import nl.oxod.nekoclient.mixin.EntityAccessor;
 import org.jspecify.annotations.Nullable;
-
-import java.util.UUID;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class FakePlayerEntity extends RemotePlayer {
   /**
@@ -53,7 +52,8 @@ public class FakePlayerEntity extends RemotePlayer {
       setAbsorptionAmount(health - 20);
     }
 
-    if (copyInv) getInventory().replaceWith(player.getInventory());
+    if (copyInv)
+      getInventory().replaceWith(player.getInventory());
   }
 
   @Override

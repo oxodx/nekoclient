@@ -5,8 +5,4 @@
 
 package nl.oxod.nekoclient.utils.entity;
 
-public enum Target {
-  Head,
-  Body,
-  Feet
-}
+public enum Target { Head, Body, Feet }

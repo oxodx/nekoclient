@@ -5,11 +5,10 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import meteordevelopment.orbit.EventHandler;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.utils.PreInit;
-import meteordevelopment.orbit.EventHandler;
-
 
 public class CPSUtils {
   private static int clicks;
@@ -17,8 +16,7 @@ public class CPSUtils {
   private static int secondsClicking;
   private static long lastTime;
 
-  private CPSUtils() {
-  }
+  private CPSUtils() {}
 
   @PreInit
   public static void init() {
@@ -40,7 +38,6 @@ public class CPSUtils {
       }
     }
   }
-
 
   public static void onAttack() {
     CPSUtils.clicks++;

@@ -5,6 +5,4 @@
 
 package nl.oxod.nekoclient.utils.render;
 
-public enum AlignmentX {
-  Left, Center, Right
-}
+public enum AlignmentX { Left, Center, Right }

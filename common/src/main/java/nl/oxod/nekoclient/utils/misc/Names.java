@@ -5,10 +5,13 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.game.ResourcePacksReloadedEvent;
-import nl.oxod.nekoclient.utils.PreInit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.WeakHashMap;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -28,14 +31,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.game.ResourcePacksReloadedEvent;
+import nl.oxod.nekoclient.utils.PreInit;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.WeakHashMap;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class Names {
   private static final Map<MobEffect, String> statusEffectNames = new Reference2ObjectOpenHashMap<>(16);
@@ -47,8 +46,7 @@ public class Names {
   private static final Map<ParticleType<?>, String> particleTypesNames = new Reference2ObjectOpenHashMap<>(64);
   private static final Map<Identifier, String> soundNames = HashMap.newHashMap(64);
 
-  private Names() {
-  }
+  private Names() {}
 
   @PreInit
   public static void init() {
@@ -67,7 +65,8 @@ public class Names {
   }
 
   public static String get(MobEffect effect) {
-    return statusEffectNames.computeIfAbsent(effect, effect1 -> StringUtil.stripColor(I18n.get(effect1.getDescriptionId())));
+    return statusEffectNames.computeIfAbsent(
+        effect, effect1 -> StringUtil.stripColor(I18n.get(effect1.getDescriptionId())));
   }
 
   public static String get(Item item) {
@@ -85,37 +84,44 @@ public class Names {
    */
   @SuppressWarnings("StringEquality")
   public static String get(ResourceKey<Enchantment> enchantment) {
-    return enchantmentKeyNames.computeIfAbsent(enchantment, enchantment1 -> Optional.ofNullable(Minecraft.getInstance().getConnection())
-      .map(ClientPacketListener::registryAccess)
-      .flatMap(registryManager -> registryManager.lookup(Registries.ENCHANTMENT))
-      .flatMap(registry -> registry.get(enchantment.identifier()))
-      .map(Names::get)
-      .orElseGet(() -> {
-        String key = "enchantment." + enchantment1.identifier().toLanguageKey();
-        String translated = I18n.get(key);
-        return translated == key ? enchantment1.identifier().toString() : translated;
-      }));
+    return enchantmentKeyNames.computeIfAbsent(enchantment,
+        enchantment1
+        -> Optional.ofNullable(Minecraft.getInstance().getConnection())
+            .map(ClientPacketListener::registryAccess)
+            .flatMap(registryManager -> registryManager.lookup(Registries.ENCHANTMENT))
+            .flatMap(registry -> registry.get(enchantment.identifier()))
+            .map(Names::get)
+            .orElseGet(() -> {
+              String key = "enchantment." + enchantment1.identifier().toLanguageKey();
+              String translated = I18n.get(key);
+              return translated == key ? enchantment1.identifier().toString() : translated;
+            }));
   }
 
   public static String get(Holder<Enchantment> enchantment) {
-    return enchantmentEntryNames.computeIfAbsent(enchantment, _ -> StringUtil.stripColor(enchantment.value().description().getString()));
+    return enchantmentEntryNames.computeIfAbsent(
+        enchantment, _ -> StringUtil.stripColor(enchantment.value().description().getString()));
   }
 
   public static String get(EntityType<?> entityType) {
-    return entityTypeNames.computeIfAbsent(entityType, entityType1 -> StringUtil.stripColor(I18n.get(entityType1.getDescriptionId())));
+    return entityTypeNames.computeIfAbsent(
+        entityType, entityType1 -> StringUtil.stripColor(I18n.get(entityType1.getDescriptionId())));
   }
 
   public static String get(ParticleType<?> type) {
-    return particleTypesNames.computeIfAbsent(type, _ -> StringUtils.capitalize(BuiltInRegistries.PARTICLE_TYPE.getKey(type).getPath().replace("_", " ")));
+    return particleTypesNames.computeIfAbsent(
+        type, _ -> StringUtils.capitalize(BuiltInRegistries.PARTICLE_TYPE.getKey(type).getPath().replace("_", " ")));
   }
 
   public static String getSoundName(Identifier id) {
     return soundNames.computeIfAbsent(id, identifier -> {
       WeighedSoundEvents soundSet = mc.getSoundManager().getSoundEvent(identifier);
-      if (soundSet == null) return identifier.getPath();
+      if (soundSet == null)
+        return identifier.getPath();
 
       Component text = soundSet.getSubtitle();
-      if (text == null) return identifier.getPath();
+      if (text == null)
+        return identifier.getPath();
 
       return StringUtil.stripColor(text.getString());
     });

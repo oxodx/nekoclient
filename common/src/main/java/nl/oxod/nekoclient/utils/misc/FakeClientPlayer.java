@@ -5,9 +5,10 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.authlib.GameProfile;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.utils.PreInit;
+import java.util.UUID;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.CommonListenerCookie;
@@ -16,10 +17,8 @@ import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.world.Difficulty;
-
-import java.util.UUID;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.utils.PreInit;
 
 public class FakeClientPlayer {
   private static ClientLevel world;
@@ -29,8 +28,7 @@ public class FakeClientPlayer {
   private static UUID lastId;
   private static boolean needsNewEntry;
 
-  private FakeClientPlayer() {
-  }
+  private FakeClientPlayer() {}
 
   @PreInit
   public static void init() {
@@ -43,32 +41,11 @@ public class FakeClientPlayer {
     if (player == null || (!id.equals(lastId))) {
       if (world == null) {
         world = new ClientLevel(
-          new ClientPacketListener(mc, new Connection(PacketFlow.CLIENTBOUND), new CommonListenerCookie(
-            null,
-            new GameProfile(mc.getUser().getProfileId(), mc.getUser().getName()),
-            null,
-            null,
-            null,
-            null,
-            mc.getCurrentServer(),
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false)
-          ),
-          new ClientLevel.ClientLevelData(Difficulty.NORMAL, false, false),
-          world.dimension(),
-          world.dimensionTypeRegistration(),
-          1,
-          1,
-          null,
-          false,
-          0,
-          world.getSeaLevel()
-        );
+            new ClientPacketListener(mc, new Connection(PacketFlow.CLIENTBOUND),
+                new CommonListenerCookie(null, new GameProfile(mc.getUser().getProfileId(), mc.getUser().getName()),
+                    null, null, null, null, mc.getCurrentServer(), null, null, null, null, null, null, false)),
+            new ClientLevel.ClientLevelData(Difficulty.NORMAL, false, false), world.dimension(),
+            world.dimensionTypeRegistration(), 1, 1, null, false, 0, world.getSeaLevel());
       }
 
       player = new RemotePlayer(world, new GameProfile(id, mc.getUser().getName()));

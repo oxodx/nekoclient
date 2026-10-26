@@ -5,11 +5,9 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.platform.InputConstants;
-import nl.oxod.nekoclient.systems.modules.Modules;
-import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
-import nl.oxod.nekoclient.utils.Utils;
-import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.ShulkerBoxScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -20,16 +18,19 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.ItemStack;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
+import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import org.jspecify.annotations.NonNull;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class PeekScreen extends ShulkerBoxScreen {
   private final Identifier TEXTURE = Identifier.parse("textures/gui/container/shulker_box.png");
   private final ItemStack storageBlock;
 
   public PeekScreen(ItemStack storageBlock, ItemStack[] contents) {
-    super(new ShulkerBoxMenu(0, mc.player.getInventory(), new SimpleContainer(contents)), mc.player.getInventory(), storageBlock.getHoverName());
+    super(new ShulkerBoxMenu(0, mc.player.getInventory(), new SimpleContainer(contents)), mc.player.getInventory(),
+        storageBlock.getHoverName());
     this.storageBlock = storageBlock;
   }
 
@@ -37,7 +38,8 @@ public class PeekScreen extends ShulkerBoxScreen {
   public boolean mouseClicked(@NonNull MouseButtonEvent click, boolean doubled) {
     BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
 
-    if (tooltips.shouldOpenContents(click) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && mc.player.containerMenu.getCarried().isEmpty()) {
+    if (tooltips.shouldOpenContents(click) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty()
+        && mc.player.containerMenu.getCarried().isEmpty()) {
       ItemStack itemStack = hoveredSlot.getItem();
       return tooltips.openContent(itemStack);
     }
@@ -54,7 +56,8 @@ public class PeekScreen extends ShulkerBoxScreen {
   public boolean keyPressed(@NonNull KeyEvent input) {
     BetterTooltips tooltips = Modules.get().get(BetterTooltips.class);
 
-    if (tooltips.shouldOpenContents(input) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty() && mc.player.containerMenu.getCarried().isEmpty()) {
+    if (tooltips.shouldOpenContents(input) && hoveredSlot != null && !hoveredSlot.getItem().isEmpty()
+        && mc.player.containerMenu.getCarried().isEmpty()) {
       ItemStack itemStack = hoveredSlot.getItem();
       if (tooltips.openContent(itemStack)) {
         return true;
@@ -75,6 +78,7 @@ public class PeekScreen extends ShulkerBoxScreen {
 
     int i = (width - imageWidth) / 2;
     int j = (height - imageHeight) / 2;
-    graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0f, 0f, imageWidth, imageHeight, imageWidth, imageHeight, 256, 256, ARGB.colorFromFloat(color.a / 255f, color.r / 255f, color.g / 255f, color.b / 255f));
+    graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0f, 0f, imageWidth, imageHeight, imageWidth, imageHeight,
+        256, 256, ARGB.colorFromFloat(color.a / 255f, color.r / 255f, color.g / 255f, color.b / 255f));
   }
 }

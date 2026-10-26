@@ -13,26 +13,24 @@ import nl.oxod.nekoclient.gui.GuiKeyEvents;
 import nl.oxod.nekoclient.mixin.KeyMappingAccessor;
 
 public class Input {
-
   private static final boolean[] keys = new boolean[512];
   private static final boolean[] buttons = new boolean[16];
 
   private static final int MOD_KEYS =
-    InputConstants.MOD_SHIFT |
-    InputConstants.MOD_CONTROL |
-    InputConstants.MOD_ALT |
-    InputConstants.MOD_SUPER;
+      InputConstants.MOD_SHIFT | InputConstants.MOD_CONTROL | InputConstants.MOD_ALT | InputConstants.MOD_SUPER;
 
   private static CursorType lastCursorStyle = CursorTypes.ARROW;
 
   private Input() {}
 
   public static void setKeyState(int key, boolean pressed) {
-    if (key >= 0 && key < keys.length) keys[key] = pressed;
+    if (key >= 0 && key < keys.length)
+      keys[key] = pressed;
   }
 
   public static void setButtonState(int button, boolean pressed) {
-    if (button >= 0 && button < buttons.length) buttons[button] = pressed;
+    if (button >= 0 && button < buttons.length)
+      buttons[button] = pressed;
   }
 
   public static int getKey(KeyMapping bind) {
@@ -48,14 +46,17 @@ public class Input {
   }
 
   public static boolean isKeyPressed(int key) {
-    if (!GuiKeyEvents.canUseKeys) return false;
+    if (!GuiKeyEvents.canUseKeys)
+      return false;
 
-    if (key == InputConstants.UNKNOWN.getValue()) return false;
+    if (key == InputConstants.UNKNOWN.getValue())
+      return false;
     return key < keys.length && keys[key];
   }
 
   public static boolean isButtonPressed(int button) {
-    if (button == -1) return false;
+    if (button == -1)
+      return false;
     return button < buttons.length && buttons[button];
   }
 
@@ -68,15 +69,9 @@ public class Input {
 
   public static int getModifier(int key) {
     return switch (key) {
-      case
-        InputConstants.KEY_LSHIFT,
-        InputConstants.KEY_RSHIFT -> InputConstants.MOD_SHIFT;
-      case
-        InputConstants.KEY_LCONTROL,
-        InputConstants.KEY_RCONTROL -> InputConstants.MOD_CONTROL;
-      case
-        InputConstants.KEY_LALT,
-        InputConstants.KEY_RALT -> InputConstants.MOD_ALT;
+      case InputConstants.KEY_LSHIFT, InputConstants.KEY_RSHIFT -> InputConstants.MOD_SHIFT;
+      case InputConstants.KEY_LCONTROL, InputConstants.KEY_RCONTROL -> InputConstants.MOD_CONTROL;
+      case InputConstants.KEY_LALT, InputConstants.KEY_RALT -> InputConstants.MOD_ALT;
       //            case InputConstants.KEY_LSUPER, InputConstants.KEY_RSUPER -> InputConstants.MOD_SUPER;
       default -> 0;
     };
@@ -87,7 +82,8 @@ public class Input {
 
     for (int mod : desiredMods) {
       // a required modifier isn't held
-      if ((currentMods & mod) == 0) return false;
+      if ((currentMods & mod) == 0)
+        return false;
 
       desiredMask |= mod;
     }

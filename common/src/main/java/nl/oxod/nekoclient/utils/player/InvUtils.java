@@ -5,18 +5,17 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import nl.oxod.nekoclient.mixininterface.IMultiPlayerGameMode;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.function.Predicate;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import nl.oxod.nekoclient.mixininterface.IMultiPlayerGameMode;
 import org.jetbrains.annotations.Range;
-
-import java.util.function.Predicate;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 /**
  * Util class for dealing inventories and the items in them.
@@ -26,14 +25,15 @@ public class InvUtils {
   private static final Action ACTION = new Action();
   public static int previousSlot = -1;
 
-  private InvUtils() {
-  }
+  private InvUtils() {}
 
   // Predicates
 
   private static Predicate<ItemStack> isOneOf(Item... items) {
     return itemStack -> {
-      for (var item : items) if (itemStack.is(item)) return true;
+      for (var item : items)
+        if (itemStack.is(item))
+          return true;
       return false;
     };
   }
@@ -63,11 +63,13 @@ public class InvUtils {
   }
 
   public static boolean testInHotbar(Predicate<ItemStack> predicate) {
-    if (testInHands(predicate)) return true;
+    if (testInHands(predicate))
+      return true;
 
     for (int i = SlotUtils.HOTBAR_START; i <= SlotUtils.HOTBAR_END; i++) {
       ItemStack stack = mc.player.getInventory().getItem(i);
-      if (predicate.test(stack)) return true;
+      if (predicate.test(stack))
+        return true;
     }
 
     return false;
@@ -104,12 +106,14 @@ public class InvUtils {
   }
 
   public static FindItemResult find(Predicate<ItemStack> isGood) {
-    if (mc.player == null) return new FindItemResult(0, 0);
+    if (mc.player == null)
+      return new FindItemResult(0, 0);
     return find(isGood, 0, mc.player.getInventory().getContainerSize());
   }
 
   public static FindItemResult find(Predicate<ItemStack> isGood, int start, int end) {
-    if (mc.player == null) return new FindItemResult(0, 0);
+    if (mc.player == null)
+      return new FindItemResult(0, 0);
 
     int slot = -1, count = 0;
 
@@ -117,7 +121,8 @@ public class InvUtils {
       ItemStack stack = mc.player.getInventory().getItem(i);
 
       if (isGood.test(stack)) {
-        if (slot == -1) slot = i;
+        if (slot == -1)
+          slot = i;
         count += stack.getCount();
       }
     }
@@ -131,7 +136,8 @@ public class InvUtils {
 
     for (int i = 0; i < 9; i++) {
       ItemStack stack = mc.player.getInventory().getItem(i);
-      if (!stack.isCorrectToolForDrops(state)) continue;
+      if (!stack.isCorrectToolForDrops(state))
+        continue;
 
       float score = stack.getDestroySpeed(state);
       if (score > bestScore) {
@@ -146,10 +152,14 @@ public class InvUtils {
   // Interactions
 
   public static boolean swap(int slot, boolean swapBack) {
-    if (slot == SlotUtils.OFFHAND) return true;
-    if (slot < 0 || slot > 8) return false;
-    if (swapBack && previousSlot == -1) previousSlot = mc.player.getInventory().getSelectedSlot();
-    else if (!swapBack) previousSlot = -1;
+    if (slot == SlotUtils.OFFHAND)
+      return true;
+    if (slot < 0 || slot > 8)
+      return false;
+    if (swapBack && previousSlot == -1)
+      previousSlot = mc.player.getInventory().getSelectedSlot();
+    else if (!swapBack)
+      previousSlot = -1;
 
     mc.player.getInventory().setSelectedSlot(slot);
     ((IMultiPlayerGameMode) mc.gameMode).neko$syncSelected();
@@ -157,7 +167,8 @@ public class InvUtils {
   }
 
   public static boolean swapBack() {
-    if (previousSlot == -1) return false;
+    if (previousSlot == -1)
+      return false;
 
     boolean return_ = swap(previousSlot, false);
     previousSlot = -1;
@@ -203,7 +214,8 @@ public class InvUtils {
 
   public static void dropHand() {
     if (!mc.player.containerMenu.getCarried().isEmpty())
-      mc.gameMode.handleContainerInput(mc.player.containerMenu.containerId, AbstractContainerMenu.SLOT_CLICKED_OUTSIDE, 0, ContainerInput.PICKUP, mc.player);
+      mc.gameMode.handleContainerInput(mc.player.containerMenu.containerId, AbstractContainerMenu.SLOT_CLICKED_OUTSIDE,
+          0, ContainerInput.PICKUP, mc.player);
   }
 
   public static class Action {
@@ -215,8 +227,7 @@ public class InvUtils {
 
     private boolean isRecursive = false;
 
-    private Action() {
-    }
+    private Action() {}
 
     // From
 
@@ -329,7 +340,8 @@ public class InvUtils {
 
       if (type != null && from != -1 && to != -1) {
         click(from);
-        if (two) click(to);
+        if (two)
+          click(to);
       }
 
       ContainerInput preType = type;
@@ -343,7 +355,8 @@ public class InvUtils {
       to = -1;
       data = 0;
 
-      if (!isRecursive && hadEmptyCursor && preType == ContainerInput.PICKUP && preTwo && (preFrom != -1 && preTo != -1) && !mc.player.containerMenu.getCarried().isEmpty()) {
+      if (!isRecursive && hadEmptyCursor && preType == ContainerInput.PICKUP && preTwo && (preFrom != -1 && preTo != -1)
+          && !mc.player.containerMenu.getCarried().isEmpty()) {
         isRecursive = true;
         InvUtils.click().slotId(preFrom);
         isRecursive = false;

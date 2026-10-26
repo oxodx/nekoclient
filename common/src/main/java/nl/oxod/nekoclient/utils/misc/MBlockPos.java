@@ -5,19 +5,18 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class MBlockPos {
   private static final BlockPos.MutableBlockPos POS = new BlockPos.MutableBlockPos();
 
   public int x, y, z;
 
-  public MBlockPos() {
-  }
+  public MBlockPos() {}
 
   public MBlockPos(Entity entity) {
     set(entity);
@@ -69,13 +68,17 @@ public class MBlockPos {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
 
     MBlockPos mBlockPos = (MBlockPos) o;
 
-    if (x != mBlockPos.x) return false;
-    if (y != mBlockPos.y) return false;
+    if (x != mBlockPos.x)
+      return false;
+    if (y != mBlockPos.y)
+      return false;
     return z == mBlockPos.z;
   }
 

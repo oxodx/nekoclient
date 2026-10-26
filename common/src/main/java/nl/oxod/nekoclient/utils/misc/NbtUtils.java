@@ -5,16 +5,14 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.io.FastByteArrayInputStream;
 import it.unimi.dsi.fastutil.io.FastByteArrayOutputStream;
-import nl.oxod.nekoclient.NekoClient;
-import net.minecraft.nbt.*;
-
 import java.util.*;
-
+import net.minecraft.nbt.*;
+import nl.oxod.nekoclient.NekoClient;
 import org.jspecify.annotations.Nullable;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class NbtUtils {
   public static <T extends ISerializable<?>> ListTag listToTag(Iterable<T> list) {
@@ -27,7 +25,8 @@ public class NbtUtils {
     List<T> list = new ArrayList<>(tag.size());
     for (Tag itemTag : tag) {
       T value = toItem.toValue(itemTag);
-      if (value != null) list.add(value);
+      if (value != null)
+        list.add(value);
     }
     return list;
   }
@@ -64,11 +63,13 @@ public class NbtUtils {
 
   public static boolean fromClipboard(ISerializable<?> serializable) {
     CompoundTag tag = fromClipboard();
-    if (tag == null) return false;
+    if (tag == null)
+      return false;
 
     CompoundTag sourceTag = serializable.toTag();
     for (String key : sourceTag.keySet()) {
-      if (!tag.contains(key)) return false;
+      if (!tag.contains(key))
+        return false;
     }
 
     serializable.fromTag(tag);

@@ -33,8 +33,10 @@ public class Version {
 
   public boolean isHigherThan(Version version) {
     for (int i = 0; i < 3; i++) {
-      if (numbers[i] > version.numbers[i]) return true;
-      if (numbers[i] < version.numbers[i]) return false;
+      if (numbers[i] > version.numbers[i])
+        return true;
+      if (numbers[i] < version.numbers[i])
+        return false;
     }
 
     return false;

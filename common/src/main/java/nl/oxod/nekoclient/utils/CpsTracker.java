@@ -14,8 +14,7 @@ public final class CpsTracker {
   private static int leftIdx;
   private static int rightIdx;
 
-  private CpsTracker() {
-  }
+  private CpsTracker() {}
 
   public static void recordLeft() {
     LEFT[leftIdx] = System.nanoTime();
@@ -56,7 +55,8 @@ public final class CpsTracker {
     long cutoff = System.nanoTime() - WINDOW_NS;
     int c = 0;
     for (int i = 0; i < CAP; i++) {
-      if (ring[i] > cutoff) c++;
+      if (ring[i] > cutoff)
+        c++;
     }
     return c;
   }

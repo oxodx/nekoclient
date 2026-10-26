@@ -5,13 +5,12 @@
 
 package nl.oxod.nekoclient.utils;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public final class GuiDupeState {
   private static final Deque<Packet<?>> delayedPackets = new ArrayDeque<>();
@@ -23,8 +22,7 @@ public final class GuiDupeState {
   private static Screen storedScreen;
   private static AbstractContainerMenu storedMenu;
 
-  private GuiDupeState() {
-  }
+  private GuiDupeState() {}
 
   public static boolean shouldSendGuiPackets() {
     return sendGuiPackets;
@@ -59,9 +57,11 @@ public final class GuiDupeState {
   }
 
   public static void flushDelayed(Minecraft mc) {
-    if (mc.getConnection() == null) return;
+    if (mc.getConnection() == null)
+      return;
     net.minecraft.network.Connection connection = mc.getConnection().getConnection();
-    if (connection == null) return;
+    if (connection == null)
+      return;
     Packet<?> packet;
     while ((packet = delayedPackets.pollFirst()) != null) {
       connection.send(packet, null, true);

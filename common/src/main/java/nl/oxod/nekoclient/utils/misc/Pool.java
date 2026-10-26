@@ -19,7 +19,8 @@ public final class Pool<T> {
   }
 
   public synchronized T get() {
-    if (!items.isEmpty()) return items.poll();
+    if (!items.isEmpty())
+      return items.poll();
     return producer.get();
   }
 

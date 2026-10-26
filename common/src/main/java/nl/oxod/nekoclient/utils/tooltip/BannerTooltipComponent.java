@@ -5,8 +5,8 @@
 
 package nl.oxod.nekoclient.utils.tooltip;
 
-import nl.oxod.nekoclient.mixin.GuiGraphicsExtractorAccessor;
-import nl.oxod.nekoclient.utils.render.CustomBannerGuiElementRenderState;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -18,9 +18,9 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import nl.oxod.nekoclient.mixin.GuiGraphicsExtractorAccessor;
+import nl.oxod.nekoclient.utils.render.CustomBannerGuiElementRenderState;
 import org.jspecify.annotations.NonNull;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class BannerTooltipComponent implements NekoTooltipData, ClientTooltipComponent {
   private final DyeColor color;
@@ -60,17 +60,14 @@ public class BannerTooltipComponent implements NekoTooltipData, ClientTooltipCom
   }
 
   @Override
-  public void extractImage(@NonNull Font textRenderer, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor graphics) {
+  public void extractImage(
+      @NonNull Font textRenderer, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor graphics) {
     var centerX = width / 2 - getWidth(null) / 2;
 
     GuiGraphicsExtractorAccessor contextAccessor = (GuiGraphicsExtractorAccessor) graphics;
 
-    contextAccessor.getGuiRenderState().addPicturesInPictureState(new CustomBannerGuiElementRenderState(
-      bannerFlag, color, patterns,
-      centerX + x, y,
-      centerX + x + getWidth(null), y + getHeight(null),
-      contextAccessor.getScissorStack().peek(),
-      16 * 2
-    ));
+    contextAccessor.getGuiRenderState().addPicturesInPictureState(
+        new CustomBannerGuiElementRenderState(bannerFlag, color, patterns, centerX + x, y, centerX + x + getWidth(null),
+            y + getHeight(null), contextAccessor.getScissorStack().peek(), 16 * 2));
   }
 }

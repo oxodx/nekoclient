@@ -69,13 +69,15 @@ public class SettingColor extends Color {
   }
 
   public void update() {
-    if (rainbow) set(RainbowColors.GLOBAL.r, RainbowColors.GLOBAL.g, RainbowColors.GLOBAL.b, a);
+    if (rainbow)
+      set(RainbowColors.GLOBAL.r, RainbowColors.GLOBAL.g, RainbowColors.GLOBAL.b, a);
   }
 
   @Override
   public SettingColor set(Color value) {
     super.set(value);
-    if (value instanceof SettingColor settingColor) rainbow = settingColor.rainbow;
+    if (value instanceof SettingColor settingColor)
+      rainbow = settingColor.rainbow;
 
     return this;
   }
@@ -101,9 +103,12 @@ public class SettingColor extends Color {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+    if (!super.equals(o))
+      return false;
 
     return rainbow == ((SettingColor) o).rainbow;
   }

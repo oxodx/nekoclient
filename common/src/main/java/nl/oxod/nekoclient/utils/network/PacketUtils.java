@@ -7,6 +7,9 @@ package nl.oxod.nekoclient.utils.network;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketType;
@@ -26,10 +29,6 @@ import net.minecraft.network.protocol.status.StatusProtocols;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class PacketUtils {
@@ -77,32 +76,31 @@ public class PacketUtils {
     Identifier identifier = Identifier.tryParse(name);
     if (identifier != null) {
       PacketType<? extends @NonNull Packet<?>> type = getPacket(identifier);
-      if (type != null) return type;
+      if (type != null)
+        return type;
     }
 
     return LEGACY_PACKET_MAPPINGS.get(name);
   }
 
   static {
-    ImmutableMap.Builder<@NonNull Identifier, @NonNull PacketType<? extends @NonNull Packet<?>>> clientbound = ImmutableMap.builder();
-    ImmutableMap.Builder<@NonNull Identifier, @NonNull PacketType<? extends @NonNull Packet<?>>> serverbound = ImmutableMap.builder();
+    ImmutableMap.Builder<@NonNull Identifier, @NonNull PacketType<? extends @NonNull Packet<?>>> clientbound =
+        ImmutableMap.builder();
+    ImmutableMap.Builder<@NonNull Identifier, @NonNull PacketType<? extends @NonNull Packet<?>>> serverbound =
+        ImmutableMap.builder();
 
-    Stream.of(
-        StatusProtocols.CLIENTBOUND_TEMPLATE,
-        LoginProtocols.CLIENTBOUND_TEMPLATE,
-        ConfigurationProtocols.CLIENTBOUND_TEMPLATE,
-        GameProtocols.CLIENTBOUND_TEMPLATE
-      ).map(ProtocolInfo.DetailsProvider::details)
-      .forEach(details -> details.listPackets((type, _) -> clientbound.put(type.id(), type)));
+    Stream
+        .of(StatusProtocols.CLIENTBOUND_TEMPLATE, LoginProtocols.CLIENTBOUND_TEMPLATE,
+            ConfigurationProtocols.CLIENTBOUND_TEMPLATE, GameProtocols.CLIENTBOUND_TEMPLATE)
+        .map(ProtocolInfo.DetailsProvider::details)
+        .forEach(details -> details.listPackets((type, _) -> clientbound.put(type.id(), type)));
 
-    Stream.of(
-        HandshakeProtocols.SERVERBOUND_TEMPLATE,
-        StatusProtocols.SERVERBOUND_TEMPLATE,
-        LoginProtocols.SERVERBOUND_TEMPLATE,
-        ConfigurationProtocols.SERVERBOUND_TEMPLATE,
-        GameProtocols.SERVERBOUND_TEMPLATE
-      ).map(ProtocolInfo.DetailsProvider::details)
-      .forEach(details -> details.listPackets((type, _) -> serverbound.put(type.id(), type)));
+    Stream
+        .of(HandshakeProtocols.SERVERBOUND_TEMPLATE, StatusProtocols.SERVERBOUND_TEMPLATE,
+            LoginProtocols.SERVERBOUND_TEMPLATE, ConfigurationProtocols.SERVERBOUND_TEMPLATE,
+            GameProtocols.SERVERBOUND_TEMPLATE)
+        .map(ProtocolInfo.DetailsProvider::details)
+        .forEach(details -> details.listPackets((type, _) -> serverbound.put(type.id(), type)));
 
     CLIENTBOUND_PACKETS_MAP = clientbound.buildKeepingLast();
     SERVERBOUND_PACKETS_MAP = serverbound.buildKeepingLast();
@@ -119,7 +117,8 @@ public class PacketUtils {
   private static final Map<String, PacketType<? extends @NonNull Packet<?>>> LEGACY_PACKET_MAPPINGS;
 
   static {
-    ImmutableMap.Builder<@NonNull String, @NonNull PacketType<? extends @NonNull Packet<?>>> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<@NonNull String, @NonNull PacketType<? extends @NonNull Packet<?>>> builder =
+        ImmutableMap.builder();
     builder.put("ClientIntentionPacket", HandshakePacketTypes.CLIENT_INTENTION);
     builder.put("ServerboundMovePlayerPacket.Pos", GamePacketTypes.SERVERBOUND_MOVE_PLAYER_POS);
     builder.put("ServerboundMovePlayerPacket.PosRot", GamePacketTypes.SERVERBOUND_MOVE_PLAYER_POS_ROT);
@@ -192,7 +191,7 @@ public class PacketUtils {
     builder.put("ServerboundSignUpdatePacket", GamePacketTypes.SERVERBOUND_SIGN_UPDATE);
     builder.put("ServerboundSpectatorActionPacket", GamePacketTypes.SERVERBOUND_SPECTATOR_ACTION);
     builder.put("ServerboundStatusRequestPacket", StatusPacketTypes.SERVERBOUND_STATUS_REQUEST);
-        builder.put("ServerboundSwingPacket", GamePacketTypes.SERVERBOUND_PUNCH);
+    builder.put("ServerboundSwingPacket", GamePacketTypes.SERVERBOUND_PUNCH);
     builder.put("ServerboundTeleportToEntityPacket", GamePacketTypes.SERVERBOUND_TELEPORT_TO_ENTITY);
     builder.put("ServerboundTestInstanceBlockActionPacket", GamePacketTypes.SERVERBOUND_TEST_INSTANCE_BLOCK_ACTION);
     builder.put("ServerboundUseItemOnPacket", GamePacketTypes.SERVERBOUND_USE_ITEM_ON);
@@ -355,6 +354,5 @@ public class PacketUtils {
     LEGACY_PACKET_MAPPINGS = builder.buildOrThrow();
   }
 
-  private PacketUtils() {
-  }
+  private PacketUtils() {}
 }

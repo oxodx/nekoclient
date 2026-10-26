@@ -1,17 +1,16 @@
 package nl.oxod.nekoclient.utils.security;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public final class MmCrypto {
   public static final SecureRandom RNG = new SecureRandom();
 
-  private MmCrypto() {
-  }
+  private MmCrypto() {}
 
   public static final class MmCryptoException extends RuntimeException {
     public MmCryptoException(String message, Throwable cause) {
@@ -43,7 +42,8 @@ public final class MmCrypto {
     try {
       Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
       c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key32, "AES"), new GCMParameterSpec(128, nonce12));
-      if (aad != null) c.updateAAD(aad);
+      if (aad != null)
+        c.updateAAD(aad);
       return c.doFinal(plaintext);
     } catch (Exception e) {
       throw new MmCryptoException("aesGcmSeal", e);
@@ -54,7 +54,8 @@ public final class MmCrypto {
     try {
       Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
       c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key32, "AES"), new GCMParameterSpec(128, nonce12));
-      if (aad != null) c.updateAAD(aad);
+      if (aad != null)
+        c.updateAAD(aad);
       return c.doFinal(ciphertext);
     } catch (javax.crypto.AEADBadTagException badTag) {
       return null;

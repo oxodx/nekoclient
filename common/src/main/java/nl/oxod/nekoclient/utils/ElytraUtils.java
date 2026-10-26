@@ -7,6 +7,7 @@ public class ElytraUtils {
   private static final Minecraft mc = Minecraft.getInstance();
 
   public static void startFly() {
-    mc.player.connection.send(new ServerboundPlayerCommandPacket(mc.player, ServerboundPlayerCommandPacket.Action.START_FALL_FLYING));
+    mc.player.connection.send(
+        new ServerboundPlayerCommandPacket(mc.player, ServerboundPlayerCommandPacket.Action.START_FALL_FLYING));
   }
 }

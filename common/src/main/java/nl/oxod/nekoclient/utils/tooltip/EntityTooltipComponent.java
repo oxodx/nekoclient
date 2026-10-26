@@ -5,6 +5,8 @@
 
 package nl.oxod.nekoclient.utils.tooltip;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -13,8 +15,6 @@ import net.minecraft.world.entity.LivingEntity;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class EntityTooltipComponent implements NekoTooltipData, ClientTooltipComponent {
   protected final LivingEntity entity;
@@ -40,8 +40,10 @@ public class EntityTooltipComponent implements NekoTooltipData, ClientTooltipCom
   }
 
   @Override
-  public void extractImage(@NonNull Font textRenderer, int x, int y, int width, int height, GuiGraphicsExtractor graphics) {
-    var state = (LivingEntityRenderState) mc.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1);
+  public void extractImage(
+      @NonNull Font textRenderer, int x, int y, int width, int height, GuiGraphicsExtractor graphics) {
+    var state =
+        (LivingEntityRenderState) mc.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1);
 
     state.lightCoords = 15728880;
     state.shadowPieces.clear();

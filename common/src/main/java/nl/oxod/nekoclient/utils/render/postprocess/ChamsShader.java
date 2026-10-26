@@ -1,9 +1,11 @@
 /*
-* This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/nekoclient).
-* Copyright (c) Meteor Development.
-*/
+ * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/nekoclient).
+ * Copyright (c) Meteor Development.
+ */
 
 package nl.oxod.nekoclient.utils.render.postprocess;
+
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
@@ -11,6 +13,15 @@ import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.textures.FilterMode;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Optional;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.renderer.DynamicGpuDataStorage;
+import net.minecraft.client.renderer.DynamicGpuDataStorageMapped;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.world.entity.Entity;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.game.ResourcePacksReloadedEvent;
 import nl.oxod.nekoclient.renderer.MeshRenderer;
@@ -20,21 +31,9 @@ import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.Chams;
 import nl.oxod.nekoclient.utils.PostInit;
 import nl.oxod.nekoclient.utils.render.color.Color;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.renderer.DynamicGpuDataStorage;
-import net.minecraft.client.renderer.DynamicGpuDataStorageMapped;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.Optional;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class ChamsShader extends EntityShader {
   private static final String[] FILE_FORMATS = {"png", "jpg"};
@@ -52,15 +51,18 @@ public class ChamsShader extends EntityShader {
     try {
       ByteBuffer data = null;
       for (String fileFormat : FILE_FORMATS) {
-        Optional<Resource> optional = mc.getResourceManager().getResource(NekoClient.identifier("textures/chams." + fileFormat));
-        if (optional.isEmpty()) continue;
+        Optional<Resource> optional =
+            mc.getResourceManager().getResource(NekoClient.identifier("textures/chams." + fileFormat));
+        if (optional.isEmpty())
+          continue;
 
         try (var input = optional.get().open()) {
           data = TextureUtil.readResource(input);
         }
         break;
       }
-      if (data == null) return;
+      if (data == null)
+        return;
 
       data.rewind();
 
@@ -72,7 +74,8 @@ public class ChamsShader extends EntityShader {
         STBImage.stbi_set_flip_vertically_on_load(true);
         ByteBuffer image = STBImage.stbi_load_from_memory(data, width, height, comp, 4);
 
-        IMAGE_TEX = new Texture(width.get(0), height.get(0), GpuFormat.RGBA8_UNORM, FilterMode.NEAREST, FilterMode.NEAREST);
+        IMAGE_TEX =
+            new Texture(width.get(0), height.get(0), GpuFormat.RGBA8_UNORM, FilterMode.NEAREST, FilterMode.NEAREST);
         IMAGE_TEX.upload(image);
 
         STBImage.stbi_image_free(image);
@@ -92,9 +95,8 @@ public class ChamsShader extends EntityShader {
   protected void setupPass(MeshRenderer renderer) {
     Color color = chams.shaderColor.get();
 
-    renderer.uniform("ImageData", UNIFORM_STORAGE.writeData(new UniformData(
-      color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f
-    )));
+    renderer.uniform("ImageData",
+        UNIFORM_STORAGE.writeData(new UniformData(color.r / 255f, color.g / 255f, color.b / 255f, color.a / 255f)));
 
     if (chams.isShader() && chams.shader.get() == Chams.Shader.Image && IMAGE_TEX != null) {
       renderer.sampler("u_TextureI", IMAGE_TEX.getTextureView(), IMAGE_TEX.getSampler());
@@ -103,23 +105,24 @@ public class ChamsShader extends EntityShader {
 
   @Override
   protected boolean shouldDraw() {
-    if (chams == null) chams = Modules.get().get(Chams.class);
+    if (chams == null)
+      chams = Modules.get().get(Chams.class);
     return chams.isShader();
   }
 
   @Override
   public boolean shouldDraw(Entity entity) {
-    if (!shouldDraw()) return false;
+    if (!shouldDraw())
+      return false;
     return chams.entities.get().contains(entity.getType()) && (entity != mc.player || !chams.ignoreSelfDepth.get());
   }
 
   // Uniforms
 
-  private static final int UNIFORM_SIZE = new Std140SizeCalculator()
-    .putVec4()
-    .get();
+  private static final int UNIFORM_SIZE = new Std140SizeCalculator().putVec4().get();
 
-  private static final DynamicGpuDataStorage<UniformData> UNIFORM_STORAGE = new DynamicGpuDataStorageMapped<>("Meteor - Image UBO", UNIFORM_SIZE, GpuBuffer.USAGE_UNIFORM, 16);
+  private static final DynamicGpuDataStorage<UniformData> UNIFORM_STORAGE =
+      new DynamicGpuDataStorageMapped<>("Meteor - Image UBO", UNIFORM_SIZE, GpuBuffer.USAGE_UNIFORM, 16);
 
   public static void flipFrame() {
     UNIFORM_STORAGE.endFrame();
@@ -128,8 +131,7 @@ public class ChamsShader extends EntityShader {
   private record UniformData(float r, float g, float b, float a) implements DynamicGpuDataStorage.DynamicGpuData {
     @Override
     public void write(@NonNull ByteBuffer buffer) {
-      Std140Builder.intoBuffer(buffer)
-        .putVec4(r, g, b, a);
+      Std140Builder.intoBuffer(buffer).putVec4(r, g, b, a);
     }
   }
 }

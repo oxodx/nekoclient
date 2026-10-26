@@ -6,10 +6,9 @@
 package nl.oxod.nekoclient.utils.entity;
 
 import com.google.common.base.Predicates;
+import java.util.function.Predicate;
 import net.minecraft.world.entity.LivingEntity;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.function.Predicate;
 
 @NullMarked
 public enum EntityAgeTest implements Predicate<LivingEntity> {
@@ -35,5 +34,4 @@ public enum EntityAgeTest implements Predicate<LivingEntity> {
       case Both -> Predicates.alwaysFalse();
     };
   }
-
 }

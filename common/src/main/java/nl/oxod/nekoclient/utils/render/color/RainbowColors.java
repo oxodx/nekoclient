@@ -5,6 +5,10 @@
 
 package nl.oxod.nekoclient.utils.render.color;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.gui.GuiThemes;
@@ -17,11 +21,6 @@ import nl.oxod.nekoclient.systems.waypoints.Waypoint;
 import nl.oxod.nekoclient.systems.waypoints.Waypoints;
 import nl.oxod.nekoclient.utils.PostInit;
 import nl.oxod.nekoclient.utils.misc.UnorderedArrayList;
-import meteordevelopment.orbit.EventHandler;
-
-import java.util.List;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class RainbowColors {
   private static final List<Setting<SettingColor>> colorSettings = new UnorderedArrayList<>();
@@ -32,8 +31,7 @@ public class RainbowColors {
 
   public static final RainbowColor GLOBAL = new RainbowColor();
 
-  private RainbowColors() {
-  }
+  private RainbowColors() {}
 
   @PostInit
   public static void init() {
@@ -70,7 +68,8 @@ public class RainbowColors {
     GLOBAL.getNext();
 
     for (Setting<SettingColor> setting : colorSettings) {
-      if (setting.module == null || setting.module.isActive()) setting.get().update();
+      if (setting.module == null || setting.module.isActive())
+        setting.get().update();
     }
 
     for (Setting<List<SettingColor>> setting : colorListSettings) {
@@ -90,7 +89,8 @@ public class RainbowColors {
     if (mc.gui.screen() instanceof WidgetScreen) {
       for (SettingGroup group : GuiThemes.get().settings) {
         for (Setting<?> setting : group) {
-          if (setting instanceof ColorSetting) ((SettingColor) setting.get()).update();
+          if (setting instanceof ColorSetting)
+            ((SettingColor) setting.get()).update();
         }
       }
     }

@@ -17,8 +17,7 @@ public final class KillAuraRotation {
 
   private static int resetTicks = 0;
 
-  private KillAuraRotation() {
-  }
+  private KillAuraRotation() {}
 
   public static void setTarget(RotationUtil.Rotation rotation) {
     targetRotation = rotation;
@@ -60,8 +59,7 @@ public final class KillAuraRotation {
       next = RotationUtil.normalizeToSensitivity(next, currentRotation);
 
       if (RotationUtil.rotationAngleTo(next, playerRotation) <= RESET_THRESHOLD) {
-        float fixedYaw = currentRotation.yaw()
-          + RotationUtil.angleDifference(player.getYRot(), currentRotation.yaw());
+        float fixedYaw = currentRotation.yaw() + RotationUtil.angleDifference(player.getYRot(), currentRotation.yaw());
         player.setYRot(fixedYaw);
         player.yBob = fixedYaw;
         player.yBobO = fixedYaw;
@@ -80,8 +78,7 @@ public final class KillAuraRotation {
     resetTicks--;
   }
 
-  private static RotationUtil.Rotation step(RotationUtil.Rotation from, RotationUtil.Rotation to,
-                                            float turnSpeed) {
+  private static RotationUtil.Rotation step(RotationUtil.Rotation from, RotationUtil.Rotation to, float turnSpeed) {
     return RotationUtil.towardsLinear(from, to, turnSpeed, turnSpeed);
   }
 }

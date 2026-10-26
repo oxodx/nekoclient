@@ -5,20 +5,18 @@
 
 package nl.oxod.nekoclient.utils.entity.fakeplayer;
 
-import nl.oxod.nekoclient.utils.Utils;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.utils.Utils;
 
 public class FakePlayerManager {
   private static final List<FakePlayerEntity> ENTITIES = new ArrayList<>();
 
-  private FakePlayerManager() {
-  }
+  private FakePlayerManager() {}
 
   public static List<FakePlayerEntity> getFakePlayers() {
     return ENTITIES;
@@ -26,14 +24,16 @@ public class FakePlayerManager {
 
   public static FakePlayerEntity get(String name) {
     for (FakePlayerEntity fp : ENTITIES) {
-      if (fp.getName().getString().equals(name)) return fp;
+      if (fp.getName().getString().equals(name))
+        return fp;
     }
 
     return null;
   }
 
   public static void add(String name, float health, boolean copyInv) {
-    if (!Utils.canUpdate()) return;
+    if (!Utils.canUpdate())
+      return;
 
     FakePlayerEntity fakePlayer = new FakePlayerEntity(mc.player, name, health, copyInv);
     fakePlayer.spawn();
@@ -52,7 +52,8 @@ public class FakePlayerManager {
   }
 
   public static void clear() {
-    if (ENTITIES.isEmpty()) return;
+    if (ENTITIES.isEmpty())
+      return;
     ENTITIES.forEach(FakePlayerEntity::despawn);
     ENTITIES.clear();
   }

@@ -6,7 +6,6 @@
 package nl.oxod.nekoclient.utils.notebot.song;
 
 import com.google.common.collect.Multimap;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,15 +20,15 @@ public class Song {
 
   private boolean finishedLoading = false;
 
-  public Song(Multimap<Integer, Note> notesMap,
-              String title, String author) {
+  public Song(Multimap<Integer, Note> notesMap, String title, String author) {
     this.notesMap = notesMap;
     this.title = title;
     this.author = author;
   }
 
   public void finishLoading() {
-    if (finishedLoading) throw new IllegalStateException("Song has already finished loading!");
+    if (finishedLoading)
+      throw new IllegalStateException("Song has already finished loading!");
 
     this.lastTick = Collections.max(notesMap.keySet());
     this.notesMap.values().stream().distinct().forEach(requirements::add);
@@ -42,12 +41,14 @@ public class Song {
   }
 
   public Set<Note> getRequirements() {
-    if (!finishedLoading) throw new IllegalStateException("Song is still loading!");
+    if (!finishedLoading)
+      throw new IllegalStateException("Song is still loading!");
     return requirements;
   }
 
   public int getLastTick() {
-    if (!finishedLoading) throw new IllegalStateException("Song is still loading!");
+    if (!finishedLoading)
+      throw new IllegalStateException("Song is still loading!");
     return lastTick;
   }
 

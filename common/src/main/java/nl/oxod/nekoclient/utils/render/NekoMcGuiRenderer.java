@@ -5,15 +5,15 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import java.util.List;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
 
-import java.util.List;
-
 public class NekoMcGuiRenderer extends GuiRenderer {
-  public NekoMcGuiRenderer(GuiRenderState renderState, FeatureRenderDispatcher featureRenderDispatcher, List<PictureInPictureRenderer<?>> pictureInPictureRenderers) {
+  public NekoMcGuiRenderer(GuiRenderState renderState, FeatureRenderDispatcher featureRenderDispatcher,
+      List<PictureInPictureRenderer<?>> pictureInPictureRenderers) {
     super(renderState, featureRenderDispatcher, pictureInPictureRenderers);
   }
 }

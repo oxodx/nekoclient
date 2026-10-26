@@ -5,19 +5,19 @@
 
 package nl.oxod.nekoclient.utils.notebot;
 
-import nl.oxod.nekoclient.utils.notebot.instrumentdetect.InstrumentDetectFunction;
-import nl.oxod.nekoclient.utils.notebot.song.Note;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import nl.oxod.nekoclient.utils.notebot.instrumentdetect.InstrumentDetectFunction;
+import nl.oxod.nekoclient.utils.notebot.song.Note;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class NotebotUtils {
-  public static Note getNoteFromNoteBlock(BlockState noteBlock, BlockPos blockPos, NotebotMode mode, InstrumentDetectFunction instrumentDetectFunction) {
+  public static Note getNoteFromNoteBlock(
+      BlockState noteBlock, BlockPos blockPos, NotebotMode mode, InstrumentDetectFunction instrumentDetectFunction) {
     NoteBlockInstrument instrument = null;
     int level = noteBlock.getValue(NoteBlock.NOTE);
     if (mode == NotebotMode.ExactInstruments) {
@@ -27,9 +27,7 @@ public class NotebotUtils {
     return new Note(instrument, level);
   }
 
-  public enum NotebotMode {
-    AnyInstrument, ExactInstruments
-  }
+  public enum NotebotMode { AnyInstrument, ExactInstruments }
 
   public enum OptionalInstrument {
     None(null),

@@ -28,7 +28,8 @@ public class ValueComparableMap<K extends Comparable<K>, V> extends TreeMap<K, V
 
   @Override
   public V put(K k, V v) {
-    if (valueMap.containsKey(k)) remove(k);
+    if (valueMap.containsKey(k))
+      remove(k);
     valueMap.put(k, v);
     return super.put(k, v);
   }

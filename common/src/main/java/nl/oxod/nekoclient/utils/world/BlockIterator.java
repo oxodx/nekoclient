@@ -5,21 +5,20 @@
 
 package nl.oxod.nekoclient.utils.world;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import meteordevelopment.orbit.EventHandler;
+import meteordevelopment.orbit.EventPriority;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.utils.PreInit;
 import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.misc.Pool;
-import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.orbit.EventPriority;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.List;
-import java.util.function.BiConsumer;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class BlockIterator {
   private static final Pool<Callback> callbackPool = new Pool<>(Callback::new);
@@ -32,8 +31,7 @@ public class BlockIterator {
 
   private static boolean disableCurrent;
 
-  private BlockIterator() {
-  }
+  private BlockIterator() {}
 
   @PreInit
   public static void init() {
@@ -42,7 +40,8 @@ public class BlockIterator {
 
   @EventHandler(priority = EventPriority.LOWEST - 1)
   private static void onTick(TickEvent.Pre event) {
-    if (!Utils.canUpdate()) return;
+    if (!Utils.canUpdate())
+      return;
 
     int px = mc.player.getBlockX();
     int py = mc.player.getBlockY();
@@ -51,7 +50,8 @@ public class BlockIterator {
     for (int x = px - hRadius; x <= px + hRadius; x++) {
       for (int z = pz - hRadius; z <= pz + hRadius; z++) {
         for (int y = Math.max(mc.level.getMinY(), py - vRadius); y <= py + vRadius; y++) {
-          if (y > mc.level.getHeight()) break;
+          if (y > mc.level.getHeight())
+            break;
 
           blockPos.set(x, y, z);
           BlockState blockState = mc.level.getBlockState(blockPos);

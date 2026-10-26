@@ -5,15 +5,15 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.render.Zoom;
 import nl.oxod.nekoclient.utils.Utils;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.util.Mth;
 import org.joml.*;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class NametagUtils {
   private static final Vector4f vec4 = new Vector4f();
@@ -27,8 +27,7 @@ public class NametagUtils {
 
   public static double scale;
 
-  private NametagUtils() {
-  }
+  private NametagUtils() {}
 
   public static void onRender(Matrix4fc modelView) {
     model.set(modelView);
@@ -63,7 +62,8 @@ public class NametagUtils {
 
     boolean behind = pmMat4.w <= 0.f;
 
-    if (behind && !allowBehind) return false;
+    if (behind && !allowBehind)
+      return false;
 
     toScreen(pmMat4);
     double x = pmMat4.x * mc.getWindow().getWidth();
@@ -74,7 +74,8 @@ public class NametagUtils {
       y = mc.getWindow().getHeight() - y;
     }
 
-    if (Double.isInfinite(x) || Double.isInfinite(y)) return false;
+    if (Double.isInfinite(x) || Double.isInfinite(y))
+      return false;
 
     pos.set(x / windowScale, mc.getWindow().getHeight() - y / windowScale, allowBehind ? pmMat4.w : pmMat4.z);
     return true;

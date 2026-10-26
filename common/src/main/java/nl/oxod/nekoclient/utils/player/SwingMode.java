@@ -29,12 +29,10 @@ public enum SwingMode {
   }
 
   public void attackSwing(InteractionHand hand) {
-    if (client()) mc.player.swing(
-      hand,
-      mc.player.getItemInHand(hand).getAttackAnimation(),
-      false
-    );
-    if (server()) mc.getConnection().send(ServerboundPunchPacket.INSTANCE);
+    if (client())
+      mc.player.swing(hand, mc.player.getItemInHand(hand).getAttackAnimation(), false);
+    if (server())
+      mc.getConnection().send(ServerboundPunchPacket.INSTANCE);
   }
 
   /**
@@ -42,10 +40,7 @@ public enum SwingMode {
    * interaction result. There is no packet to send, so {@link #Packet} and {@link #None} behave alike.
    */
   public void interactSwing(InteractionHand hand) {
-    if (client()) mc.player.swing(
-      hand,
-      mc.player.getItemInHand(hand).getInteractAnimation(),
-      false
-    );
+    if (client())
+      mc.player.swing(hand, mc.player.getItemInHand(hand).getInteractAnimation(), false);
   }
 }

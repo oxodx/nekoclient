@@ -5,13 +5,12 @@
 
 package nl.oxod.nekoclient.utils.world;
 
-import nl.oxod.nekoclient.mixin.ChunkAccessAccessor;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.chunk.ChunkAccess;
-
 import java.util.Iterator;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import nl.oxod.nekoclient.mixin.ChunkAccessAccessor;
 
 public class BlockEntityIterator implements Iterator<BlockEntity> {
   private final Iterator<ChunkAccess> chunks;
@@ -25,7 +24,8 @@ public class BlockEntityIterator implements Iterator<BlockEntity> {
 
   private void nextChunk() {
     while (true) {
-      if (!chunks.hasNext()) break;
+      if (!chunks.hasNext())
+        break;
 
       Map<BlockPos, BlockEntity> blockEntityMap = ((ChunkAccessAccessor) chunks.next()).getBlockEntities();
 
@@ -38,8 +38,10 @@ public class BlockEntityIterator implements Iterator<BlockEntity> {
 
   @Override
   public boolean hasNext() {
-    if (blockEntities == null) return false;
-    if (blockEntities.hasNext()) return true;
+    if (blockEntities == null)
+      return false;
+    if (blockEntities.hasNext())
+      return true;
 
     nextChunk();
 

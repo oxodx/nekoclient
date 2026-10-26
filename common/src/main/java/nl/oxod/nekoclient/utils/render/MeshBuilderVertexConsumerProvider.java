@@ -6,9 +6,9 @@
 package nl.oxod.nekoclient.utils.render;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import nl.oxod.nekoclient.renderer.MeshBuilder;
 import nl.oxod.nekoclient.utils.render.color.Color;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 
@@ -60,10 +60,10 @@ public class MeshBuilderVertexConsumerProvider implements IVertexConsumerProvide
       return this;
     }
 
-        @Override
-        public VertexConsumer setUv3(float u, float v) {
-            return this;
-        }
+    @Override
+    public VertexConsumer setUv3(float u, float v) {
+      return this;
+    }
 
     public VertexConsumer setNormal(float x, float y, float z) {
       return this;
@@ -114,12 +114,9 @@ public class MeshBuilderVertexConsumerProvider implements IVertexConsumerProvide
       if (++i >= 4) {
         mesh.ensureQuadCapacity();
 
-        mesh.quad(
-          mesh.vec3(xs[0], ys[0], zs[0]).color(color).next(),
-          mesh.vec3(xs[1], ys[1], zs[1]).color(color).next(),
-          mesh.vec3(xs[2], ys[2], zs[2]).color(color).next(),
-          mesh.vec3(xs[3], ys[3], zs[3]).color(color).next()
-        );
+        mesh.quad(mesh.vec3(xs[0], ys[0], zs[0]).color(color).next(),
+            mesh.vec3(xs[1], ys[1], zs[1]).color(color).next(), mesh.vec3(xs[2], ys[2], zs[2]).color(color).next(),
+            mesh.vec3(xs[3], ys[3], zs[3]).color(color).next());
 
         i = 0;
       }
@@ -161,10 +158,10 @@ public class MeshBuilderVertexConsumerProvider implements IVertexConsumerProvide
       return this;
     }
 
-        @Override
-        public @NonNull VertexConsumer setUv3(float u, float v) {
-            return this;
-        }
+    @Override
+    public @NonNull VertexConsumer setUv3(float u, float v) {
+      return this;
+    }
 
     @Override
     public @NonNull VertexConsumer setNormal(float x, float y, float z) {

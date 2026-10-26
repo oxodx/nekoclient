@@ -5,15 +5,15 @@
 
 package nl.oxod.nekoclient.utils.tooltip;
 
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.utils.render.RenderUtils;
-import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.utils.render.RenderUtils;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import org.jspecify.annotations.NonNull;
 
 public class ContainerTooltipComponent implements ClientTooltipComponent, NekoTooltipData {
@@ -45,7 +45,8 @@ public class ContainerTooltipComponent implements ClientTooltipComponent, NekoTo
   @Override
   public void extractImage(@NonNull Font font, int x, int y, int width, int height, GuiGraphicsExtractor graphics) {
     // Background
-    graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_CONTAINER_BACKGROUND, x, y, 0, 0, 176, 67, 176, 67, color.getPacked());
+    graphics.blit(
+        RenderPipelines.GUI_TEXTURED, TEXTURE_CONTAINER_BACKGROUND, x, y, 0, 0, 176, 67, 176, 67, color.getPacked());
 
     // Contents
     int row = 0;

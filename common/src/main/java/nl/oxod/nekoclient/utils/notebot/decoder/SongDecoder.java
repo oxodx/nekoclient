@@ -5,11 +5,10 @@
 
 package nl.oxod.nekoclient.utils.notebot.decoder;
 
+import java.io.File;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.misc.Notebot;
 import nl.oxod.nekoclient.utils.notebot.song.Song;
-
-import java.io.File;
 
 public abstract class SongDecoder {
   protected Notebot notebot = Modules.get().get(Notebot.class);

@@ -7,20 +7,18 @@ package nl.oxod.nekoclient.utils.misc.text;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import nl.oxod.nekoclient.utils.render.color.Color;
+import java.util.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.FormattedCharSequence;
-
-import java.util.*;
+import nl.oxod.nekoclient.utils.render.color.Color;
 
 /**
  * Some utilities for {@link Component}
  */
 public class TextUtils {
-  private TextUtils() {
-  }
+  private TextUtils() {}
 
   public static List<ColoredText> toColoredTextList(Component text) {
     Deque<ColoredText> stack = new ArrayDeque<>();
@@ -49,32 +47,40 @@ public class TextUtils {
    * Returns the {@link Color} that is most prevalent through the given {@link Component}
    *
    * @param text the {@link Component} to scan through
-   * @return You know what it returns. Read the docs! Also, returns white if the internal {@link Object2IntMap.Entry} is null
+   * @return You know what it returns. Read the docs! Also, returns white if the internal {@link Object2IntMap.Entry} is
+   *     null
    */
   public static Color getMostPopularColor(Component text) {
     Object2IntMap.Entry<Color> biggestEntry = null;
     for (var entry : getColoredCharacterCount(toColoredTextList(text)).object2IntEntrySet()) {
-      if (biggestEntry == null) biggestEntry = entry;
-      else if (entry.getIntValue() > biggestEntry.getIntValue()) biggestEntry = entry;
+      if (biggestEntry == null)
+        biggestEntry = entry;
+      else if (entry.getIntValue() > biggestEntry.getIntValue())
+        biggestEntry = entry;
     }
     return biggestEntry == null ? new Color(255, 255, 255) : biggestEntry.getKey();
   }
 
   /**
-   * Takes a {@link List} of {@link ColoredText} and returns a {@link HashMap}, where the keys are all the existing {@link Color}s in the
-   * aforementioned list, and the corresponding keys are the number of characters that have that color.
+   * Takes a {@link List} of {@link ColoredText} and returns a {@link HashMap}, where the keys are all the existing
+   * {@link Color}s in the aforementioned list, and the corresponding keys are the number of characters that have that
+   * color.
    *
-   * @param coloredTexts The list of {@link ColoredText} to obtain the color count of. Best paired with the output from {@link #toColoredTextList(Component)}
-   * @return a {@link Map} whose keys are colors (and the set of keys being all possible colors used in the list, thus all colors in the text,
-   * if the argument for this function is fed from the return from {@link #toColoredTextList(Component)}), and the corresponding values being {@link Integer}s
-   * representing the number of occurrences of text that bear that color. The order of the keys are in no particular order
+   * @param coloredTexts The list of {@link ColoredText} to obtain the color count of. Best paired with the output from
+   *     {@link #toColoredTextList(Component)}
+   * @return a {@link Map} whose keys are colors (and the set of keys being all possible colors used in the list, thus
+   *     all colors in the text,
+   * if the argument for this function is fed from the return from {@link #toColoredTextList(Component)}), and the
+   * corresponding values being {@link Integer}s representing the number of occurrences of text that bear that color.
+   * The order of the keys are in no particular order
    */
   public static Object2IntMap<Color> getColoredCharacterCount(List<ColoredText> coloredTexts) {
     Object2IntMap<Color> colorCount = new Object2IntOpenHashMap<>();
 
     for (ColoredText coloredText : coloredTexts) {
       if (colorCount.containsKey(coloredText.color())) {
-        // Since color was already catalogued, simply update the record by adding the length of the new text segment to the old one
+        // Since color was already catalogued, simply update the record by adding the length of the new text segment to
+        // the old one
         colorCount.put(coloredText.color(), colorCount.getInt(coloredText.color()) + coloredText.text().length());
       } else {
         // Add new entry to the hashmap
@@ -90,7 +96,8 @@ public class TextUtils {
    * of {@link ColoredText}, such that one could know the text and its color by iterating over the list.
    *
    * @param text         The text to flatten
-   * @param stack        An empty stack. This is used by the recursive algorithm to keep track of the parents of the current iteration
+   * @param stack        An empty stack. This is used by the recursive algorithm to keep track of the parents of the
+   *     current iteration
    * @param coloredTexts The list of colored text to return
    */
   private static void preOrderTraverse(Component text, Deque<ColoredText> stack, List<ColoredText> coloredTexts) {
@@ -102,10 +109,9 @@ public class TextUtils {
 
     TextColor mcTextColor = text.getStyle().getColor();
 
-
-    // If mcTextColor is null, the color should be inherited from its parent. In this case, the path of the recursion is stored on the stack,
-    // with the current element's parent at the top, so simply peek it if possible. If not, there is no parent element,
-    // and with no color, use the default of white.
+    // If mcTextColor is null, the color should be inherited from its parent. In this case, the path of the recursion is
+    // stored on the stack, with the current element's parent at the top, so simply peek it if possible. If not, there
+    // is no parent element, and with no color, use the default of white.
     Color textColor;
     if (mcTextColor == null) {
       if (stack.isEmpty())
@@ -116,15 +122,16 @@ public class TextUtils {
         textColor = stack.peek().color();
     } else {
       // Has a color defined, so use that
-      textColor = new Color((text.getStyle().getColor().getValue()) | 0xFF000000); // Sets alpha to max. Some damn reason Color's packed ctor is in ARGB format, not RGBA
+      textColor = new Color((text.getStyle().getColor().getValue())
+          | 0xFF000000); // Sets alpha to max. Some damn reason Color's packed ctor is in ARGB format, not RGBA
     }
 
     ColoredText coloredText = new ColoredText(textString, textColor);
     coloredTexts.add(coloredText);
-    stack.push(coloredText); // For the recursion algorithm's child, the current coloredText is its parent, so add to stack
+    stack.push(
+        coloredText); // For the recursion algorithm's child, the current coloredText is its parent, so add to stack
     // Recursively traverse
-    for (Component child : text.getSiblings())
-      preOrderTraverse(child, stack, coloredTexts);
+    for (Component child : text.getSiblings()) preOrderTraverse(child, stack, coloredTexts);
 
     stack.pop();
   }

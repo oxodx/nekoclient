@@ -11,13 +11,10 @@ import java.lang.invoke.MethodHandle;
 import java.util.Locale;
 
 final class WinDpapi {
-  private WinDpapi() {
-  }
+  private WinDpapi() {}
 
   private static final MemoryLayout BLOB = MemoryLayout.structLayout(
-    ValueLayout.JAVA_INT.withName("cbData"),
-    MemoryLayout.paddingLayout(4),
-    ValueLayout.ADDRESS.withName("pbData"));
+      ValueLayout.JAVA_INT.withName("cbData"), MemoryLayout.paddingLayout(4), ValueLayout.ADDRESS.withName("pbData"));
   private static final long PB_OFFSET = 8;
   private static final int CRYPTPROTECT_UI_FORBIDDEN = 0x1;
 
@@ -35,13 +32,13 @@ final class WinDpapi {
         Arena global = Arena.global();
         SymbolLookup crypt32 = SymbolLookup.libraryLookup("Crypt32.dll", global);
         SymbolLookup kernel32 = SymbolLookup.libraryLookup("Kernel32.dll", global);
-        FunctionDescriptor blobFn = FunctionDescriptor.of(ValueLayout.JAVA_INT,
-          ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS,
-          ValueLayout.ADDRESS, ValueLayout.JAVA_INT, ValueLayout.ADDRESS);
+        FunctionDescriptor blobFn =
+            FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS,
+                ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_INT, ValueLayout.ADDRESS);
         protect = linker.downcallHandle(crypt32.find("CryptProtectData").orElseThrow(), blobFn);
         unprotect = linker.downcallHandle(crypt32.find("CryptUnprotectData").orElseThrow(), blobFn);
-        localFree = linker.downcallHandle(kernel32.find("LocalFree").orElseThrow(),
-          FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
+        localFree = linker.downcallHandle(
+            kernel32.find("LocalFree").orElseThrow(), FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
         ok = true;
       } catch (Throwable t) {
         ok = false;
@@ -66,7 +63,8 @@ final class WinDpapi {
   }
 
   private static byte[] call(MethodHandle fn, byte[] in) {
-    if (!AVAILABLE || fn == null || in == null) return null;
+    if (!AVAILABLE || fn == null || in == null)
+      return null;
     try (Arena arena = Arena.ofConfined()) {
       MemorySegment inData = arena.allocate(Math.max(1, in.length));
       MemorySegment.copy(MemorySegment.ofArray(in), 0L, inData, 0L, in.length);
@@ -78,13 +76,15 @@ final class WinDpapi {
       outBlob.set(ValueLayout.JAVA_INT, 0, 0);
       outBlob.set(ValueLayout.ADDRESS, PB_OFFSET, MemorySegment.NULL);
 
-      int ok = (int) fn.invoke(inBlob, MemorySegment.NULL, MemorySegment.NULL,
-        MemorySegment.NULL, MemorySegment.NULL, CRYPTPROTECT_UI_FORBIDDEN, outBlob);
-      if (ok == 0) return null;
+      int ok = (int) fn.invoke(inBlob, MemorySegment.NULL, MemorySegment.NULL, MemorySegment.NULL, MemorySegment.NULL,
+          CRYPTPROTECT_UI_FORBIDDEN, outBlob);
+      if (ok == 0)
+        return null;
 
       int cb = outBlob.get(ValueLayout.JAVA_INT, 0);
       MemorySegment pb = outBlob.get(ValueLayout.ADDRESS, PB_OFFSET);
-      if (cb < 0 || pb.address() == 0L) return null;
+      if (cb < 0 || pb.address() == 0L)
+        return null;
       byte[] out = new byte[cb];
       MemorySegment.copy(pb.reinterpret(cb), 0L, MemorySegment.ofArray(out), 0L, cb);
       LOCAL_FREE.invoke(pb);

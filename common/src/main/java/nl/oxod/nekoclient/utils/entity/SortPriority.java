@@ -5,14 +5,13 @@
 
 package nl.oxod.nekoclient.utils.entity;
 
-import nl.oxod.nekoclient.utils.player.PlayerUtils;
-import nl.oxod.nekoclient.utils.player.Rotations;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
 import java.util.Comparator;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import nl.oxod.nekoclient.utils.player.PlayerUtils;
+import nl.oxod.nekoclient.utils.player.Rotations;
 
 public enum SortPriority implements Comparator<Entity> {
   LowestDistance(Comparator.comparingDouble(PlayerUtils::squaredDistanceTo)),
@@ -36,9 +35,12 @@ public enum SortPriority implements Comparator<Entity> {
     boolean e1l = e1 instanceof LivingEntity;
     boolean e2l = e2 instanceof LivingEntity;
 
-    if (!e1l && !e2l) return 0;
-    else if (e1l && !e2l) return 1;
-    else if (!e1l) return -1;
+    if (!e1l && !e2l)
+      return 0;
+    else if (e1l && !e2l)
+      return 1;
+    else if (!e1l)
+      return -1;
 
     return Float.compare(((LivingEntity) e1).getHealth(), ((LivingEntity) e2).getHealth());
   }
@@ -47,9 +49,12 @@ public enum SortPriority implements Comparator<Entity> {
     boolean e1l = e1 instanceof LivingEntity;
     boolean e2l = e2 instanceof LivingEntity;
 
-    if (!e1l && !e2l) return 0;
-    else if (e1l && !e2l) return 1;
-    else if (!e1l) return -1;
+    if (!e1l && !e2l)
+      return 0;
+    else if (e1l && !e2l)
+      return 1;
+    else if (!e1l)
+      return -1;
 
     double e1yaw = Math.abs(Rotations.getYaw(e1) - mc.player.getYRot());
     double e2yaw = Math.abs(Rotations.getYaw(e2) - mc.player.getYRot());

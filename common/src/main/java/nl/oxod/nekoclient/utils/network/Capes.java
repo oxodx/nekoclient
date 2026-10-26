@@ -5,22 +5,21 @@
 
 package nl.oxod.nekoclient.utils.network;
 
-import com.mojang.blaze3d.platform.NativeImage;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.events.world.TickEvent;
-import nl.oxod.nekoclient.utils.PreInit;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.Player;
+import static nl.oxod.nekoclient.NekoClient.mc;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.utils.PreInit;
 
 public class Capes {
   private static final String CAPE_OWNERS_URL = "https://meteorclient.com/api/capeowners";
@@ -38,8 +37,7 @@ public class Capes {
   private static final List<Cape> TO_RETRY = new ArrayList<>();
   private static final List<Cape> TO_REMOVE = new ArrayList<>();
 
-  private Capes() {
-  }
+  private Capes() {}
 
   @PreInit(dependencies = NekoExecutor.class)
   public static void init() {
@@ -52,29 +50,34 @@ public class Capes {
 
     NekoExecutor.execute(() -> {
       // Cape owners
-      Stream<String> lines = Http.get(CAPE_OWNERS_URL)
-        .exceptionHandler(e -> NekoClient.LOG.error("Could not load capes: {}", e.getMessage()))
-        .sendLines();
+      Stream<String> lines =
+          Http.get(CAPE_OWNERS_URL)
+              .exceptionHandler(e -> NekoClient.LOG.error("Could not load capes: {}", e.getMessage()))
+              .sendLines();
       if (lines != null) {
         lines.forEach(s -> {
           String[] split = s.split(" ");
 
           if (split.length >= 2) {
             OWNERS.put(UUID.fromString(split[0]), split[1]);
-            if (!TEXTURES.containsKey(split[1])) TEXTURES.put(split[1], new Cape(split[1]));
+            if (!TEXTURES.containsKey(split[1]))
+              TEXTURES.put(split[1], new Cape(split[1]));
           }
         });
-      } else return;
+      } else
+        return;
 
       // Capes
       lines = Http.get(CAPES_URL).sendLines();
-      if (lines != null) lines.forEach(s -> {
-        String[] split = s.split(" ");
+      if (lines != null)
+        lines.forEach(s -> {
+          String[] split = s.split(" ");
 
-        if (split.length >= 2) {
-          if (!URLS.containsKey(split[0])) URLS.put(split[0], split[1]);
-        }
-      });
+          if (split.length >= 2) {
+            if (!URLS.containsKey(split[0]))
+              URLS.put(split[0], split[1]);
+          }
+        });
     });
 
     NekoClient.EVENT_BUS.subscribe(Capes.class);
@@ -107,9 +110,11 @@ public class Capes {
     String capeName = OWNERS.get(player.getUUID());
     if (capeName != null) {
       Cape cape = TEXTURES.get(capeName);
-      if (cape == null) return null;
+      if (cape == null)
+        return null;
 
-      if (cape.isDownloaded()) return cape.getIdentifier();
+      if (cape.isDownloaded())
+        return cape.getIdentifier();
 
       cape.download();
       return null;
@@ -144,7 +149,8 @@ public class Capes {
     }
 
     public void download() {
-      if (downloaded || downloading || retryTimer > 0) return;
+      if (downloaded || downloading || retryTimer > 0)
+        return;
       downloading = true;
 
       NekoExecutor.execute(() -> {
@@ -185,7 +191,8 @@ public class Capes {
       img = null;
       downloading = false;
 
-      if (image == null) return;
+      if (image == null)
+        return;
       mc.getTextureManager().register(identifier, new DynamicTexture(null, image));
       downloaded = true;
     }

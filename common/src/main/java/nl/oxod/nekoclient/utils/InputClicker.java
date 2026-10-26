@@ -9,11 +9,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
 public final class InputClicker {
-  private enum PacedUseOwner {
-    NONE,
-    FAST_BLOCK,
-    FAST_EXP
-  }
+  private enum PacedUseOwner { NONE, FAST_BLOCK, FAST_EXP }
 
   private static final Minecraft MC = Minecraft.getInstance();
   private static boolean attackQueued;
@@ -26,8 +22,7 @@ public final class InputClicker {
   private static PacedUseOwner pacedUseInProgress = PacedUseOwner.NONE;
   private static KeyMapping hotbarPressed;
 
-  private InputClicker() {
-  }
+  private InputClicker() {}
 
   public static void queueAttackClick() {
     attackQueued = true;
@@ -66,25 +61,30 @@ public final class InputClicker {
   }
 
   private static void queuePacedUseClick(PacedUseOwner owner) {
-    if (owner == null || owner == PacedUseOwner.NONE) return;
+    if (owner == null || owner == PacedUseOwner.NONE)
+      return;
     pacedUseQueued = owner;
   }
 
   private static boolean beginPacedUseClick(PacedUseOwner owner) {
-    if (pacedUseActive != owner) return false;
+    if (pacedUseActive != owner)
+      return false;
     pacedUseActive = PacedUseOwner.NONE;
     pacedUseInProgress = owner;
     return true;
   }
 
   private static void cancelPacedUseClick(PacedUseOwner owner) {
-    if (pacedUseQueued == owner) pacedUseQueued = PacedUseOwner.NONE;
+    if (pacedUseQueued == owner)
+      pacedUseQueued = PacedUseOwner.NONE;
     if (pacedUseActive == owner && MC != null && MC.options != null) {
       simulate(MC.options.keyUse, false);
       usePressed = false;
     }
-    if (pacedUseActive == owner) pacedUseActive = PacedUseOwner.NONE;
-    if (pacedUseInProgress == owner) pacedUseInProgress = PacedUseOwner.NONE;
+    if (pacedUseActive == owner)
+      pacedUseActive = PacedUseOwner.NONE;
+    if (pacedUseInProgress == owner)
+      pacedUseInProgress = PacedUseOwner.NONE;
     if (MC != null && MC.options != null && MC.options.keyUse != null) {
       KeyMappingBridge.of(MC.options.keyUse).nekoclient$resetPressedState();
     }
@@ -106,15 +106,14 @@ public final class InputClicker {
     if (useQueued || pacedUseQueued != PacedUseOwner.NONE) {
       pacedUseActive = pacedUseQueued;
       if (pacedUseActive != PacedUseOwner.NONE) {
-
         while (MC.options.keyUse.consumeClick()) {
-
         }
       }
       simulate(MC.options.keyUse, true);
       usePressed = true;
     }
-    if (hotbarSlotQueued >= 0 && MC.options.keyHotbarSlots != null && hotbarSlotQueued < MC.options.keyHotbarSlots.length) {
+    if (hotbarSlotQueued >= 0 && MC.options.keyHotbarSlots != null
+        && hotbarSlotQueued < MC.options.keyHotbarSlots.length) {
       hotbarPressed = MC.options.keyHotbarSlots[hotbarSlotQueued];
       simulate(hotbarPressed, true);
     }
@@ -125,7 +124,8 @@ public final class InputClicker {
   }
 
   public static void onClientTickStart() {
-    if (!canProcessInput()) clear();
+    if (!canProcessInput())
+      clear();
   }
 
   public static void afterHandleKeybinds() {
@@ -163,30 +163,27 @@ public final class InputClicker {
   }
 
   private static void drainStalePhysicalClicks() {
-    if (MC == null || MC.options == null) return;
+    if (MC == null || MC.options == null)
+      return;
     drainClick(MC.options.keyUse);
     drainClick(MC.options.keyAttack);
   }
 
   private static void drainClick(KeyMapping mapping) {
-    if (mapping == null) return;
+    if (mapping == null)
+      return;
     while (mapping.consumeClick()) {
-
     }
     KeyMappingBridge.of(mapping).nekoclient$resetPressedState();
   }
 
   private static boolean canProcessInput() {
-    return MC != null
-      && MC.player != null
-      && MC.level != null
-      && MC.options != null
-      && MC.getWindow() != null
-      && MC.gui.screen() == null
-      && MC.gui.overlay() == null;
+    return MC != null && MC.player != null && MC.level != null && MC.options != null && MC.getWindow() != null
+        && MC.gui.screen() == null && MC.gui.overlay() == null;
   }
 
   private static void simulate(KeyMapping mapping, boolean pressed) {
-    if (mapping != null) KeyMappingBridge.of(mapping).nekoclient$simulatePress(pressed);
+    if (mapping != null)
+      KeyMappingBridge.of(mapping).nekoclient$simulatePress(pressed);
   }
 }

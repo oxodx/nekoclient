@@ -1,17 +1,16 @@
 package nl.oxod.nekoclient.utils.render.prompts;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.systems.RenderSystem;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.gui.screens.Screen;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.WindowScreen;
 import nl.oxod.nekoclient.gui.widgets.containers.WHorizontalList;
 import nl.oxod.nekoclient.gui.widgets.pressable.WCheckbox;
 import nl.oxod.nekoclient.systems.config.Config;
-import net.minecraft.client.gui.screens.Screen;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 @SuppressWarnings("unchecked") // cant instantiate a Prompt directly so this is fine
 public abstract class Prompt<T> {
@@ -54,7 +53,8 @@ public abstract class Prompt<T> {
   }
 
   public boolean show() {
-    if (id != null && Config.get().dontShowAgainPrompts.contains(id)) return false;
+    if (id != null && Config.get().dontShowAgainPrompts.contains(id))
+      return false;
 
     if (!RenderSystem.isOnRenderThread()) {
       mc.execute(() -> mc.gui.setScreen(new PromptScreen(theme)));
@@ -92,7 +92,8 @@ public abstract class Prompt<T> {
         WHorizontalList checkboxContainer = add(theme.horizontalList()).expandX().widget();
         dontShowAgainCheckbox = checkboxContainer.add(theme.checkbox(false)).widget();
         checkboxContainer.add(theme.label("Don't show this again.")).expandX();
-      } else dontShowAgainCheckbox = null;
+      } else
+        dontShowAgainCheckbox = null;
 
       list = add(theme.horizontalList()).expandX().widget();
 

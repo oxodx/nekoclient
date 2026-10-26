@@ -1,8 +1,16 @@
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.textures.FilterMode;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import javax.imageio.ImageIO;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.renderer.Texture;
 import nl.oxod.nekoclient.utils.network.Http;
@@ -10,15 +18,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class PlayerHeadTexture extends Texture {
   private boolean needsRotate;
@@ -33,7 +32,8 @@ public class PlayerHeadTexture extends Texture {
   public PlayerHeadTexture() {
     super(8, 8, GpuFormat.RGBA8_UNORM, FilterMode.NEAREST, FilterMode.NEAREST);
 
-    try (InputStream inputStream = mc.getResourceManager().getResource(NekoClient.identifier("textures/steve.png")).get().open()) {
+    try (InputStream inputStream =
+             mc.getResourceManager().getResource(NekoClient.identifier("textures/steve.png")).get().open()) {
       ByteBuffer data = TextureUtil.readResource(inputStream);
       data.rewind();
 
@@ -62,7 +62,8 @@ public class PlayerHeadTexture extends Texture {
       skin = ImageIO.read(in);
     }
 
-    if (skin == null) throw new IOException("Failed to decode skin image.");
+    if (skin == null)
+      throw new IOException("Failed to decode skin image.");
 
     byte[] head = new byte[8 * 8 * 4];
     int[] pixel = new int[4];
@@ -87,7 +88,8 @@ public class PlayerHeadTexture extends Texture {
           for (int j = 0; j < 4; j++) {
             head[i++] = (byte) pixel[j];
           }
-        } else i += 4;
+        } else
+          i += 4;
       }
     }
 

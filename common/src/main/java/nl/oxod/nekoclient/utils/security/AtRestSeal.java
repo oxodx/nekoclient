@@ -1,23 +1,22 @@
 package nl.oxod.nekoclient.utils.security;
 
-import nl.oxod.nekoclient.NekoClient;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import nl.oxod.nekoclient.NekoClient;
 
 public final class AtRestSeal {
   private static final byte SCHEME_PLAIN = 0;
   private static final byte SCHEME_DPAPI = 1;
   private static final byte SCHEME_AESKEY = 2;
 
-  private AtRestSeal() {
-  }
+  private AtRestSeal() {}
 
   private static File keyFile() {
     try {
-      if (NekoClient.FOLDER != null) return new File(NekoClient.FOLDER, "neko-seal.key");
+      if (NekoClient.FOLDER != null)
+        return new File(NekoClient.FOLDER, "neko-seal.key");
     } catch (Throwable ignored) {
     }
     File fallback = new File(System.getProperty("java.io.tmpdir", "."), "nekoclient-seal");
@@ -30,11 +29,14 @@ public final class AtRestSeal {
   }
 
   public static byte[] seal(byte[] plain) {
-    if (plain == null) plain = new byte[0];
+    if (plain == null)
+      plain = new byte[0];
     byte[] dpapi = WinDpapi.protect(plain);
-    if (dpapi != null) return prepend(SCHEME_DPAPI, dpapi);
+    if (dpapi != null)
+      return prepend(SCHEME_DPAPI, dpapi);
     byte[] aes = aesSeal(plain);
-    if (aes != null) return prepend(SCHEME_AESKEY, aes);
+    if (aes != null)
+      return prepend(SCHEME_AESKEY, aes);
     return prepend(SCHEME_PLAIN, plain);
   }
 
@@ -44,7 +46,8 @@ public final class AtRestSeal {
   }
 
   public static byte[] unseal(byte[] stored) {
-    if (stored == null || stored.length < 1) return null;
+    if (stored == null || stored.length < 1)
+      return null;
     byte[] payload = Arrays.copyOfRange(stored, 1, stored.length);
     return switch (stored[0]) {
       case SCHEME_DPAPI -> WinDpapi.unprotect(payload);
@@ -55,7 +58,8 @@ public final class AtRestSeal {
   }
 
   public static byte[] unsealStrict(byte[] stored) {
-    if (stored == null || stored.length < 1 || stored[0] == SCHEME_PLAIN) return null;
+    if (stored == null || stored.length < 1 || stored[0] == SCHEME_PLAIN)
+      return null;
     return unseal(stored);
   }
 
@@ -69,7 +73,8 @@ public final class AtRestSeal {
   private static byte[] aesSeal(byte[] plain) {
     try {
       byte[] key = getOrCreateAesKey();
-      if (key == null) return null;
+      if (key == null)
+        return null;
       byte[] nonce = MmCrypto.randomBytes(12);
       byte[] ct = MmCrypto.aesGcmSeal(key, nonce, plain, null);
       byte[] out = new byte[12 + ct.length];
@@ -83,9 +88,11 @@ public final class AtRestSeal {
 
   private static byte[] aesOpen(byte[] stored) {
     try {
-      if (stored == null || stored.length < 12 + 16) return null;
+      if (stored == null || stored.length < 12 + 16)
+        return null;
       byte[] key = readAesKey();
-      if (key == null) return null;
+      if (key == null)
+        return null;
       byte[] nonce = Arrays.copyOfRange(stored, 0, 12);
       byte[] ct = Arrays.copyOfRange(stored, 12, stored.length);
       return MmCrypto.aesGcmOpen(key, nonce, ct, null);
@@ -96,25 +103,28 @@ public final class AtRestSeal {
 
   private static byte[] getOrCreateAesKey() {
     byte[] existing = readAesKey();
-    if (existing != null) return existing;
+    if (existing != null)
+      return existing;
     try {
       File keyFile = keyFile();
       File keyTmp = keyTmp();
       byte[] key = MmCrypto.randomBytes(32);
       File dir = keyFile.getParentFile();
-      if (dir != null) dir.mkdirs();
+      if (dir != null)
+        dir.mkdirs();
       Files.write(keyTmp.toPath(), key);
       if (!restrictToOwner(keyTmp)) {
         Files.deleteIfExists(keyTmp.toPath());
         return null;
       }
       try {
-        Files.move(keyTmp.toPath(), keyFile.toPath(),
-          StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        Files.move(
+            keyTmp.toPath(), keyFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
       } catch (java.nio.file.AtomicMoveNotSupportedException notAtomic) {
         Files.move(keyTmp.toPath(), keyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
       }
-      if (!restrictToOwner(keyFile)) return null;
+      if (!restrictToOwner(keyFile))
+        return null;
       return key;
     } catch (Throwable t) {
       return null;
@@ -124,8 +134,10 @@ public final class AtRestSeal {
   private static byte[] readAesKey() {
     try {
       File keyFile = keyFile();
-      if (!keyFile.exists()) return null;
-      if (!restrictToOwner(keyFile)) return null;
+      if (!keyFile.exists())
+        return null;
+      if (!restrictToOwner(keyFile))
+        return null;
       byte[] k = Files.readAllBytes(keyFile.toPath());
       return (k != null && k.length == 32) ? k : null;
     } catch (Throwable t) {
@@ -135,12 +147,12 @@ public final class AtRestSeal {
 
   private static boolean restrictToOwner(File f) {
     try {
-      java.nio.file.attribute.PosixFileAttributeView posix = Files.getFileAttributeView(
-        f.toPath(), java.nio.file.attribute.PosixFileAttributeView.class);
+      java.nio.file.attribute.PosixFileAttributeView posix =
+          Files.getFileAttributeView(f.toPath(), java.nio.file.attribute.PosixFileAttributeView.class);
       if (posix != null) {
-        java.util.Set<java.nio.file.attribute.PosixFilePermission> ownerOnly = java.util.EnumSet.of(
-          java.nio.file.attribute.PosixFilePermission.OWNER_READ,
-          java.nio.file.attribute.PosixFilePermission.OWNER_WRITE);
+        java.util.Set<java.nio.file.attribute.PosixFilePermission> ownerOnly =
+            java.util.EnumSet.of(java.nio.file.attribute.PosixFilePermission.OWNER_READ,
+                java.nio.file.attribute.PosixFilePermission.OWNER_WRITE);
         Files.setPosixFilePermissions(f.toPath(), ownerOnly);
         return Files.getPosixFilePermissions(f.toPath()).equals(ownerOnly);
       }

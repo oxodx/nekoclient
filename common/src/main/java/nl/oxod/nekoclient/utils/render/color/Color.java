@@ -5,13 +5,13 @@
 
 package nl.oxod.nekoclient.utils.render.color;
 
-import nl.oxod.nekoclient.utils.misc.ICopyable;
-import nl.oxod.nekoclient.utils.misc.ISerializable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.utils.misc.ICopyable;
+import nl.oxod.nekoclient.utils.misc.ISerializable;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -148,14 +148,15 @@ public class Color implements ICopyable<Color>, ISerializable<Color> {
     int i;
     double r, g, b;
 
-    if (s <= 0.0) {       // < is bogus, just shuts up warnings
+    if (s <= 0.0) { // < is bogus, just shuts up warnings
       r = v;
       g = v;
       b = v;
       return new Color((int) (r * 255), (int) (g * 255), (int) (b * 255), 255);
     }
     hh = h;
-    if (hh >= 360.0) hh = 0.0;
+    if (hh >= 360.0)
+      hh = 0.0;
     hh /= 60.0;
     i = (int) hh;
     ff = hh - i;
@@ -249,7 +250,8 @@ public class Color implements ICopyable<Color>, ISerializable<Color> {
 
   public boolean parse(String text) {
     String[] split = text.split(",");
-    if (split.length != 3 && split.length != 4) return false;
+    if (split.length != 3 && split.length != 4)
+      return false;
 
     try {
       // Not assigned directly because of exception handling
@@ -291,17 +293,25 @@ public class Color implements ICopyable<Color>, ISerializable<Color> {
   }
 
   public void validate() {
-    if (r < 0) r = 0;
-    else if (r > 255) r = 255;
+    if (r < 0)
+      r = 0;
+    else if (r > 255)
+      r = 255;
 
-    if (g < 0) g = 0;
-    else if (g > 255) g = 255;
+    if (g < 0)
+      g = 0;
+    else if (g > 255)
+      g = 255;
 
-    if (b < 0) b = 0;
-    else if (b > 255) b = 255;
+    if (b < 0)
+      b = 0;
+    else if (b > 255)
+      b = 255;
 
-    if (a < 0) a = 0;
-    else if (a > 255) a = 255;
+    if (a < 0)
+      a = 0;
+    else if (a > 255)
+      a = 255;
   }
 
   public Vec3 getVec3d() {
@@ -354,8 +364,10 @@ public class Color implements ICopyable<Color>, ISerializable<Color> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
 
     Color color = (Color) o;
 

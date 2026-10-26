@@ -5,12 +5,13 @@
 
 package nl.oxod.nekoclient.utils.entity;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongBidirectionalIterator;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
-import nl.oxod.nekoclient.mixin.*;
-import nl.oxod.nekoclient.utils.player.PlayerUtils;
-import nl.oxod.nekoclient.utils.render.color.Color;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,58 +34,39 @@ import net.minecraft.world.level.entity.LevelEntityGetterAdapter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
+import nl.oxod.nekoclient.mixin.*;
+import nl.oxod.nekoclient.utils.player.PlayerUtils;
+import nl.oxod.nekoclient.utils.render.color.Color;
 
 public class EntityUtils {
   private static final BlockPos.MutableBlockPos testPos = new BlockPos.MutableBlockPos();
 
-  private EntityUtils() {
-  }
+  private EntityUtils() {}
 
   public static boolean isAttackable(EntityType<?> type) {
-    return type != EntityTypes.AREA_EFFECT_CLOUD && type != EntityTypes.ARROW && type != EntityTypes.FALLING_BLOCK && type != EntityTypes.FIREWORK_ROCKET && type != EntityTypes.ITEM && type != EntityTypes.LLAMA_SPIT && type != EntityTypes.SPECTRAL_ARROW && type != EntityTypes.ENDER_PEARL && type != EntityTypes.EXPERIENCE_BOTTLE && type != EntityTypes.SPLASH_POTION && type != EntityTypes.LINGERING_POTION && type != EntityTypes.TRIDENT && type != EntityTypes.LIGHTNING_BOLT && type != EntityTypes.FISHING_BOBBER && type != EntityTypes.EXPERIENCE_ORB && type != EntityTypes.EGG;
+    return type != EntityTypes.AREA_EFFECT_CLOUD && type != EntityTypes.ARROW && type != EntityTypes.FALLING_BLOCK
+        && type != EntityTypes.FIREWORK_ROCKET && type != EntityTypes.ITEM && type != EntityTypes.LLAMA_SPIT
+        && type != EntityTypes.SPECTRAL_ARROW && type != EntityTypes.ENDER_PEARL
+        && type != EntityTypes.EXPERIENCE_BOTTLE && type != EntityTypes.SPLASH_POTION
+        && type != EntityTypes.LINGERING_POTION && type != EntityTypes.TRIDENT && type != EntityTypes.LIGHTNING_BOLT
+        && type != EntityTypes.FISHING_BOBBER && type != EntityTypes.EXPERIENCE_ORB && type != EntityTypes.EGG;
   }
 
   public static boolean isRideable(EntityType<?> type) {
-    return type == EntityTypes.PIG ||
-      type == EntityTypes.STRIDER ||
-      type == EntityTypes.HORSE ||
-      type == EntityTypes.DONKEY ||
-      type == EntityTypes.MULE ||
-      type == EntityTypes.SKELETON_HORSE ||
-      type == EntityTypes.ZOMBIE_HORSE ||
-      type == EntityTypes.LLAMA ||
-      type == EntityTypes.TRADER_LLAMA ||
-      type == EntityTypes.CAMEL ||
-      type == EntityTypes.CAMEL_HUSK ||
-      type == EntityTypes.MINECART ||
-      type == EntityTypes.OAK_BOAT ||
-      type == EntityTypes.SPRUCE_BOAT ||
-      type == EntityTypes.BIRCH_BOAT ||
-      type == EntityTypes.JUNGLE_BOAT ||
-      type == EntityTypes.ACACIA_BOAT ||
-      type == EntityTypes.CHERRY_BOAT ||
-      type == EntityTypes.DARK_OAK_BOAT ||
-      type == EntityTypes.PALE_OAK_BOAT ||
-      type == EntityTypes.MANGROVE_BOAT ||
-      type == EntityTypes.BAMBOO_RAFT ||
-      type == EntityTypes.ACACIA_CHEST_BOAT ||
-      type == EntityTypes.BIRCH_CHEST_BOAT ||
-      type == EntityTypes.CHERRY_CHEST_BOAT ||
-      type == EntityTypes.DARK_OAK_CHEST_BOAT ||
-      type == EntityTypes.JUNGLE_CHEST_BOAT ||
-      type == EntityTypes.MANGROVE_CHEST_BOAT ||
-      type == EntityTypes.OAK_CHEST_BOAT ||
-      type == EntityTypes.PALE_OAK_CHEST_BOAT ||
-      type == EntityTypes.SPRUCE_CHEST_BOAT ||
-      type == EntityTypes.BAMBOO_CHEST_RAFT ||
-      type == EntityTypes.NAUTILUS ||
-      type == EntityTypes.ZOMBIE_NAUTILUS ||
-      type == EntityTypes.HAPPY_GHAST;
+    return type == EntityTypes.PIG || type == EntityTypes.STRIDER || type == EntityTypes.HORSE
+        || type == EntityTypes.DONKEY || type == EntityTypes.MULE || type == EntityTypes.SKELETON_HORSE
+        || type == EntityTypes.ZOMBIE_HORSE || type == EntityTypes.LLAMA || type == EntityTypes.TRADER_LLAMA
+        || type == EntityTypes.CAMEL || type == EntityTypes.CAMEL_HUSK || type == EntityTypes.MINECART
+        || type == EntityTypes.OAK_BOAT || type == EntityTypes.SPRUCE_BOAT || type == EntityTypes.BIRCH_BOAT
+        || type == EntityTypes.JUNGLE_BOAT || type == EntityTypes.ACACIA_BOAT || type == EntityTypes.CHERRY_BOAT
+        || type == EntityTypes.DARK_OAK_BOAT || type == EntityTypes.PALE_OAK_BOAT || type == EntityTypes.MANGROVE_BOAT
+        || type == EntityTypes.BAMBOO_RAFT || type == EntityTypes.ACACIA_CHEST_BOAT
+        || type == EntityTypes.BIRCH_CHEST_BOAT || type == EntityTypes.CHERRY_CHEST_BOAT
+        || type == EntityTypes.DARK_OAK_CHEST_BOAT || type == EntityTypes.JUNGLE_CHEST_BOAT
+        || type == EntityTypes.MANGROVE_CHEST_BOAT || type == EntityTypes.OAK_CHEST_BOAT
+        || type == EntityTypes.PALE_OAK_CHEST_BOAT || type == EntityTypes.SPRUCE_CHEST_BOAT
+        || type == EntityTypes.BAMBOO_CHEST_RAFT || type == EntityTypes.NAUTILUS || type == EntityTypes.ZOMBIE_NAUTILUS
+        || type == EntityTypes.HAPPY_GHAST;
   }
 
   public static float getTotalHealth(LivingEntity target) {
@@ -92,17 +74,21 @@ public class EntityUtils {
   }
 
   public static int getPing(Player player) {
-    if (mc.getConnection() == null) return 0;
+    if (mc.getConnection() == null)
+      return 0;
 
     PlayerInfo playerListEntry = mc.getConnection().getPlayerInfo(player.getUUID());
-    if (playerListEntry == null) return 0;
+    if (playerListEntry == null)
+      return 0;
     return playerListEntry.getLatency();
   }
 
   public static GameType getGameMode(Player player) {
-    if (player == null) return null;
+    if (player == null)
+      return null;
     PlayerInfo playerListEntry = mc.getConnection().getPlayerInfo(player.getUUID());
-    if (playerListEntry == null) return null;
+    if (playerListEntry == null)
+      return null;
     return playerListEntry.getGameMode();
   }
 
@@ -113,9 +99,11 @@ public class EntityUtils {
     while (blockPos.getY() > bottom) {
       BlockState state = mc.level.getBlockState(blockPos);
 
-            // todo is there a better way to replace BlockBehaviour.BlockStateBase#blocksMotion than just copy-pasting the method body?
-            Block block = state.getBlock();
-            if (block != Blocks.COBWEB && block != Blocks.BAMBOO_SAPLING && state.isSolid()) break;
+      // todo is there a better way to replace BlockBehaviour.BlockStateBase#blocksMotion than just copy-pasting the
+      // method body?
+      Block block = state.getBlock();
+      if (block != Blocks.COBWEB && block != Blocks.BAMBOO_SAPLING && state.isSolid())
+        break;
 
       Fluid fluid = state.getFluidState().getType();
       if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
@@ -133,17 +121,20 @@ public class EntityUtils {
   }
 
   public static boolean isInRenderDistance(Entity entity) {
-    if (entity == null) return false;
+    if (entity == null)
+      return false;
     return isInRenderDistance(entity.getX(), entity.getZ());
   }
 
   public static boolean isInRenderDistance(BlockEntity entity) {
-    if (entity == null) return false;
+    if (entity == null)
+      return false;
     return isInRenderDistance(entity.getBlockPos().getX(), entity.getBlockPos().getZ());
   }
 
   public static boolean isInRenderDistance(BlockPos pos) {
-    if (pos == null) return false;
+    if (pos == null)
+      return false;
     return isInRenderDistance(pos.getX(), pos.getZ());
   }
 
@@ -156,7 +147,8 @@ public class EntityUtils {
   }
 
   public static BlockPos getCityBlock(Player player) {
-    if (player == null) return null;
+    if (player == null)
+      return null;
 
     double bestDistanceSquared = 6 * 6;
     Direction bestDirection = null;
@@ -166,7 +158,8 @@ public class EntityUtils {
 
       BlockBehaviour block = mc.level.getBlockState(testPos).getBlock();
       if (block != Blocks.OBSIDIAN && block != Blocks.NETHERITE_BLOCK && block != Blocks.CRYING_OBSIDIAN
-        && block != Blocks.RESPAWN_ANCHOR && block != Blocks.ANCIENT_DEBRIS) continue;
+          && block != Blocks.RESPAWN_ANCHOR && block != Blocks.ANCIENT_DEBRIS)
+        continue;
 
       double testDistanceSquared = PlayerUtils.squaredDistanceTo(testPos);
       if (testDistanceSquared < bestDistanceSquared) {
@@ -175,13 +168,16 @@ public class EntityUtils {
       }
     }
 
-    if (bestDirection == null) return null;
+    if (bestDirection == null)
+      return null;
     return player.blockPosition().relative(bestDirection);
   }
 
   public static String getName(Entity entity) {
-    if (entity == null) return null;
-    if (entity instanceof Player) return entity.getName().getString();
+    if (entity == null)
+      return null;
+    if (entity instanceof Player)
+      return entity.getName().getString();
     return entity.getType().getDescription().getString();
   }
 
@@ -200,7 +196,7 @@ public class EntityUtils {
 
     if (percent < 0.5) {
       r = 255;
-      g = (int) (255 * percent / 0.5);  // Closer to 0.5, closer to yellow (255,255,0)
+      g = (int) (255 * percent / 0.5); // Closer to 0.5, closer to yellow (255,255,0)
     } else {
       g = 255;
       r = 255 - (int) (255 * (percent - 0.5) / 0.5); // Closer to 1.0, closer to green (0,255,0)
@@ -247,9 +243,11 @@ public class EntityUtils {
 
     // Fast implementation using SimpleEntityLookup that returns on the first intersecting entity
     if (entityLookup instanceof LevelEntityGetterAdapter<Entity> simpleEntityLookup) {
-      EntitySectionStorage<Entity> cache = ((LevelEntityGetterAdapterAccessor) simpleEntityLookup).neko$getSectionStorage();
+      EntitySectionStorage<Entity> cache =
+          ((LevelEntityGetterAdapterAccessor) simpleEntityLookup).neko$getSectionStorage();
       LongSortedSet trackedPositions = ((EntitySectionStorageAccessor) cache).neko$getSectionIds();
-      Long2ObjectMap<EntitySection<Entity>> trackingSections = ((EntitySectionStorageAccessor) cache).neko$getSections();
+      Long2ObjectMap<EntitySection<Entity>> trackingSections =
+          ((EntitySectionStorageAccessor) cache).neko$getSections();
 
       int i = SectionPos.posToSectionCoord(box.minX - 2);
       int j = SectionPos.posToSectionCoord(box.minY - 2);
@@ -273,7 +271,8 @@ public class EntityUtils {
 
             if (entityTrackingSection != null && entityTrackingSection.getStatus().isAccessible()) {
               for (Entity entity : ((EntitySectionAccessor) entityTrackingSection).<Entity>neko$getStorage()) {
-                if (entity.getBoundingBox().intersects(box) && predicate.test(entity)) return true;
+                if (entity.getBoundingBox().intersects(box) && predicate.test(entity))
+                  return true;
               }
             }
           }
@@ -287,7 +286,8 @@ public class EntityUtils {
     AtomicBoolean found = new AtomicBoolean(false);
 
     entityLookup.get(box, entity -> {
-      if (!found.get() && predicate.test(entity)) found.set(true);
+      if (!found.get() && predicate.test(entity))
+        found.set(true);
     });
 
     return found.get();
@@ -299,6 +299,8 @@ public class EntityUtils {
 
   // Copied from ServerPlayNetworkHandler#isEntityOnAir
   public static boolean isOnAir(Entity entity) {
-    return entity.level().getBlockStates(entity.getBoundingBox().inflate(0.0625).expandTowards(0.0, -0.55, 0.0)).allMatch(BlockBehaviour.BlockStateBase::isAir);
+    return entity.level()
+        .getBlockStates(entity.getBoundingBox().inflate(0.0625).expandTowards(0.0, -0.55, 0.0))
+        .allMatch(BlockBehaviour.BlockStateBase::isAir);
   }
 }

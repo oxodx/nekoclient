@@ -5,15 +5,16 @@
 
 package nl.oxod.nekoclient.utils.misc.text;
 
-import nl.oxod.nekoclient.mixin.ScreenMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
+import nl.oxod.nekoclient.mixin.ScreenMixin;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * This class does nothing except ensure that {@link ClickEvent}'s containing NekoClient commands can only be executed if they come from the client.
+ * This class does nothing except ensure that {@link ClickEvent}'s containing NekoClient commands can only be executed
+ * if they come from the client.
  *
  * @see ScreenMixin#onDefaultHandleClickEvent(ClickEvent, Minecraft, Screen, CallbackInfo)
  */

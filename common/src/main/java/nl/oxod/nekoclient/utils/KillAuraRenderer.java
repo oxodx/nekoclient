@@ -5,37 +5,35 @@
 
 package nl.oxod.nekoclient.utils;
 
-import nl.oxod.nekoclient.events.render.Render3DEvent;
-import nl.oxod.nekoclient.renderer.Renderer3D;
-import nl.oxod.nekoclient.renderer.ShapeMode;
-import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.events.render.Render3DEvent;
+import nl.oxod.nekoclient.renderer.Renderer3D;
+import nl.oxod.nekoclient.renderer.ShapeMode;
+import nl.oxod.nekoclient.utils.render.color.Color;
 
 public final class KillAuraRenderer {
   private static volatile AABB frozenBox;
   private static volatile long hitAtMs;
   private static volatile Color hitMarkerFill = new Color(0x59FF3B3B);
 
-  private KillAuraRenderer() {
-  }
+  private KillAuraRenderer() {}
 
-  public record RenderSettings(Color color, boolean targetBox, boolean hitMarker, long hitMarkerDurationMs) {
-  }
+  public record RenderSettings(Color color, boolean targetBox, boolean hitMarker, long hitMarkerDurationMs) {}
 
   public static void render(Render3DEvent event, LivingEntity target, RenderSettings settings) {
     Minecraft mc = Minecraft.getInstance();
-    if (mc == null || mc.level == null || mc.player == null) return;
+    if (mc == null || mc.level == null || mc.player == null)
+      return;
 
     long now = System.currentTimeMillis();
     float wave = 0.5F + 0.5F * (float) Math.sin(now * 0.001D * Math.PI * 2.0D * 1.2D);
 
     if (target != null && target.isAlive() && settings.targetBox()) {
       Vec3 interpolated = target.getPosition(event.tickDelta);
-      AABB box = target.getBoundingBox().inflate(0.06D)
-        .move(interpolated.subtract(target.position()));
+      AABB box = target.getBoundingBox().inflate(0.06D).move(interpolated.subtract(target.position()));
 
       int fillAlpha = (int) (0x10 + 0x10 * wave);
       Color fill = new Color(settings.color()).a(fillAlpha);
@@ -49,12 +47,13 @@ public final class KillAuraRenderer {
     AABB marker = frozenBox;
     if (settings.hitMarker() && marker != null && now - hitAtMs < settings.hitMarkerDurationMs()) {
       event.renderer.box(marker.minX, marker.minY, marker.minZ, marker.maxX, marker.maxY, marker.maxZ,
-        new Color(hitMarkerFill), null, ShapeMode.Sides, 0);
+          new Color(hitMarkerFill), null, ShapeMode.Sides, 0);
     }
   }
 
   public static void show(AABB box, RenderSettings settings) {
-    if (box == null) return;
+    if (box == null)
+      return;
     frozenBox = box;
     hitMarkerFill = new Color(settings.color()).a(0x59);
     hitAtMs = System.currentTimeMillis();
@@ -66,7 +65,8 @@ public final class KillAuraRenderer {
 
   private static void drawCornerBrackets(Renderer3D renderer, AABB box, Color color) {
     double bracket = Math.min(0.35D, Math.min(box.getXsize(), Math.min(box.getYsize(), box.getZsize())) * 0.3D);
-    if (bracket <= 0.0D) return;
+    if (bracket <= 0.0D)
+      return;
     for (int corner = 0; corner < 8; corner++) {
       double x = (corner & 1) == 0 ? box.minX : box.maxX;
       double y = (corner & 2) == 0 ? box.minY : box.maxY;

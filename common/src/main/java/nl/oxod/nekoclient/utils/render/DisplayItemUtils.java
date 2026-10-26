@@ -19,11 +19,11 @@ import net.minecraft.world.level.block.Block;
  * before item components are bound (i.e. before joining a world).
  */
 public class DisplayItemUtils {
-  private DisplayItemUtils() {
-  }
+  private DisplayItemUtils() {}
 
   public static ItemStack toStack(Item item) {
-    if (item == Items.AIR) return ItemStack.EMPTY;
+    if (item == Items.AIR)
+      return ItemStack.EMPTY;
     return new ItemStack(directHolder(item));
   }
 
@@ -32,17 +32,18 @@ public class DisplayItemUtils {
   }
 
   public static ItemStack toStack(Item item, int count) {
-    if (item == Items.AIR) return ItemStack.EMPTY;
+    if (item == Items.AIR)
+      return ItemStack.EMPTY;
     return new ItemStack(directHolder(item), count);
   }
 
   @SuppressWarnings("deprecation")
   private static Holder<Item> directHolder(Item item) {
     DataComponentMap components = DataComponentMap.builder()
-      .addAll(DataComponents.COMMON_ITEM_COMPONENTS)
-      .set(DataComponents.ITEM_MODEL, item.builtInRegistryHolder().key().identifier())
-      .set(DataComponents.ITEM_NAME, Component.translatable(item.getDescriptionId()))
-      .build();
+                                      .addAll(DataComponents.COMMON_ITEM_COMPONENTS)
+                                      .set(DataComponents.ITEM_MODEL, item.builtInRegistryHolder().key().identifier())
+                                      .set(DataComponents.ITEM_NAME, Component.translatable(item.getDescriptionId()))
+                                      .build();
     return Holder.direct(item, components);
   }
 }

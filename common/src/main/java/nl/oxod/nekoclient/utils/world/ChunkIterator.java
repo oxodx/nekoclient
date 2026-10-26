@@ -5,16 +5,16 @@
 
 package nl.oxod.nekoclient.utils.world;
 
-import nl.oxod.nekoclient.mixin.ClientChunkCacheAccessor;
-import nl.oxod.nekoclient.mixin.ClientChunkMapAccessor;
-import net.minecraft.world.level.chunk.ChunkAccess;
-
-import java.util.Iterator;
-
 import static nl.oxod.nekoclient.NekoClient.mc;
 
+import java.util.Iterator;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import nl.oxod.nekoclient.mixin.ClientChunkCacheAccessor;
+import nl.oxod.nekoclient.mixin.ClientChunkMapAccessor;
+
 public class ChunkIterator implements Iterator<ChunkAccess> {
-  private final ClientChunkMapAccessor map = (ClientChunkMapAccessor) (Object) ((ClientChunkCacheAccessor) mc.level.getChunkSource()).neko$getStorage();
+  private final ClientChunkMapAccessor map =
+      (ClientChunkMapAccessor) (Object) ((ClientChunkCacheAccessor) mc.level.getChunkSource()).neko$getStorage();
   private final boolean onlyWithLoadedNeighbours;
 
   private int i = 0;
@@ -32,7 +32,8 @@ public class ChunkIterator implements Iterator<ChunkAccess> {
 
     while (i < map.neko$getChunks().length()) {
       chunk = map.neko$getChunks().get(i++);
-      if (chunk != null && (!onlyWithLoadedNeighbours || isInRadius(chunk))) break;
+      if (chunk != null && (!onlyWithLoadedNeighbours || isInRadius(chunk)))
+        break;
     }
 
     return prev;
@@ -42,7 +43,8 @@ public class ChunkIterator implements Iterator<ChunkAccess> {
     int x = chunk.getPos().x();
     int z = chunk.getPos().z();
 
-    return mc.level.getChunkSource().hasChunk(x + 1, z) && mc.level.getChunkSource().hasChunk(x - 1, z) && mc.level.getChunkSource().hasChunk(x, z + 1) && mc.level.getChunkSource().hasChunk(x, z - 1);
+    return mc.level.getChunkSource().hasChunk(x + 1, z) && mc.level.getChunkSource().hasChunk(x - 1, z)
+        && mc.level.getChunkSource().hasChunk(x, z + 1) && mc.level.getChunkSource().hasChunk(x, z - 1);
   }
 
   @Override

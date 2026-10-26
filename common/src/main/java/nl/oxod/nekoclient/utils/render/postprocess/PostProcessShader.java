@@ -1,5 +1,7 @@
 package nl.oxod.nekoclient.utils.render.postprocess;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.Blaze3D;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
@@ -10,16 +12,13 @@ import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.textures.FilterMode;
-import nl.oxod.nekoclient.NekoClient;
-import nl.oxod.nekoclient.renderer.MeshRenderer;
+import java.nio.ByteBuffer;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.renderer.DynamicGpuDataStorage;
 import net.minecraft.client.renderer.DynamicGpuDataStorageMapped;
+import nl.oxod.nekoclient.NekoClient;
+import nl.oxod.nekoclient.renderer.MeshRenderer;
 import org.jspecify.annotations.NonNull;
-
-import java.nio.ByteBuffer;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public abstract class PostProcessShader {
   protected final RenderPipeline pipeline;
@@ -27,29 +26,28 @@ public abstract class PostProcessShader {
 
   protected PostProcessShader(RenderPipeline pipeline) {
     this.pipeline = pipeline;
-    this.framebuffer = new TextureTarget(NekoClient.NAME + " PostProcessShader " + this.getClass().getSimpleName(), mc.getWindow().getWidth(), mc.getWindow().getHeight(),
-      GpuFormat.RGBA8_UNORM, GpuFormat.D32_FLOAT);
+    this.framebuffer = new TextureTarget(NekoClient.NAME + " PostProcessShader " + this.getClass().getSimpleName(),
+        mc.getWindow().getWidth(), mc.getWindow().getHeight(), GpuFormat.RGBA8_UNORM, GpuFormat.D32_FLOAT);
   }
 
   protected abstract boolean shouldDraw();
 
-  protected void preDraw() {
-  }
+  protected void preDraw() {}
 
-  protected void postDraw() {
-  }
+  protected void postDraw() {}
 
   protected abstract void setupPass(MeshRenderer renderer);
 
   public void clearTexture() {
     if (this.shouldDraw()) {
-      RenderSystem.getDevice().createCommandEncoder().clearColorTexture(framebuffer.getColorTexture(),
-        GuiRenderer.CLEAR_COLOR);
+      RenderSystem.getDevice().createCommandEncoder().clearColorTexture(
+          framebuffer.getColorTexture(), GuiRenderer.CLEAR_COLOR);
     }
   }
 
   public void submitVertices(Runnable draw) {
-    if (!shouldDraw()) return;
+    if (!shouldDraw())
+      return;
 
     preDraw();
     draw.run();
@@ -57,17 +55,18 @@ public abstract class PostProcessShader {
   }
 
   public void render() {
-    if (!shouldDraw()) return;
+    if (!shouldDraw())
+      return;
 
     var renderer = MeshRenderer.begin()
-      .attachments(mc.gameRenderer.mainRenderTarget())
-      .pipeline(pipeline)
-      .fullscreen()
-      .uniform("PostData", UNIFORM_STORAGE.writeData(new UniformData(
-        (float) mc.getWindow().getWidth(), (float) mc.getWindow().getHeight(),
-        (float) Blaze3D.getTime()
-      )))
-      .sampler("u_Texture", framebuffer.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
+                       .attachments(mc.gameRenderer.mainRenderTarget())
+                       .pipeline(pipeline)
+                       .fullscreen()
+                       .uniform("PostData",
+                           UNIFORM_STORAGE.writeData(new UniformData((float) mc.getWindow().getWidth(),
+                               (float) mc.getWindow().getHeight(), (float) Blaze3D.getTime())))
+                       .sampler("u_Texture", framebuffer.getColorTextureView(),
+                           RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
 
     setupPass(renderer);
 
@@ -75,19 +74,18 @@ public abstract class PostProcessShader {
   }
 
   public void onResized(int width, int height) {
-    if (framebuffer == null) return;
+    if (framebuffer == null)
+      return;
     framebuffer.resize(width, height);
   }
 
   // Uniforms
 
-  private static final int UNIFORM_SIZE = new Std140SizeCalculator()
-    .putVec2()
-    .putFloat()
-    .get();
+  private static final int UNIFORM_SIZE = new Std140SizeCalculator().putVec2().putFloat().get();
 
   // todo what should usage be? not just here but everywhere else also
-  private static final DynamicGpuDataStorage<UniformData> UNIFORM_STORAGE = new DynamicGpuDataStorageMapped<>("Meteor - Post UBO", UNIFORM_SIZE, GpuBuffer.USAGE_UNIFORM, 16);
+  private static final DynamicGpuDataStorage<UniformData> UNIFORM_STORAGE =
+      new DynamicGpuDataStorageMapped<>("Meteor - Post UBO", UNIFORM_SIZE, GpuBuffer.USAGE_UNIFORM, 16);
 
   public static void flipFrame() {
     UNIFORM_STORAGE.endFrame();
@@ -96,9 +94,7 @@ public abstract class PostProcessShader {
   private record UniformData(float sizeX, float sizeY, float time) implements DynamicGpuDataStorage.DynamicGpuData {
     @Override
     public void write(@NonNull ByteBuffer buffer) {
-      Std140Builder.intoBuffer(buffer)
-        .putVec2(sizeX, sizeY)
-        .putFloat(time);
+      Std140Builder.intoBuffer(buffer).putVec2(sizeX, sizeY).putFloat(time);
     }
   }
 }

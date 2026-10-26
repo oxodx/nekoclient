@@ -6,8 +6,9 @@
 package nl.oxod.nekoclient.utils.player;
 
 import com.mojang.datafixers.util.Pair;
-import nl.oxod.nekoclient.mixininterface.ISlot;
-import nl.oxod.nekoclient.utils.render.PeekScreen;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -17,10 +18,8 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import nl.oxod.nekoclient.mixininterface.ISlot;
+import nl.oxod.nekoclient.utils.render.PeekScreen;
 
 public class InventorySorter {
   private final AbstractContainerScreen<?> screen;
@@ -44,8 +43,10 @@ public class InventorySorter {
   }
 
   public boolean tick(int delay) {
-    if (invalid) return true;
-    if (currentActionI >= actions.size()) return true;
+    if (invalid)
+      return true;
+    if (currentActionI >= actions.size())
+      return true;
 
     if (timer >= delay) {
       timer = 0;
@@ -82,7 +83,8 @@ public class InventorySorter {
     SlotMap slotMap = new SlotMap();
 
     for (MySlot slot : slots) {
-      if (slot.itemStack.isEmpty() || !slot.itemStack.isStackable() || slot.itemStack.getCount() >= slot.itemStack.getMaxStackSize())
+      if (slot.itemStack.isEmpty() || !slot.itemStack.isStackable()
+          || slot.itemStack.getCount() >= slot.itemStack.getMaxStackSize())
         continue;
 
       slotMap.get(slot.itemStack).add(slot);
@@ -106,8 +108,10 @@ public class InventorySorter {
         actions.add(new Action(slot.id, slotToStackTo.id));
 
         // Handle state when the two stacks can combine without any leftovers
-        if (slotToStackTo.itemStack.getCount() + slot.itemStack.getCount() <= slotToStackTo.itemStack.getMaxStackSize()) {
-          slotToStackTo.itemStack = new ItemStack(slotToStackTo.itemStack.getItem(), slotToStackTo.itemStack.getCount() + slot.itemStack.getCount());
+        if (slotToStackTo.itemStack.getCount() + slot.itemStack.getCount()
+            <= slotToStackTo.itemStack.getMaxStackSize()) {
+          slotToStackTo.itemStack = new ItemStack(
+              slotToStackTo.itemStack.getItem(), slotToStackTo.itemStack.getCount() + slot.itemStack.getCount());
           slot.itemStack = ItemStack.EMPTY;
 
           if (slotToStackTo.itemStack.getCount() >= slotToStackTo.itemStack.getMaxStackSize())
@@ -117,7 +121,8 @@ public class InventorySorter {
         else {
           int needed = slotToStackTo.itemStack.getMaxStackSize() - slotToStackTo.itemStack.getCount();
 
-          slotToStackTo.itemStack = new ItemStack(slotToStackTo.itemStack.getItem(), slotToStackTo.itemStack.getMaxStackSize());
+          slotToStackTo.itemStack =
+              new ItemStack(slotToStackTo.itemStack.getItem(), slotToStackTo.itemStack.getMaxStackSize());
           slot.itemStack = new ItemStack(slot.itemStack.getItem(), slot.itemStack.getCount() - needed);
 
           slotToStackTo = null;
@@ -140,7 +145,8 @@ public class InventorySorter {
           continue;
         }
 
-        if (isSlotBetter(bestSlot, slot)) bestSlot = slot;
+        if (isSlotBetter(bestSlot, slot))
+          bestSlot = slot;
       }
 
       // Generate action
@@ -165,12 +171,15 @@ public class InventorySorter {
     ItemStack bestI = best.itemStack;
     ItemStack slotI = slot.itemStack;
 
-    if (bestI.isEmpty() && !slotI.isEmpty()) return true;
-    else if (!bestI.isEmpty() && slotI.isEmpty()) return false;
+    if (bestI.isEmpty() && !slotI.isEmpty())
+      return true;
+    else if (!bestI.isEmpty() && slotI.isEmpty())
+      return false;
 
     int c = BuiltInRegistries.ITEM.getKey(bestI.getItem()).compareTo(BuiltInRegistries.ITEM.getKey(slotI.getItem()));
     if (c == 0) {
-      if (slotI.getCount() != bestI.getCount()) return slotI.getCount() > bestI.getCount();
+      if (slotI.getCount() != bestI.getCount())
+        return slotI.getCount() > bestI.getCount();
       if (slotI.getDamageValue() != bestI.getDamageValue())
         return slotI.getDamageValue() > bestI.getDamageValue();
     }
@@ -181,22 +190,21 @@ public class InventorySorter {
   private InvPart getInvPart(Slot slot) {
     int i = ((ISlot) slot).neko$getSlot();
 
-    if (slot.container instanceof Inventory && (!(screen instanceof CreativeModeInventoryScreen) || ((ISlot) slot).neko$getIndex() > 8)) {
-      if (SlotUtils.isHotbar(i)) return InvPart.Hotbar;
-      else if (SlotUtils.isMain(i)) return InvPart.Player;
-    } else if ((screen instanceof ContainerScreen || screen instanceof ShulkerBoxScreen) && slot.container instanceof SimpleContainer) {
+    if (slot.container instanceof Inventory
+        && (!(screen instanceof CreativeModeInventoryScreen) || ((ISlot) slot).neko$getIndex() > 8)) {
+      if (SlotUtils.isHotbar(i))
+        return InvPart.Hotbar;
+      else if (SlotUtils.isMain(i))
+        return InvPart.Player;
+    } else if ((screen instanceof ContainerScreen || screen instanceof ShulkerBoxScreen)
+        && slot.container instanceof SimpleContainer) {
       return InvPart.Main;
     }
 
     return InvPart.Invalid;
   }
 
-  private enum InvPart {
-    Hotbar,
-    Player,
-    Main,
-    Invalid
-  }
+  private enum InvPart { Hotbar, Player, Main, Invalid }
 
   private static class MySlot {
     public final int id;
@@ -224,6 +232,5 @@ public class InventorySorter {
     }
   }
 
-  private record Action(int from, int to) {
-  }
+  private record Action(int from, int to) {}
 }

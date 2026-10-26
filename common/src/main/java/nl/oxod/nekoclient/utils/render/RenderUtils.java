@@ -5,7 +5,16 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.List;
+import meteordevelopment.orbit.EventHandler;
+import net.irisshaders.iris.api.v0.IrisApi;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -13,20 +22,10 @@ import nl.oxod.nekoclient.renderer.ShapeMode;
 import nl.oxod.nekoclient.utils.PostInit;
 import nl.oxod.nekoclient.utils.misc.Pool;
 import nl.oxod.nekoclient.utils.render.color.Color;
-import meteordevelopment.orbit.EventHandler;
-import net.irisshaders.iris.api.v0.IrisApi;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
-
-import java.util.List;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class RenderUtils {
   public static Vec3 center;
@@ -35,8 +34,7 @@ public class RenderUtils {
   private static final Pool<RenderBlock> renderBlockPool = new Pool<>(RenderBlock::new);
   private static final List<RenderBlock> renderBlocks = new ObjectArrayList<>();
 
-  private RenderUtils() {
-  }
+  private RenderUtils() {}
 
   @PostInit
   public static void init() {
@@ -48,7 +46,8 @@ public class RenderUtils {
   }
 
   // Items
-  public static void drawItem(GuiGraphicsExtractor graphics, ItemStack itemStack, int x, int y, float scale, boolean overlay, String countOverride, boolean disableGuiScale) {
+  public static void drawItem(GuiGraphicsExtractor graphics, ItemStack itemStack, int x, int y, float scale,
+      boolean overlay, String countOverride, boolean disableGuiScale) {
     Matrix3x2fStack matrices = graphics.pose();
     matrices.pushMatrix();
 
@@ -62,12 +61,14 @@ public class RenderUtils {
     int scaledY = (int) (y / scale);
 
     graphics.item(itemStack, scaledX, scaledY);
-    if (overlay) graphics.itemDecorations(mc.font, itemStack, scaledX, scaledY, countOverride);
+    if (overlay)
+      graphics.itemDecorations(mc.font, itemStack, scaledX, scaledY, countOverride);
 
     matrices.popMatrix();
   }
 
-  public static void drawItem(GuiGraphicsExtractor graphics, ItemStack itemStack, int x, int y, float scale, boolean overlay) {
+  public static void drawItem(
+      GuiGraphicsExtractor graphics, ItemStack itemStack, int x, int y, float scale, boolean overlay) {
     drawItem(graphics, itemStack, x, y, scale, overlay, null, true);
   }
 
@@ -84,7 +85,8 @@ public class RenderUtils {
     center = new Vec3(camera.x + center4.x, camera.y + center4.y, camera.z + center4.z);
   }
 
-  public static void renderTickingBlock(BlockPos blockPos, Color sideColor, Color lineColor, ShapeMode shapeMode, int excludeDir, int duration, boolean fade, boolean shrink) {
+  public static void renderTickingBlock(BlockPos blockPos, Color sideColor, Color lineColor, ShapeMode shapeMode,
+      int excludeDir, int duration, boolean fade, boolean shrink) {
     // Ensure there aren't multiple fading blocks in one pos
     renderBlocks.removeIf(next -> {
       if (next.pos.equals(blockPos)) {
@@ -95,12 +97,14 @@ public class RenderUtils {
       }
     });
 
-    renderBlocks.add(renderBlockPool.get().set(blockPos, sideColor, lineColor, shapeMode, excludeDir, duration, fade, shrink));
+    renderBlocks.add(
+        renderBlockPool.get().set(blockPos, sideColor, lineColor, shapeMode, excludeDir, duration, fade, shrink));
   }
 
   @EventHandler
   private static void onTick(TickEvent.Pre event) {
-    if (renderBlocks.isEmpty()) return;
+    if (renderBlocks.isEmpty())
+      return;
 
     renderBlocks.removeIf(next -> {
       next.tick();
@@ -129,7 +133,8 @@ public class RenderUtils {
     public int ticks, duration;
     public boolean fade, shrink;
 
-    public RenderBlock set(BlockPos blockPos, Color sideColor, Color lineColor, ShapeMode shapeMode, int excludeDir, int duration, boolean fade, boolean shrink) {
+    public RenderBlock set(BlockPos blockPos, Color sideColor, Color lineColor, ShapeMode shapeMode, int excludeDir,
+        int duration, boolean fade, boolean shrink) {
       pos.set(blockPos);
       this.sideColor = sideColor;
       this.lineColor = lineColor;
@@ -150,8 +155,8 @@ public class RenderUtils {
     public void render(Render3DEvent event) {
       int preSideA = sideColor.a;
       int preLineA = lineColor.a;
-      double x1 = pos.getX(), y1 = pos.getY(), z1 = pos.getZ(),
-        x2 = pos.getX() + 1, y2 = pos.getY() + 1, z2 = pos.getZ() + 1;
+      double x1 = pos.getX(), y1 = pos.getY(), z1 = pos.getZ(), x2 = pos.getX() + 1, y2 = pos.getY() + 1,
+             z2 = pos.getZ() + 1;
 
       double d = (double) (ticks - event.tickDelta) / duration;
 

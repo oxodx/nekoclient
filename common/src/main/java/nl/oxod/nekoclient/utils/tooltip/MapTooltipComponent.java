@@ -5,8 +5,8 @@
 
 package nl.oxod.nekoclient.utils.tooltip;
 
-import nl.oxod.nekoclient.systems.modules.Modules;
-import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -16,9 +16,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.systems.modules.render.BetterTooltips;
 import org.jspecify.annotations.NonNull;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class MapTooltipComponent implements ClientTooltipComponent, NekoTooltipData {
   private static final Identifier TEXTURE_MAP_BACKGROUND = Identifier.parse("textures/map/map_background.png");
@@ -56,7 +56,8 @@ public class MapTooltipComponent implements ClientTooltipComponent, NekoTooltipD
 
     // Contents
     MapItemSavedData mapState = MapItem.getSavedData(new MapId(mapId), mc.level);
-    if (mapState == null) return;
+    if (mapState == null)
+      return;
 
     graphics.pose().pushMatrix();
     graphics.pose().translate(x, y);

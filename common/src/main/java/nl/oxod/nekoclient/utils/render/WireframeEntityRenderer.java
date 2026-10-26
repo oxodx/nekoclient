@@ -5,12 +5,10 @@
 
 package nl.oxod.nekoclient.utils.render;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import nl.oxod.nekoclient.events.render.Render3DEvent;
-import nl.oxod.nekoclient.renderer.Renderer3D;
-import nl.oxod.nekoclient.renderer.ShapeMode;
-import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -21,10 +19,12 @@ import net.minecraft.client.renderer.texture.UvMapping;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import nl.oxod.nekoclient.events.render.Render3DEvent;
+import nl.oxod.nekoclient.renderer.Renderer3D;
+import nl.oxod.nekoclient.renderer.ShapeMode;
+import nl.oxod.nekoclient.utils.render.color.Color;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class WireframeEntityRenderer {
   private static final PoseStack matrices = new PoseStack();
@@ -36,11 +36,11 @@ public class WireframeEntityRenderer {
   private static ShapeMode shapeMode;
   private static double offsetX, offsetY, offsetZ;
 
-  private WireframeEntityRenderer() {
-  }
+  private WireframeEntityRenderer() {}
 
   @SuppressWarnings("unchecked")
-  public static void render(Render3DEvent event, Entity entity, double scale, Color sideColor, Color lineColor, ShapeMode shapeMode) {
+  public static void render(
+      Render3DEvent event, Entity entity, double scale, Color sideColor, Color lineColor, ShapeMode shapeMode) {
     WireframeEntityRenderer.renderer = event.renderer;
     WireframeEntityRenderer.sideColor = sideColor;
     WireframeEntityRenderer.lineColor = lineColor;
@@ -62,7 +62,8 @@ public class WireframeEntityRenderer {
 
     matrices.pushPose();
     matrices.scale((float) scale, (float) scale, (float) scale);
-    entityRenderer.submit(state, matrices, interceptStorage, mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState);
+    entityRenderer.submit(
+        state, matrices, interceptStorage, mc.gameRenderer.gameRenderState().levelRenderState.cameraRenderState);
     matrices.popPose();
 
     interceptStorage.clear();
@@ -72,26 +73,21 @@ public class WireframeEntityRenderer {
     private final MyVertexConsumer vertexConsumer = new MyVertexConsumer();
 
     @Override
-    public <S> void submitModel(
-      @NonNull Model<? super S> model,
-      @NonNull S state,
-      @NonNull PoseStack poseStack,
-      RenderType renderType,
-      int lightCoords,
-      int overlayCoords,
-      int tintedColor,
-            final @Nullable UvMapping uvMapping,
-            int outlineColor
-    ) {
-      if (renderType.isOutline()) return;
+    public <S> void submitModel(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack,
+        RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, final @Nullable UvMapping uvMapping,
+        int outlineColor) {
+      if (renderType.isOutline())
+        return;
 
       model.setupAnim(state);
       model.renderToBuffer(poseStack, vertexConsumer, lightCoords, overlayCoords, tintedColor);
     }
 
     @Override
-    public void submitCustomGeometry(@NonNull PoseStack poseStack, RenderType renderType, SubmitNodeCollector.@NonNull CustomGeometryRenderer customGeometryRenderer) {
-      if (renderType.isOutline()) return;
+    public void submitCustomGeometry(@NonNull PoseStack poseStack, RenderType renderType,
+        SubmitNodeCollector.@NonNull CustomGeometryRenderer customGeometryRenderer) {
+      if (renderType.isOutline())
+        return;
       customGeometryRenderer.render(poseStack.last(), vertexConsumer);
     }
 
@@ -112,15 +108,9 @@ public class WireframeEntityRenderer {
       ys[i] = y;
       zs[i] = z;
       if (++i == 4) {
-        renderer.side(
-          offsetX + xs[0], offsetY + ys[0], offsetZ + zs[0],
-          offsetX + xs[1], offsetY + ys[1], offsetZ + zs[1],
-          offsetX + xs[2], offsetY + ys[2], offsetZ + zs[2],
-          offsetX + xs[3], offsetY + ys[3], offsetZ + zs[3],
-          sideColor,
-          lineColor,
-          shapeMode
-        );
+        renderer.side(offsetX + xs[0], offsetY + ys[0], offsetZ + zs[0], offsetX + xs[1], offsetY + ys[1],
+            offsetZ + zs[1], offsetX + xs[2], offsetY + ys[2], offsetZ + zs[2], offsetX + xs[3], offsetY + ys[3],
+            offsetZ + zs[3], sideColor, lineColor, shapeMode);
         i = 0;
       }
       return this;
@@ -151,10 +141,10 @@ public class WireframeEntityRenderer {
       return this;
     }
 
-        @Override
-        public @NonNull VertexConsumer setUv3(float u, float v) {
-            return this;
-        }
+    @Override
+    public @NonNull VertexConsumer setUv3(float u, float v) {
+      return this;
+    }
 
     @Override
     public @NonNull VertexConsumer setNormal(float x, float y, float z) {

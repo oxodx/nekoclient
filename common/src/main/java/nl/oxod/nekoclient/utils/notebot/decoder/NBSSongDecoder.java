@@ -7,12 +7,11 @@ package nl.oxod.nekoclient.utils.notebot.decoder;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import java.io.*;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import nl.oxod.nekoclient.utils.notebot.song.Note;
 import nl.oxod.nekoclient.utils.notebot.song.Song;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import org.jspecify.annotations.NonNull;
-
-import java.io.*;
 
 // https://github.com/koca2000/NoteBlockAPI/blob/master/src/main/java/com/xxmicloxx/NoteBlockAPI/utils/NBSDecoder.java
 
@@ -21,7 +20,6 @@ import java.io.*;
  *
  */
 public class NBSSongDecoder extends SongDecoder {
-
   public static final int NOTE_OFFSET = 33; // Magic value (https://opennbs.org/nbs)
 
   /**
@@ -103,7 +101,8 @@ public class NBSSongDecoder extends SongDecoder {
         NoteBlockInstrument inst = fromNBSInstrument(instrument);
 
         // Probably a custom instrument. Ignore this note
-        if (inst == null) continue;
+        if (inst == null)
+          continue;
 
         Note note = new Note(inst /* instrument */, key - NOTE_OFFSET /* note */);
         setNote((int) Math.round(tick), note, notesMap);
@@ -140,7 +139,8 @@ public class NBSSongDecoder extends SongDecoder {
       throw new EOFException("Length can't be negative! Length: " + length);
     }
     if (length > dataInputStream.available()) {
-      throw new EOFException("Can't read string that is larger than a buffer! Length: " + length + " Readable Bytes Length: " + dataInputStream.available());
+      throw new EOFException("Can't read string that is larger than a buffer! Length: " + length
+          + " Readable Bytes Length: " + dataInputStream.available());
     }
 
     StringBuilder builder = new StringBuilder(length);
@@ -176,5 +176,4 @@ public class NBSSongDecoder extends SongDecoder {
       default -> null;
     };
   }
-
 }

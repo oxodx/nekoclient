@@ -5,12 +5,10 @@
 
 package nl.oxod.nekoclient.utils.notebot.song;
 
+import java.util.Objects;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 
-import java.util.Objects;
-
 public class Note {
-
   private NoteBlockInstrument instrument;
   private int noteLevel;
 
@@ -37,8 +35,10 @@ public class Note {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     Note note = (Note) o;
     return instrument == note.instrument && noteLevel == note.noteLevel;
   }
@@ -50,9 +50,7 @@ public class Note {
 
   @Override
   public String toString() {
-    return "Note{" +
-      "instrument=" + getInstrument() +
-      ", noteLevel=" + getNoteLevel() +
-      '}';
+    return "Note{"
+        + "instrument=" + getInstrument() + ", noteLevel=" + getNoteLevel() + '}';
   }
 }

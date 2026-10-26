@@ -5,9 +5,9 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import net.minecraft.world.InteractionHand;
-
 import static nl.oxod.nekoclient.NekoClient.mc;
+
+import net.minecraft.world.InteractionHand;
 
 /**
  * @param slot  The slot index
@@ -19,8 +19,10 @@ public record FindItemResult(int slot, int count) {
   }
 
   public InteractionHand getHand() {
-    if (slot == SlotUtils.OFFHAND) return InteractionHand.OFF_HAND;
-    if (slot == mc.player.getInventory().getSelectedSlot()) return InteractionHand.MAIN_HAND;
+    if (slot == SlotUtils.OFFHAND)
+      return InteractionHand.OFF_HAND;
+    if (slot == mc.player.getInventory().getSelectedSlot())
+      return InteractionHand.MAIN_HAND;
     return null;
   }
 

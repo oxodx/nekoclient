@@ -8,8 +8,7 @@ package nl.oxod.nekoclient.utils.network;
 public class OnlinePlayers {
   private static long lastPingTime;
 
-  private OnlinePlayers() {
-  }
+  private OnlinePlayers() {}
 
   public static void update() {
     long time = System.currentTimeMillis();

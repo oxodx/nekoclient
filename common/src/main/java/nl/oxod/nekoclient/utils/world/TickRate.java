@@ -5,18 +5,19 @@
 
 package nl.oxod.nekoclient.utils.world;
 
+import java.util.Arrays;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
+import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.events.game.GameJoinedEvent;
 import nl.oxod.nekoclient.events.packets.PacketEvent;
 import nl.oxod.nekoclient.utils.Utils;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
-import net.minecraft.util.Mth;
-
-import java.util.Arrays;
 
 /**
- * Copied from <a href="https://github.com/S-B99/kamiblue/blob/feature/master/src/main/java/me/zeroeightsix/kami/util/LagCompensator.java">KAMI Blue</a>
+ * Copied from <a
+ * href="https://github.com/S-B99/kamiblue/blob/feature/master/src/main/java/me/zeroeightsix/kami/util/LagCompensator.java">KAMI
+ * Blue</a>
  */
 public class TickRate {
   public static TickRate INSTANCE = new TickRate();
@@ -49,8 +50,10 @@ public class TickRate {
   }
 
   public float getTickRate() {
-    if (!Utils.canUpdate()) return 0;
-    if (System.currentTimeMillis() - timeGameJoined < 4000) return 20;
+    if (!Utils.canUpdate())
+      return 0;
+    if (System.currentTimeMillis() - timeGameJoined < 4000)
+      return 20;
 
     int numTicks = 0;
     float sumTickRates = 0.0f;
@@ -65,7 +68,8 @@ public class TickRate {
 
   public float getTimeSinceLastTick() {
     long now = System.currentTimeMillis();
-    if (now - timeGameJoined < 4000) return 0;
+    if (now - timeGameJoined < 4000)
+      return 0;
     return (now - timeLastTimeUpdate) / 1000f;
   }
 }

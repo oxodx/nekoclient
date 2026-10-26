@@ -5,17 +5,15 @@
 
 package nl.oxod.nekoclient.utils.network;
 
-import nl.oxod.nekoclient.utils.PreInit;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import nl.oxod.nekoclient.utils.PreInit;
 
 public class NekoExecutor {
   public static ExecutorService executor;
 
-  private NekoExecutor() {
-  }
+  private NekoExecutor() {}
 
   @PreInit
   public static void init() {

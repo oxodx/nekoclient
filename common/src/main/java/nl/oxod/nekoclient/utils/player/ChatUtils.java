@@ -5,39 +5,39 @@
 
 package nl.oxod.nekoclient.utils.player;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
 import com.mojang.brigadier.StringReader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import java.util.function.Supplier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.*;
+import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.mixininterface.IChatHud;
 import nl.oxod.nekoclient.pathing.BaritoneUtils;
 import nl.oxod.nekoclient.systems.config.Config;
 import nl.oxod.nekoclient.utils.PostInit;
 import nl.oxod.nekoclient.utils.misc.text.NekoClickEvent;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.*;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
-
 public class ChatUtils {
-  private static final Object2ObjectLinkedOpenHashMap<String, Supplier<Component>> customPrefixes = new Object2ObjectLinkedOpenHashMap<>();
+  private static final Object2ObjectLinkedOpenHashMap<String, Supplier<Component>> customPrefixes =
+      new Object2ObjectLinkedOpenHashMap<>();
   private static String forcedPrefixClassName;
 
   private static Component PREFIX;
 
-  private ChatUtils() {
-  }
+  private ChatUtils() {}
 
   @PostInit
   public static void init() {
     PREFIX = Component.empty()
-      .setStyle(Style.EMPTY.applyFormats(ChatFormatting.GRAY))
-      .append("[")
-      .append(Component.literal("NekoClient").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(NekoClient.ADDON.color.getPacked()))))
-      .append("] ");
+                 .setStyle(Style.EMPTY.applyFormats(ChatFormatting.GRAY))
+                 .append("[")
+                 .append(Component.literal("NekoClient")
+                         .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(NekoClient.ADDON.color.getPacked()))))
+                 .append("] ");
   }
 
   public static Component getNekoPrefix() {
@@ -45,7 +45,8 @@ public class ChatUtils {
   }
 
   /**
-   * Registers a custom prefix to be used when calling from a class in the specified package. When null is returned from the supplier the default Meteor prefix is used.
+   * Registers a custom prefix to be used when calling from a class in the specified package. When null is returned from
+   * the supplier the default Meteor prefix is used.
    */
   @SuppressWarnings("unused")
   public static void registerCustomPrefix(String packageName, Supplier<Component> supplier) {
@@ -77,10 +78,13 @@ public class ChatUtils {
    * Sends the message as if the user typed it into chat.
    */
   public static void sendPlayerMsg(String message, boolean addToHistory) {
-    if (addToHistory) mc.gui.hud.getChat().addRecentChat(message);
+    if (addToHistory)
+      mc.gui.hud.getChat().addRecentChat(message);
 
-    if (message.startsWith("/")) mc.player.connection.sendCommand(message.substring(1));
-    else mc.player.connection.sendChat(message);
+    if (message.startsWith("/"))
+      mc.player.connection.sendCommand(message.substring(1));
+    else
+      mc.player.connection.sendChat(message);
   }
 
   // Default
@@ -131,25 +135,31 @@ public class ChatUtils {
     sendMsg(id, null, null, color, message, args);
   }
 
-  public static void sendMsg(int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor, ChatFormatting messageColor, String messageContent, Object... args) {
+  public static void sendMsg(int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor,
+      ChatFormatting messageColor, String messageContent, Object... args) {
     MutableComponent message = formatMsg(String.format(messageContent, args), messageColor);
     sendMsg(id, prefixTitle, prefixColor, message);
   }
 
-  public static void sendMsg(int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor, String messageContent, ChatFormatting messageColor) {
+  public static void sendMsg(int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor,
+      String messageContent, ChatFormatting messageColor) {
     MutableComponent message = formatMsg(messageContent, messageColor);
     sendMsg(id, prefixTitle, prefixColor, message);
   }
 
-  public static void sendMsg(int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor, Component msg) {
-    if (mc.level == null) return;
+  public static void sendMsg(
+      int id, @Nullable String prefixTitle, @Nullable ChatFormatting prefixColor, Component msg) {
+    if (mc.level == null)
+      return;
 
     MutableComponent message = Component.empty();
     message.append(getPrefix());
-    if (prefixTitle != null) message.append(getCustomPrefix(prefixTitle, prefixColor));
+    if (prefixTitle != null)
+      message.append(getCustomPrefix(prefixTitle, prefixColor));
     message.append(msg);
 
-    if (!Config.get().deleteChatFeedback.get()) id = 0;
+    if (!Config.get().deleteChatFeedback.get())
+      id = 0;
 
     final int finalId = id; // Intellij copes about using non-final args in lambdas
     mc.execute(() -> ((IChatHud) mc.gui.hud.getChat()).neko$add(message, finalId));
@@ -190,12 +200,14 @@ public class ChatUtils {
             break;
           }
         } else {
-          if (element.getClassName().equals(ChatUtils.class.getName())) foundChatUtils = true;
+          if (element.getClassName().equals(ChatUtils.class.getName()))
+            foundChatUtils = true;
         }
       }
     }
 
-    if (className == null) return PREFIX;
+    if (className == null)
+      return PREFIX;
 
     for (var entry : customPrefixes.object2ObjectEntrySet()) {
       if (className.startsWith(entry.getKey())) {
@@ -247,7 +259,8 @@ public class ChatUtils {
       }
     }
 
-    if (!result.isEmpty()) text.append(Component.literal(result.toString()).setStyle(style));
+    if (!result.isEmpty())
+      text.append(Component.literal(result.toString()).setStyle(style));
 
     return text;
   }
@@ -257,13 +270,11 @@ public class ChatUtils {
     MutableComponent coordsText = formatMsg(coordsString, ChatFormatting.GRAY);
 
     if (BaritoneUtils.IS_AVAILABLE) {
-      Style style = coordsText.getStyle().applyFormats(ChatFormatting.BOLD)
-        .withHoverEvent(new HoverEvent.ShowText(
-          Component.literal("Set as Baritone goal")
-        ))
-        .withClickEvent(new NekoClickEvent(
-          String.format("%sgoto %d %d %d", BaritoneUtils.getPrefix(), (int) pos.x, (int) pos.y, (int) pos.z)
-        ));
+      Style style = coordsText.getStyle()
+                        .applyFormats(ChatFormatting.BOLD)
+                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Set as Baritone goal")))
+                        .withClickEvent(new NekoClickEvent(String.format(
+                            "%sgoto %d %d %d", BaritoneUtils.getPrefix(), (int) pos.x, (int) pos.y, (int) pos.z)));
 
       coordsText.setStyle(style);
     }

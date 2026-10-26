@@ -5,7 +5,4 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-public enum Safety {
-  Safe,
-  Suicide
-}
+public enum Safety { Safe, Suicide }

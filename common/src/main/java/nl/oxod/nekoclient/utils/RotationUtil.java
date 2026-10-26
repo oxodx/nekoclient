@@ -11,11 +11,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public final class RotationUtil {
-  private RotationUtil() {
-  }
+  private RotationUtil() {}
 
-  public record Rotation(float yaw, float pitch) {
-  }
+  public record Rotation(float yaw, float pitch) {}
 
   public static Rotation playerRotation(LocalPlayer player) {
     return new Rotation(player.getYRot(), player.getXRot());
@@ -29,30 +27,29 @@ public final class RotationUtil {
     return new Rotation(Mth.wrapDegrees(yaw), Mth.clamp(Mth.wrapDegrees(pitch), -90.0f, 90.0f));
   }
 
-  public static Rotation towardsLinear(Rotation current, Rotation target, float horizontalFactor, float verticalFactor) {
+  public static Rotation towardsLinear(
+      Rotation current, Rotation target, float horizontalFactor, float verticalFactor) {
     float yawDiff = angleDifference(target.yaw, current.yaw);
     float pitchDiff = angleDifference(target.pitch, current.pitch);
     double length = Math.sqrt(yawDiff * yawDiff + pitchDiff * pitchDiff);
-    if (length < 1.0E-9) return target;
+    if (length < 1.0E-9)
+      return target;
     float yawStep = Math.abs((float) (yawDiff / length)) * horizontalFactor;
     float pitchStep = Math.abs((float) (pitchDiff / length)) * verticalFactor;
-    return new Rotation(
-      current.yaw + Mth.clamp(yawDiff, -yawStep, yawStep),
-      current.pitch + Mth.clamp(pitchDiff, -pitchStep, pitchStep)
-    );
+    return new Rotation(current.yaw + Mth.clamp(yawDiff, -yawStep, yawStep),
+        current.pitch + Mth.clamp(pitchDiff, -pitchStep, pitchStep));
   }
 
   public static Rotation interpolate(Rotation current, Rotation target, float factor) {
     float t = Mth.clamp(factor, 0.0f, 1.0f);
-    return new Rotation(
-      current.yaw + angleDifference(target.yaw, current.yaw) * t,
-      Mth.clamp(current.pitch + angleDifference(target.pitch, current.pitch) * t, -90.0f, 90.0f)
-    );
+    return new Rotation(current.yaw + angleDifference(target.yaw, current.yaw) * t,
+        Mth.clamp(current.pitch + angleDifference(target.pitch, current.pitch) * t, -90.0f, 90.0f));
   }
 
   public static Rotation normalizeToSensitivity(Rotation rotation, Rotation current) {
     double gcd = mouseDegreesPerRawInput();
-    if (gcd <= 0.0) return rotation;
+    if (gcd <= 0.0)
+      return rotation;
     float yawDiff = angleDifference(rotation.yaw, current.yaw);
     float pitchDiff = angleDifference(rotation.pitch, current.pitch);
     float yaw = current.yaw + (float) (Math.round(yawDiff / gcd) * gcd);
@@ -66,7 +63,8 @@ public final class RotationUtil {
 
   public static double mouseDegreesPerRawInput() {
     Minecraft mc = Minecraft.getInstance();
-    if (mc == null || mc.options == null) return 0.0;
+    if (mc == null || mc.options == null)
+      return 0.0;
     double f = mc.options.sensitivity().get() * 0.6D + 0.2D;
     float sensitivityFactor = (float) (f * f * f * 8.0D);
     return (double) (sensitivityFactor * 0.15F);
@@ -90,7 +88,8 @@ public final class RotationUtil {
   }
 
   public static void apply(LocalPlayer player, Rotation rotation, boolean syncPrevious) {
-    if (player == null || rotation == null) return;
+    if (player == null || rotation == null)
+      return;
     float yaw = Mth.wrapDegrees(rotation.yaw);
     float pitch = Mth.clamp(rotation.pitch, -90.0f, 90.0f);
     if (syncPrevious) {

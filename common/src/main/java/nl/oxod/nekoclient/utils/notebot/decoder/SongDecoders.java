@@ -5,19 +5,18 @@
 
 package nl.oxod.nekoclient.utils.notebot.decoder;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import nl.oxod.nekoclient.systems.modules.Modules;
 import nl.oxod.nekoclient.systems.modules.misc.Notebot;
 import nl.oxod.nekoclient.utils.notebot.NotebotUtils;
 import nl.oxod.nekoclient.utils.notebot.song.Note;
 import nl.oxod.nekoclient.utils.notebot.song.Song;
-import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import org.apache.commons.io.FilenameUtils;
 import org.jspecify.annotations.NonNull;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SongDecoders {
   private static final Map<String, SongDecoder> decoders = new HashMap<>(); // file extension -> song decoder
@@ -52,7 +51,8 @@ public class SongDecoders {
    */
   @NonNull
   public static Song parse(File file) throws Exception {
-    if (!hasDecoder(file)) throw new IllegalStateException("Decoder for this file does not exists!");
+    if (!hasDecoder(file))
+      throw new IllegalStateException("Decoder for this file does not exists!");
     SongDecoder decoder = getDecoder(file);
     Song song = decoder.parse(file);
 

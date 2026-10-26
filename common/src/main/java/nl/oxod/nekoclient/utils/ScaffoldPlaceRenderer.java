@@ -5,11 +5,11 @@
 
 package nl.oxod.nekoclient.utils;
 
+import net.minecraft.core.BlockPos;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.gui.themes.neko.NekoGuiTheme;
 import nl.oxod.nekoclient.utils.render.color.Color;
-import net.minecraft.core.BlockPos;
 
 public final class ScaffoldPlaceRenderer {
   private static final int CAP = 32;
@@ -28,8 +28,7 @@ public final class ScaffoldPlaceRenderer {
   private static volatile boolean customColor;
   private static volatile int color = 0xFFFF3B3B;
 
-  private ScaffoldPlaceRenderer() {
-  }
+  private ScaffoldPlaceRenderer() {}
 
   public static void push(boolean enabled, boolean custom, int customArgb) {
     on = enabled;
@@ -42,7 +41,8 @@ public final class ScaffoldPlaceRenderer {
   }
 
   public static void recordPlacement(BlockPos pos) {
-    if (!on || pos == null) return;
+    if (!on || pos == null)
+      return;
     PX[idx] = pos.getX();
     PY[idx] = pos.getY();
     PZ[idx] = pos.getZ();
@@ -55,23 +55,29 @@ public final class ScaffoldPlaceRenderer {
   }
 
   public static void render(Render3DEvent event) {
-    if (!isActive()) return;
+    if (!isActive())
+      return;
     long now = System.nanoTime();
     int argb = baseColor();
     for (int i = 0; i < CAP; i++) {
       long t = AT[i];
-      if (t == 0L) continue;
+      if (t == 0L)
+        continue;
       long age = now - t;
-      if (age < 0L || age >= DURATION_NS) continue;
+      if (age < 0L || age >= DURATION_NS)
+        continue;
       ripple(event, PX[i], PY[i], PZ[i], age / (double) DURATION_NS, argb);
     }
   }
 
   private static int baseColor() {
-    if (customColor) return color | 0xFF000000;
+    if (customColor)
+      return color | 0xFF000000;
     Color accent;
-    if (GuiThemes.get() instanceof NekoGuiTheme theme) accent = theme.accentColor.get();
-    else accent = new Color(145, 61, 226);
+    if (GuiThemes.get() instanceof NekoGuiTheme theme)
+      accent = theme.accentColor.get();
+    else
+      accent = new Color(145, 61, 226);
     return (0xFF << 24) | ((accent.r & 0xFF) << 16) | ((accent.g & 0xFF) << 8) | (accent.b & 0xFF);
   }
 
@@ -80,13 +86,11 @@ public final class ScaffoldPlaceRenderer {
     double scale = 1.0 - inv * inv * inv;
     double fade = t < FADE_START ? 1.0 : 1.0 - (t - FADE_START) / (1.0 - FADE_START);
     int alpha = (int) (BASE_ALPHA * fade * 255.0);
-    if (alpha <= 0) return;
+    if (alpha <= 0)
+      return;
     Color c = new Color(argb & 0xFFFFFF).a(alpha);
     double half = 0.5 * scale + INFLATE;
     event.renderer.boxSides(
-      bx + 0.5 - half, by + 0.5 - half, bz + 0.5 - half,
-      bx + 0.5 + half, by + 0.5 + half, bz + 0.5 + half,
-      c, 0
-    );
+        bx + 0.5 - half, by + 0.5 - half, bz + 0.5 - half, bx + 0.5 + half, by + 0.5 + half, bz + 0.5 + half, c, 0);
   }
 }

@@ -5,18 +5,9 @@
 
 package nl.oxod.nekoclient.utils.player;
 
-import nl.oxod.nekoclient.mixininterface.IVec3;
-import nl.oxod.nekoclient.pathing.PathManagers;
-import nl.oxod.nekoclient.systems.config.Config;
-import nl.oxod.nekoclient.systems.friends.Friends;
-import nl.oxod.nekoclient.systems.modules.Modules;
-import nl.oxod.nekoclient.systems.modules.movement.NoFall;
-import nl.oxod.nekoclient.utils.Utils;
-import nl.oxod.nekoclient.utils.entity.DamageUtils;
-import nl.oxod.nekoclient.utils.entity.EntityUtils;
-import nl.oxod.nekoclient.utils.misc.text.TextUtils;
-import nl.oxod.nekoclient.utils.render.color.Color;
-import nl.oxod.nekoclient.utils.world.Dimension;
+import static nl.oxod.nekoclient.NekoClient.mc;
+import static nl.oxod.nekoclient.utils.Utils.WHITE;
+
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,9 +25,18 @@ import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
-import static nl.oxod.nekoclient.utils.Utils.WHITE;
+import nl.oxod.nekoclient.mixininterface.IVec3;
+import nl.oxod.nekoclient.pathing.PathManagers;
+import nl.oxod.nekoclient.systems.config.Config;
+import nl.oxod.nekoclient.systems.friends.Friends;
+import nl.oxod.nekoclient.systems.modules.Modules;
+import nl.oxod.nekoclient.systems.modules.movement.NoFall;
+import nl.oxod.nekoclient.utils.Utils;
+import nl.oxod.nekoclient.utils.entity.DamageUtils;
+import nl.oxod.nekoclient.utils.entity.EntityUtils;
+import nl.oxod.nekoclient.utils.misc.text.TextUtils;
+import nl.oxod.nekoclient.utils.render.color.Color;
+import nl.oxod.nekoclient.utils.world.Dimension;
 
 public class PlayerUtils {
   private static final double diagonal = 1 / Math.sqrt(2);
@@ -44,15 +44,15 @@ public class PlayerUtils {
 
   private static final Color color = new Color();
 
-  private PlayerUtils() {
-  }
+  private PlayerUtils() {}
 
   public static Color getPlayerColor(Player entity, Color defaultColor) {
     if (Friends.get().isFriend(entity)) {
       return color.set(Config.get().friendColor.get()).a(defaultColor.a);
     }
 
-    if (Config.get().useTeamColor.get() && !color.set(TextUtils.getMostPopularColor(entity.getDisplayName())).equals(WHITE)) {
+    if (Config.get().useTeamColor.get()
+        && !color.set(TextUtils.getMostPopularColor(entity.getDisplayName())).equals(WHITE)) {
       return color.a(defaultColor.a);
     }
 
@@ -108,7 +108,8 @@ public class PlayerUtils {
     double x = Mth.floor(mc.player.getX()) + 0.5;
     double z = Mth.floor(mc.player.getZ()) + 0.5;
     mc.player.setPos(x, mc.player.getY(), z);
-    mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.onGround(), mc.player.horizontalCollision));
+    mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(
+        mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.onGround(), mc.player.horizontalCollision));
   }
 
   @SuppressWarnings("DataFlowIssue")
@@ -118,16 +119,23 @@ public class PlayerUtils {
 
     ((IVec3) vec1).neko$set(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(), mc.player.getZ());
     ((IVec3) vec2).neko$set(entity.getX(), entity.getY(), entity.getZ());
-    boolean canSeeFeet = mc.level.clip(new ClipContext(vec1, vec2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player)).getType() == HitResult.Type.MISS;
+    boolean canSeeFeet =
+        mc.level.clip(new ClipContext(vec1, vec2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player))
+            .getType()
+        == HitResult.Type.MISS;
 
     ((IVec3) vec2).neko$set(entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ());
-    boolean canSeeEyes = mc.level.clip(new ClipContext(vec1, vec2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player)).getType() == HitResult.Type.MISS;
+    boolean canSeeEyes =
+        mc.level.clip(new ClipContext(vec1, vec2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player))
+            .getType()
+        == HitResult.Type.MISS;
 
     return canSeeFeet || canSeeEyes;
   }
 
   public static float[] calculateAngle(Vec3 target) {
-    Vec3 eyesPos = new Vec3(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
+    Vec3 eyesPos =
+        new Vec3(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
 
     double dX = target.x - eyesPos.x;
     double dY = (target.y - eyesPos.y) * -1.0D;
@@ -135,14 +143,22 @@ public class PlayerUtils {
 
     double dist = Math.sqrt(dX * dX + dZ * dZ);
 
-    return new float[]{(float) Mth.wrapDegrees(Math.toDegrees(Math.atan2(dZ, dX)) - 90.0D), (float) Mth.wrapDegrees(Math.toDegrees(Math.atan2(dY, dist)))};
+    return new float[] {(float) Mth.wrapDegrees(Math.toDegrees(Math.atan2(dZ, dX)) - 90.0D),
+        (float) Mth.wrapDegrees(Math.toDegrees(Math.atan2(dY, dist)))};
   }
 
   public static boolean shouldPause(boolean ifBreaking, boolean ifEating, boolean ifDrinking) {
-    if (ifBreaking && mc.gameMode.isDestroying()) return true;
-    if (ifEating && (mc.player.isUsingItem() && (mc.player.getMainHandItem().getItem().components().has(DataComponents.FOOD) || mc.player.getOffhandItem().getItem().components().has(DataComponents.FOOD))))
+    if (ifBreaking && mc.gameMode.isDestroying())
       return true;
-    return ifDrinking && (mc.player.isUsingItem() && (mc.player.getMainHandItem().getItem() instanceof PotionItem || mc.player.getOffhandItem().getItem() instanceof PotionItem));
+    if (ifEating
+        && (mc.player.isUsingItem()
+            && (mc.player.getMainHandItem().getItem().components().has(DataComponents.FOOD)
+                || mc.player.getOffhandItem().getItem().components().has(DataComponents.FOOD))))
+      return true;
+    return ifDrinking
+        && (mc.player.isUsingItem()
+            && (mc.player.getMainHandItem().getItem() instanceof PotionItem
+                || mc.player.getOffhandItem().getItem() instanceof PotionItem));
   }
 
   public static boolean isMoving() {
@@ -154,23 +170,27 @@ public class PlayerUtils {
   }
 
   public static boolean isInHole(boolean doubles) {
-    if (!Utils.canUpdate()) return false;
+    if (!Utils.canUpdate())
+      return false;
 
     BlockPos blockPos = mc.player.blockPosition();
     int air = 0;
 
     for (Direction direction : Direction.values()) {
-      if (direction == Direction.UP) continue;
+      if (direction == Direction.UP)
+        continue;
 
       BlockState state = mc.level.getBlockState(blockPos.relative(direction));
 
       if (state.getBlock().getExplosionResistance() < 600) {
-        if (!doubles || direction == Direction.DOWN) return false;
+        if (!doubles || direction == Direction.DOWN)
+          return false;
 
         air++;
 
         for (Direction dir : Direction.values()) {
-          if (dir == direction.getOpposite() || dir == Direction.UP) continue;
+          if (dir == direction.getOpposite() || dir == Direction.UP)
+            continue;
 
           BlockState blockState1 = mc.level.getBlockState(blockPos.relative(direction).relative(dir));
 
@@ -196,25 +216,29 @@ public class PlayerUtils {
         // Check for end crystals
         if (entity instanceof EndCrystal) {
           float crystalDamage = DamageUtils.crystalDamage(mc.player, entity.position());
-          if (crystalDamage > damageTaken) damageTaken = crystalDamage;
+          if (crystalDamage > damageTaken)
+            damageTaken = crystalDamage;
         }
         // Check for players holding swords
         else if (entity instanceof Player player && !Friends.get().isFriend(player) && isWithin(entity, 5)) {
           float attackDamage = DamageUtils.getAttackDamage(player, mc.player);
-          if (attackDamage > damageTaken) damageTaken = attackDamage;
+          if (attackDamage > damageTaken)
+            damageTaken = attackDamage;
         }
       }
 
       // Check for beds if in nether
-            if (mc.level.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).destroyOnUse()) {
+      if (mc.level.environmentAttributes().getDimensionValue(EnvironmentAttributes.BED_RULE).destroyOnUse()) {
         BlockPos playerPos = mc.player.blockPosition();
         int range = 6;
 
-        for (BlockPos bp : BlockPos.betweenClosed(playerPos.offset(-range, -range, -range), playerPos.offset(range, range, range))) {
+        for (BlockPos bp :
+            BlockPos.betweenClosed(playerPos.offset(-range, -range, -range), playerPos.offset(range, range, range))) {
           if (mc.level.getBlockState(bp).getBlock() instanceof BedBlock) {
             Vec3 pos = new Vec3(bp.getX(), bp.getY(), bp.getZ());
             float explosionDamage = DamageUtils.bedDamage(mc.player, pos);
-            if (explosionDamage > damageTaken) damageTaken = explosionDamage;
+            if (explosionDamage > damageTaken)
+              damageTaken = explosionDamage;
           }
         }
       }
@@ -335,11 +359,13 @@ public class PlayerUtils {
   }
 
   public static boolean isWithinReach(double x, double y, double z) {
-    return squaredDistance(mc.player.getX(), mc.player.getEyeY(), mc.player.getZ(), x, y, z) <= mc.player.blockInteractionRange() * mc.player.blockInteractionRange();
+    return squaredDistance(mc.player.getX(), mc.player.getEyeY(), mc.player.getZ(), x, y, z)
+        <= mc.player.blockInteractionRange() * mc.player.blockInteractionRange();
   }
 
   public static Dimension getDimension() {
-    if (mc.level == null) return Dimension.Overworld;
+    if (mc.level == null)
+      return Dimension.Overworld;
 
     return switch (mc.level.dimension().identifier().getPath()) {
       case "the_nether" -> Dimension.Nether;
@@ -349,9 +375,11 @@ public class PlayerUtils {
   }
 
   public static GameType getGameMode() {
-    if (mc.player == null) return null;
+    if (mc.player == null)
+      return null;
     PlayerInfo playerListEntry = mc.getConnection().getPlayerInfo(mc.player.getUUID());
-    if (playerListEntry == null) return null;
+    if (playerListEntry == null)
+      return null;
     return playerListEntry.getGameMode();
   }
 
@@ -364,10 +392,12 @@ public class PlayerUtils {
   }
 
   public static int getPing() {
-    if (mc.getConnection() == null) return 0;
+    if (mc.getConnection() == null)
+      return 0;
 
     PlayerInfo playerListEntry = mc.getConnection().getPlayerInfo(mc.player.getUUID());
-    if (playerListEntry == null) return 0;
+    if (playerListEntry == null)
+      return 0;
     return playerListEntry.getLatency();
   }
 }

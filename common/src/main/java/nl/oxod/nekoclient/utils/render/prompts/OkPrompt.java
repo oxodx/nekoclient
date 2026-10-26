@@ -5,16 +5,15 @@
 
 package nl.oxod.nekoclient.utils.render.prompts;
 
+import static nl.oxod.nekoclient.NekoClient.mc;
+
+import net.minecraft.client.gui.screens.Screen;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.GuiThemes;
 import nl.oxod.nekoclient.gui.widgets.pressable.WButton;
-import net.minecraft.client.gui.screens.Screen;
-
-import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class OkPrompt extends Prompt<OkPrompt> {
-  private Runnable onOk = () -> {
-  };
+  private Runnable onOk = () -> {};
 
   private OkPrompt(GuiTheme theme, Screen parent) {
     super(theme, parent);

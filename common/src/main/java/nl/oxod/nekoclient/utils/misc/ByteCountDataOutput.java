@@ -5,10 +5,9 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
-import org.jspecify.annotations.NonNull;
-
 import java.io.DataOutput;
 import java.io.IOException;
+import org.jspecify.annotations.NonNull;
 
 public class ByteCountDataOutput implements DataOutput {
   public static final ByteCountDataOutput INSTANCE = new ByteCountDataOutput();
@@ -34,7 +33,7 @@ public class ByteCountDataOutput implements DataOutput {
   }
 
   @Override
-  public void write(byte @NonNull [] b, int off, int len) throws IOException {
+  public void write(byte @NonNull[] b, int off, int len) throws IOException {
     count += len;
   }
 

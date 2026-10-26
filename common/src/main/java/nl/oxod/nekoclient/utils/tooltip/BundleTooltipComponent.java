@@ -5,6 +5,7 @@
 
 package nl.oxod.nekoclient.utils.tooltip;
 
+import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -20,15 +21,19 @@ import net.minecraft.world.item.component.BundleContents;
 import org.apache.commons.lang3.math.Fraction;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
-
 public class BundleTooltipComponent implements ClientTooltipComponent, NekoTooltipData {
-  private static final Identifier BUNDLE_SLOT_BACKGROUND_TEXTURE = Identifier.withDefaultNamespace("container/bundle/slot_background");
-  private static final Identifier BUNDLE_PROGRESS_BAR_BORDER_TEXTURE = Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_border");
-  private static final Identifier BUNDLE_PROGRESS_BAR_FILL_TEXTURE = Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_fill");
-  private static final Identifier BUNDLE_PROGRESS_BAR_FULL_TEXTURE = Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_full");
-  private static final Identifier BUNDLE_SLOT_HIGHLIGHT_BACK_TEXTURE = Identifier.withDefaultNamespace("container/bundle/slot_highlight_back");
-  private static final Identifier BUNDLE_SLOT_HIGHLIGHT_FRONT_TEXTURE = Identifier.withDefaultNamespace("container/bundle/slot_highlight_front");
+  private static final Identifier BUNDLE_SLOT_BACKGROUND_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/slot_background");
+  private static final Identifier BUNDLE_PROGRESS_BAR_BORDER_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_border");
+  private static final Identifier BUNDLE_PROGRESS_BAR_FILL_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_fill");
+  private static final Identifier BUNDLE_PROGRESS_BAR_FULL_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_full");
+  private static final Identifier BUNDLE_SLOT_HIGHLIGHT_BACK_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/slot_highlight_back");
+  private static final Identifier BUNDLE_SLOT_HIGHLIGHT_FRONT_TEXTURE =
+      Identifier.withDefaultNamespace("container/bundle/slot_highlight_front");
 
   private static final int SLOTS_PER_ROW = 8;
   private static final int SLOT_DIMENSION = 24;
@@ -72,7 +77,8 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
   }
 
   @Override
-  public void extractImage(@NonNull Font font, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor graphics) {
+  public void extractImage(
+      @NonNull Font font, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor graphics) {
     int row = 0;
     int col = 0;
 
@@ -81,7 +87,8 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
         int slotX = x + 8 + col * SLOT_DIMENSION;
         int slotY = y + 8 + row * SLOT_DIMENSION;
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BUNDLE_SLOT_BACKGROUND_TEXTURE, slotX, slotY, SLOT_DIMENSION, SLOT_DIMENSION);
+        graphics.blitSprite(
+            RenderPipelines.GUI_TEXTURED, BUNDLE_SLOT_BACKGROUND_TEXTURE, slotX, slotY, SLOT_DIMENSION, SLOT_DIMENSION);
         drawItem(itemStack, (row * 8) + col, slotX, slotY, font, graphics);
         graphics.itemDecorations(font, itemStack, slotX + 4, slotY + 4);
       }
@@ -122,21 +129,22 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
       int i = font.width(text.getVisualOrderText());
       int j = x + width / 2 - 12;
       ClientTooltipComponent tooltipComponent = ClientTooltipComponent.create(text.getVisualOrderText());
-      graphics.tooltip(
-                font, List.of(tooltipComponent), j - i / 2, y - 37, DefaultTooltipPositioner.INSTANCE, itemStack.get(DataComponents.TOOLTIP_STYLE), false
-      );
+      graphics.tooltip(font, List.of(tooltipComponent), j - i / 2, y - 37, DefaultTooltipPositioner.INSTANCE,
+          itemStack.get(DataComponents.TOOLTIP_STYLE), false);
     }
   }
 
   private void drawProgressBar(int x, int y, Font font, GuiGraphicsExtractor graphics) {
-    int fillAmount = Mth.clamp(Mth.mulAndTruncate(bundleContents.weight().getOrThrow(), PROGRESS_BAR_WIDTH), 0, PROGRESS_BAR_WIDTH);
+    int fillAmount =
+        Mth.clamp(Mth.mulAndTruncate(bundleContents.weight().getOrThrow(), PROGRESS_BAR_WIDTH), 0, PROGRESS_BAR_WIDTH);
 
     Identifier fillTexture = bundleContents.weight().getOrThrow().compareTo(Fraction.ONE) >= 0
-      ? BUNDLE_PROGRESS_BAR_FULL_TEXTURE
-      : BUNDLE_PROGRESS_BAR_FILL_TEXTURE;
+        ? BUNDLE_PROGRESS_BAR_FULL_TEXTURE
+        : BUNDLE_PROGRESS_BAR_FILL_TEXTURE;
 
     graphics.blitSprite(RenderPipelines.GUI_TEXTURED, fillTexture, x + 1, y, fillAmount, PROGRESS_BAR_HEIGHT);
-    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BUNDLE_PROGRESS_BAR_BORDER_TEXTURE, x, y, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
+    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BUNDLE_PROGRESS_BAR_BORDER_TEXTURE, x, y, PROGRESS_BAR_WIDTH,
+        PROGRESS_BAR_HEIGHT);
 
     Component label = getProgressBarLabel();
     if (label != null) {
@@ -145,6 +153,8 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
   }
 
   private Component getProgressBarLabel() {
-    return bundleContents.weight().getOrThrow().compareTo(Fraction.ONE) >= 0 ? BUNDLE_FULL : Component.literal(String.format("%.2f%%", bundleContents.weight().getOrThrow().floatValue() * 100));
+    return bundleContents.weight().getOrThrow().compareTo(Fraction.ONE) >= 0
+        ? BUNDLE_FULL
+        : Component.literal(String.format("%.2f%%", bundleContents.weight().getOrThrow().floatValue() * 100));
   }
 }

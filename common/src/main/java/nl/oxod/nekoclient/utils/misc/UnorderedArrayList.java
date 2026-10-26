@@ -5,12 +5,11 @@
 
 package nl.oxod.nekoclient.utils.misc;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
+import org.jspecify.annotations.NonNull;
 
 public class UnorderedArrayList<T> extends AbstractList<T> {
   private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
@@ -27,7 +26,8 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
 
   @Override
   public boolean add(T t) {
-    if (size == items.length) grow(size + 1);
+    if (size == items.length)
+      grow(size + 1);
     items[size++] = t;
     modCount++;
     return true;
@@ -55,7 +55,8 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
   @Override
   public int indexOf(Object o) {
     for (int i = 0; i < size; i++) {
-      if (Objects.equals(items[i], o)) return i;
+      if (Objects.equals(items[i], o))
+        return i;
     }
     return -1;
   }
@@ -64,7 +65,8 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
   public int lastIndexOf(Object o) {
     final T[] elements = this.items;
     for (int i = size - 1; i >= 0; i--) {
-      if (Objects.equals(elements[i], o)) return i;
+      if (Objects.equals(elements[i], o))
+        return i;
     }
     return -1;
   }
@@ -72,7 +74,8 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
   @Override
   public boolean remove(Object o) {
     int i = indexOf(o);
-    if (i == -1) return false;
+    if (i == -1)
+      return false;
 
     items[i] = null;
     items[i] = items[--size];
@@ -98,7 +101,8 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
       T item = items[i];
 
       if (!filter.test(item)) {
-        if (j < i) items[j] = item;
+        if (j < i)
+          items[j] = item;
 
         j++;
       }
@@ -115,8 +119,7 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
 
   public void ensureCapacity(int minCapacity) {
     if (minCapacity > items.length
-      && !(items == DEFAULTCAPACITY_EMPTY_ELEMENTDATA
-      && minCapacity <= DEFAULT_CAPACITY)) {
+        && !(items == DEFAULTCAPACITY_EMPTY_ELEMENTDATA && minCapacity <= DEFAULT_CAPACITY)) {
       modCount++;
       grow(minCapacity);
     }
@@ -137,16 +140,12 @@ public class UnorderedArrayList<T> extends AbstractList<T> {
         throw new OutOfMemoryError();
       return minCapacity;
     }
-    return (newCapacity - MAX_ARRAY_SIZE <= 0)
-      ? newCapacity
-      : hugeCapacity(minCapacity);
+    return (newCapacity - MAX_ARRAY_SIZE <= 0) ? newCapacity : hugeCapacity(minCapacity);
   }
 
   private static int hugeCapacity(int minCapacity) {
     if (minCapacity < 0) // overflow
       throw new OutOfMemoryError();
-    return (minCapacity > MAX_ARRAY_SIZE)
-      ? Integer.MAX_VALUE
-      : MAX_ARRAY_SIZE;
+    return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
   }
 }
