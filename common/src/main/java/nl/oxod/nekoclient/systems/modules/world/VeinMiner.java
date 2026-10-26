@@ -5,6 +5,20 @@
 
 package nl.oxod.nekoclient.systems.modules.world;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import nl.oxod.nekoclient.events.entity.player.StartBreakingBlockEvent;
 import nl.oxod.nekoclient.events.render.Render3DEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
@@ -16,118 +30,131 @@ import nl.oxod.nekoclient.utils.Utils;
 import nl.oxod.nekoclient.utils.misc.ListMode;
 import nl.oxod.nekoclient.utils.misc.Pool;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.player.SwingMode;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockUtils;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.VoxelShape;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class VeinMiner extends Module {
+
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
   private final SettingGroup sgRender = settings.createGroup("Render");
 
   private final Set<Vec3i> blockNeighbours = Set.of(
-    new Vec3i(1, -1, 1), new Vec3i(0, -1, 1), new Vec3i(-1, -1, 1),
-    new Vec3i(1, -1, 0), new Vec3i(0, -1, 0), new Vec3i(-1, -1, 0),
-    new Vec3i(1, -1, -1), new Vec3i(0, -1, -1), new Vec3i(-1, -1, -1),
+    new Vec3i(1, -1, 1),
+    new Vec3i(0, -1, 1),
+    new Vec3i(-1, -1, 1),
+    new Vec3i(1, -1, 0),
+    new Vec3i(0, -1, 0),
+    new Vec3i(-1, -1, 0),
+    new Vec3i(1, -1, -1),
+    new Vec3i(0, -1, -1),
+    new Vec3i(-1, -1, -1),
 
-    new Vec3i(1, 0, 1), new Vec3i(0, 0, 1), new Vec3i(-1, 0, 1),
-    new Vec3i(1, 0, 0), new Vec3i(-1, 0, 0),
-    new Vec3i(1, 0, -1), new Vec3i(0, 0, -1), new Vec3i(-1, 0, -1),
+    new Vec3i(1, 0, 1),
+    new Vec3i(0, 0, 1),
+    new Vec3i(-1, 0, 1),
+    new Vec3i(1, 0, 0),
+    new Vec3i(-1, 0, 0),
+    new Vec3i(1, 0, -1),
+    new Vec3i(0, 0, -1),
+    new Vec3i(-1, 0, -1),
 
-    new Vec3i(1, 1, 1), new Vec3i(0, 1, 1), new Vec3i(-1, 1, 1),
-    new Vec3i(1, 1, 0), new Vec3i(0, 1, 0), new Vec3i(-1, 1, 0),
-    new Vec3i(1, 1, -1), new Vec3i(0, 1, -1), new Vec3i(-1, 1, -1)
+    new Vec3i(1, 1, 1),
+    new Vec3i(0, 1, 1),
+    new Vec3i(-1, 1, 1),
+    new Vec3i(1, 1, 0),
+    new Vec3i(0, 1, 0),
+    new Vec3i(-1, 1, 0),
+    new Vec3i(1, 1, -1),
+    new Vec3i(0, 1, -1),
+    new Vec3i(-1, 1, -1)
   );
 
   // General
 
-  private final Setting<List<Block>> selectedBlocks = sgGeneral.add(new BlockListSetting.Builder()
-    .name("blocks")
-    .description("Which blocks to select.")
-    .defaultValue(Blocks.STONE, Blocks.DIRT, Blocks.GRASS_BLOCK)
-    .build()
+  private final Setting<List<Block>> selectedBlocks = sgGeneral.add(
+    new BlockListSetting.Builder()
+      .name("blocks")
+      .description("Which blocks to select.")
+      .defaultValue(Blocks.STONE, Blocks.DIRT, Blocks.GRASS_BLOCK)
+      .build()
   );
 
-  private final Setting<ListMode> mode = sgGeneral.add(new EnumSetting.Builder<ListMode>()
-    .name("mode")
-    .description("Selection mode.")
-    .defaultValue(ListMode.Blacklist)
-    .build()
+  private final Setting<ListMode> mode = sgGeneral.add(
+    new EnumSetting.Builder<ListMode>()
+      .name("mode")
+      .description("Selection mode.")
+      .defaultValue(ListMode.Blacklist)
+      .build()
   );
 
-  private final Setting<Integer> depth = sgGeneral.add(new IntSetting.Builder()
-    .name("depth")
-    .description("Amount of iterations used to scan for similar blocks.")
-    .defaultValue(3)
-    .min(1)
-    .sliderRange(1, 15)
-    .build()
+  private final Setting<Integer> depth = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("depth")
+      .description("Amount of iterations used to scan for similar blocks.")
+      .defaultValue(3)
+      .min(1)
+      .sliderRange(1, 15)
+      .build()
   );
 
-  private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
-    .name("delay")
-    .description("Delay between mining blocks.")
-    .defaultValue(0)
-    .min(0)
-    .sliderRange(0, 20)
-    .build()
+  private final Setting<Integer> delay = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("delay")
+      .description("Delay between mining blocks.")
+      .defaultValue(0)
+      .min(0)
+      .sliderRange(0, 20)
+      .build()
   );
 
-  private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("rotate")
-    .description("Sends rotation packets to the server when mining.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> rotate = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("rotate")
+      .description("Sends rotation packets to the server when mining.")
+      .defaultValue(true)
+      .build()
   );
 
   // Render
-
-  private final Setting<Boolean> swingHand = sgRender.add(new BoolSetting.Builder()
-    .name("swing-hand")
-    .description("Swing hand client-side.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> swingHand = sgRender.add(
+    new BoolSetting.Builder()
+      .name("swing-hand")
+      .description("Swing hand client-side.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<Boolean> render = sgRender.add(new BoolSetting.Builder()
-    .name("render")
-    .description("Whether or not to render the block being mined.")
-    .defaultValue(true)
-    .build()
+  private final Setting<Boolean> render = sgRender.add(
+    new BoolSetting.Builder()
+      .name("render")
+      .description("Whether or not to render the block being mined.")
+      .defaultValue(true)
+      .build()
   );
 
-  private final Setting<ShapeMode> shapeMode = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-    .name("shape-mode")
-    .description("How the shapes are rendered.")
-    .defaultValue(ShapeMode.Both)
-    .build()
+  private final Setting<ShapeMode> shapeMode = sgRender.add(
+    new EnumSetting.Builder<ShapeMode>()
+      .name("shape-mode")
+      .description("How the shapes are rendered.")
+      .defaultValue(ShapeMode.Both)
+      .build()
   );
 
-  private final Setting<SettingColor> sideColor = sgRender.add(new ColorSetting.Builder()
-    .name("side-color")
-    .description("The color of the sides of the blocks being rendered.")
-    .defaultValue(new SettingColor(204, 0, 0, 10))
-    .build()
+  private final Setting<SettingColor> sideColor = sgRender.add(
+    new ColorSetting.Builder()
+      .name("side-color")
+      .description("The color of the sides of the blocks being rendered.")
+      .defaultValue(new SettingColor(204, 0, 0, 10))
+      .build()
   );
 
-  private final Setting<SettingColor> lineColor = sgRender.add(new ColorSetting.Builder()
-    .name("line-color")
-    .description("The color of the lines of the blocks being rendered.")
-    .defaultValue(new SettingColor(204, 0, 0, 255))
-    .build()
+  private final Setting<SettingColor> lineColor = sgRender.add(
+    new ColorSetting.Builder()
+      .name("line-color")
+      .description("The color of the lines of the blocks being rendered.")
+      .defaultValue(new SettingColor(204, 0, 0, 255))
+      .build()
   );
 
   private final Pool<MyBlock> blockPool = new Pool<>(MyBlock::new);
@@ -137,7 +164,11 @@ public class VeinMiner extends Module {
   private int tick = 0;
 
   public VeinMiner() {
-    super(Categories.World, "vein-miner", "Mines all nearby blocks with this type");
+    super(
+      Categories.World,
+      "vein-miner",
+      "Mines all nearby blocks with this type"
+    );
   }
 
   @Override
@@ -159,10 +190,10 @@ public class VeinMiner extends Module {
   private void onStartBreakingBlock(StartBreakingBlockEvent event) {
     BlockState state = mc.level.getBlockState(event.blockPos);
 
-    if (state.getDestroySpeed(mc.level, event.blockPos) < 0)
-      return;
-    if (!mode.get().allows(selectedBlocks.get().contains(state.getBlock())))
-      return;
+    if (state.getDestroySpeed(mc.level, event.blockPos) < 0) return;
+    if (
+      !mode.get().allows(selectedBlocks.get().contains(state.getBlock()))
+    ) return;
 
     foundBlockPositions.clear();
 
@@ -170,7 +201,12 @@ public class VeinMiner extends Module {
       MyBlock block = blockPool.get();
       block.set(event);
       blocks.add(block);
-      mineNearbyBlocks(block.originalBlock.asItem(), event.blockPos, event.direction, depth.get());
+      mineNearbyBlocks(
+        block.originalBlock.asItem(),
+        event.blockPos,
+        event.direction,
+        depth.get()
+      );
     }
   }
 
@@ -196,6 +232,7 @@ public class VeinMiner extends Module {
   }
 
   private class MyBlock {
+
     public BlockPos blockPos;
     public Direction direction;
     public Block originalBlock;
@@ -216,16 +253,30 @@ public class VeinMiner extends Module {
     }
 
     public boolean shouldRemove() {
-      return mc.level.getBlockState(blockPos).getBlock() != originalBlock || Utils.distance(mc.player.getX() - 0.5, mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ() - 0.5, blockPos.getX() + direction.getStepX(), blockPos.getY() + direction.getStepY(), blockPos.getZ() + direction.getStepZ()) > mc.player.blockInteractionRange();
+      return (
+        mc.level.getBlockState(blockPos).getBlock() != originalBlock ||
+        Utils.distance(
+          mc.player.getX() - 0.5,
+          mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()),
+          mc.player.getZ() - 0.5,
+          blockPos.getX() + direction.getStepX(),
+          blockPos.getY() + direction.getStepY(),
+          blockPos.getZ() + direction.getStepZ()
+        ) > mc.player.blockInteractionRange()
+      );
     }
 
     public void mine() {
       if (!mining) {
-                mc.player.swing(InteractionHand.MAIN_HAND, mc.player.getMainHandItem().getAttackAnimation(), false);
+        SwingMode.of(swingHand.get()).attackSwing(InteractionHand.MAIN_HAND);
         mining = true;
       }
-      if (rotate.get())
-        Rotations.rotate(Rotations.getYaw(blockPos), Rotations.getPitch(blockPos), 50, this::updateBlockBreakingProgress);
+      if (rotate.get()) Rotations.rotate(
+        Rotations.getYaw(blockPos),
+        Rotations.getPitch(blockPos),
+        50,
+        this::updateBlockBreakingProgress
+      );
       else updateBlockBreakingProgress();
     }
 
@@ -234,7 +285,9 @@ public class VeinMiner extends Module {
     }
 
     public void render(Render3DEvent event) {
-      VoxelShape shape = mc.level.getBlockState(blockPos).getShape(mc.level, blockPos);
+      VoxelShape shape = mc.level
+        .getBlockState(blockPos)
+        .getShape(mc.level, blockPos);
 
       double x1 = blockPos.getX();
       double y1 = blockPos.getY();
@@ -252,15 +305,39 @@ public class VeinMiner extends Module {
         z2 = blockPos.getZ() + shape.max(Direction.Axis.Z);
       }
 
-      event.renderer.box(x1, y1, z1, x2, y2, z2, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
+      event.renderer.box(
+        x1,
+        y1,
+        z1,
+        x2,
+        y2,
+        z2,
+        sideColor.get(),
+        lineColor.get(),
+        shapeMode.get(),
+        0
+      );
     }
   }
 
-  private void mineNearbyBlocks(Item item, BlockPos pos, Direction dir, int depth) {
+  private void mineNearbyBlocks(
+    Item item,
+    BlockPos pos,
+    Direction dir,
+    int depth
+  ) {
     if (depth <= 0) return;
     if (!foundBlockPositions.add(pos)) return;
-    if (Utils.distance(mc.player.getX() - 0.5, mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ() - 0.5, pos.getX(), pos.getY(), pos.getZ()) > mc.player.blockInteractionRange())
-      return;
+    if (
+      Utils.distance(
+        mc.player.getX() - 0.5,
+        mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()),
+        mc.player.getZ() - 0.5,
+        pos.getX(),
+        pos.getY(),
+        pos.getZ()
+      ) > mc.player.blockInteractionRange()
+    ) return;
     for (Vec3i neighbourOffset : blockNeighbours) {
       BlockPos neighbour = pos.offset(neighbourOffset);
       if (mc.level.getBlockState(neighbour).getBlock().asItem() == item) {
@@ -276,5 +353,4 @@ public class VeinMiner extends Module {
   public String getInfoString() {
     return mode.get().toString() + " (" + selectedBlocks.get().size() + ")";
   }
-
 }

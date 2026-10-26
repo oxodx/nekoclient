@@ -5,6 +5,17 @@
 
 package nl.oxod.nekoclient.systems.modules.combat;
 
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.network.protocol.game.ServerboundPunchPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.world.TickEvent;
 import nl.oxod.nekoclient.settings.*;
@@ -18,17 +29,6 @@ import nl.oxod.nekoclient.utils.player.FindItemResult;
 import nl.oxod.nekoclient.utils.player.InvUtils;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
-import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.network.protocol.game.ServerboundPunchPacket;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.AnvilBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * @author seasnail8169
@@ -37,73 +37,64 @@ public class Burrow extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
   private final Setting<Block> block = sgGeneral.add(new EnumSetting.Builder<Block>()
-    .name("block-to-use")
-    .description("The block to use for Burrow.")
-    .defaultValue(Block.EChest)
-    .build()
-  );
+          .name("block-to-use")
+          .description("The block to use for Burrow.")
+          .defaultValue(Block.EChest)
+          .build());
 
   private final Setting<Boolean> instant = sgGeneral.add(new BoolSetting.Builder()
-    .name("instant")
-    .description("Jumps with packets rather than vanilla jump.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("instant")
+          .description("Jumps with packets rather than vanilla jump.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Boolean> automatic = sgGeneral.add(new BoolSetting.Builder()
-    .name("automatic")
-    .description("Automatically burrows on activate rather than waiting for jump.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("automatic")
+          .description("Automatically burrows on activate rather than waiting for jump.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Double> triggerHeight = sgGeneral.add(new DoubleSetting.Builder()
-    .name("trigger-height")
-    .description("How high you have to jump before a rubberband is triggered.")
-    .defaultValue(1.12)
-    .range(0.01, 1.4)
-    .sliderRange(0.01, 1.4)
-    .build()
-  );
+          .name("trigger-height")
+          .description("How high you have to jump before a rubberband is triggered.")
+          .defaultValue(1.12)
+          .range(0.01, 1.4)
+          .sliderRange(0.01, 1.4)
+          .build());
 
   private final Setting<Double> rubberbandHeight = sgGeneral.add(new DoubleSetting.Builder()
-    .name("rubberband-height")
-    .description("How far to attempt to cause rubberband.")
-    .defaultValue(12)
-    .sliderMin(-30)
-    .sliderMax(30)
-    .build()
-  );
+          .name("rubberband-height")
+          .description("How far to attempt to cause rubberband.")
+          .defaultValue(12)
+          .sliderMin(-30)
+          .sliderMax(30)
+          .build());
 
   private final Setting<Double> timer = sgGeneral.add(new DoubleSetting.Builder()
-    .name("timer")
-    .description("Timer override.")
-    .defaultValue(1)
-    .min(0.01)
-    .sliderRange(0.01, 10)
-    .build()
-  );
+          .name("timer")
+          .description("Timer override.")
+          .defaultValue(1)
+          .min(0.01)
+          .sliderRange(0.01, 10)
+          .build());
 
   private final Setting<Boolean> onlyInHole = sgGeneral.add(new BoolSetting.Builder()
-    .name("only-in-holes")
-    .description("Stops you from burrowing when not in a hole.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("only-in-holes")
+          .description("Stops you from burrowing when not in a hole.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Boolean> center = sgGeneral.add(new BoolSetting.Builder()
-    .name("center")
-    .description("Centers you to the middle of the block before burrowing.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("center")
+          .description("Centers you to the middle of the block before burrowing.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("rotate")
-    .description("Faces the block you place server-side.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("rotate")
+          .description("Faces the block you place server-side.")
+          .defaultValue(true)
+          .build());
 
   private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
   private boolean shouldBurrow;
@@ -147,8 +138,10 @@ public class Burrow extends Module {
     shouldBurrow = false;
 
     if (automatic.get()) {
-      if (instant.get()) shouldBurrow = true;
-      else mc.player.jumpFromGround();
+      if (instant.get())
+        shouldBurrow = true;
+      else
+        mc.player.jumpFromGround();
     } else {
       info("Waiting for manual jump.");
     }
@@ -161,13 +154,17 @@ public class Burrow extends Module {
 
   @EventHandler
   private void onTick(TickEvent.Pre event) {
-    if (!instant.get()) shouldBurrow = mc.player.getY() > blockPos.getY() + triggerHeight.get();
-    if (!shouldBurrow && instant.get()) blockPos.set(mc.player.blockPosition());
+    if (!instant.get())
+      shouldBurrow = mc.player.getY() > blockPos.getY() + triggerHeight.get();
+    if (!shouldBurrow && instant.get())
+      blockPos.set(mc.player.blockPosition());
 
     if (shouldBurrow) {
       if (rotate.get())
-        Rotations.rotate(Rotations.getYaw(mc.player.blockPosition()), Rotations.getPitch(mc.player.blockPosition()), 50, this::burrow);
-      else burrow();
+        Rotations.rotate(Rotations.getYaw(mc.player.blockPosition()), Rotations.getPitch(mc.player.blockPosition()), 50,
+            this::burrow);
+      else
+        burrow();
 
       toggle();
     }
@@ -184,28 +181,34 @@ public class Burrow extends Module {
   }
 
   private void burrow() {
-    if (center.get()) PlayerUtils.centerPlayer();
+    if (center.get())
+      PlayerUtils.centerPlayer();
 
     if (instant.get()) {
-      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + 0.4, mc.player.getZ(), false, mc.player.horizontalCollision));
-      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + 0.75, mc.player.getZ(), false, mc.player.horizontalCollision));
-      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + 1.01, mc.player.getZ(), false, mc.player.horizontalCollision));
-      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + 1.15, mc.player.getZ(), false, mc.player.horizontalCollision));
+      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(
+          mc.player.getX(), mc.player.getY() + 0.4, mc.player.getZ(), false, mc.player.horizontalCollision));
+      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(
+          mc.player.getX(), mc.player.getY() + 0.75, mc.player.getZ(), false, mc.player.horizontalCollision));
+      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(
+          mc.player.getX(), mc.player.getY() + 1.01, mc.player.getZ(), false, mc.player.horizontalCollision));
+      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(
+          mc.player.getX(), mc.player.getY() + 1.15, mc.player.getZ(), false, mc.player.horizontalCollision));
     }
-
 
     FindItemResult block = getItem();
 
-    if (!(mc.player.getInventory().getItem(block.slot()).getItem() instanceof BlockItem)) return;
+    if (!(mc.player.getInventory().getItem(block.slot()).getItem() instanceof BlockItem))
+      return;
     InvUtils.swap(block.slot(), true);
 
-    mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, new BlockHitResult(Utils.vec3(blockPos), Direction.UP, blockPos, false));
-        mc.player.connection.send(new ServerboundPunchPacket());
+    mc.gameMode.useItemOn(
+        mc.player, InteractionHand.MAIN_HAND, new BlockHitResult(Utils.vec3(blockPos), Direction.UP, blockPos, false));
 
     InvUtils.swapBack();
 
     if (instant.get()) {
-      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + rubberbandHeight.get(), mc.player.getZ(), false, mc.player.horizontalCollision));
+      mc.player.connection.send(new ServerboundMovePlayerPacket.Pos(mc.player.getX(),
+          mc.player.getY() + rubberbandHeight.get(), mc.player.getZ(), false, mc.player.horizontalCollision));
     } else {
       mc.player.absSnapTo(mc.player.getX(), mc.player.getY() + rubberbandHeight.get(), mc.player.getZ());
     }
@@ -215,7 +218,8 @@ public class Burrow extends Module {
     return switch (block.get()) {
       case EChest -> InvUtils.findInHotbar(Items.ENDER_CHEST);
       case Anvil ->
-        InvUtils.findInHotbar(itemStack -> net.minecraft.world.level.block.Block.byItem(itemStack.getItem()) instanceof AnvilBlock);
+        InvUtils.findInHotbar(
+            itemStack -> net.minecraft.world.level.block.Block.byItem(itemStack.getItem()) instanceof AnvilBlock);
       case Held ->
         new FindItemResult(mc.player.getInventory().getSelectedSlot(), mc.player.getMainHandItem().getCount());
       default -> InvUtils.findInHotbar(Items.OBSIDIAN, Items.CRYING_OBSIDIAN);
@@ -223,10 +227,14 @@ public class Burrow extends Module {
   }
 
   private boolean checkHead() {
-    BlockState blockState1 = mc.level.getBlockState(blockPos.set(mc.player.getX() + .3, mc.player.getY() + 2.3, mc.player.getZ() + .3));
-    BlockState blockState2 = mc.level.getBlockState(blockPos.set(mc.player.getX() + .3, mc.player.getY() + 2.3, mc.player.getZ() - .3));
-    BlockState blockState3 = mc.level.getBlockState(blockPos.set(mc.player.getX() - .3, mc.player.getY() + 2.3, mc.player.getZ() - .3));
-    BlockState blockState4 = mc.level.getBlockState(blockPos.set(mc.player.getX() - .3, mc.player.getY() + 2.3, mc.player.getZ() + .3));
+    BlockState blockState1 =
+        mc.level.getBlockState(blockPos.set(mc.player.getX() + .3, mc.player.getY() + 2.3, mc.player.getZ() + .3));
+    BlockState blockState2 =
+        mc.level.getBlockState(blockPos.set(mc.player.getX() + .3, mc.player.getY() + 2.3, mc.player.getZ() - .3));
+    BlockState blockState3 =
+        mc.level.getBlockState(blockPos.set(mc.player.getX() - .3, mc.player.getY() + 2.3, mc.player.getZ() - .3));
+    BlockState blockState4 =
+        mc.level.getBlockState(blockPos.set(mc.player.getX() - .3, mc.player.getY() + 2.3, mc.player.getZ() + .3));
     boolean air1 = blockState1.canBeReplaced();
     boolean air2 = blockState2.canBeReplaced();
     boolean air3 = blockState3.canBeReplaced();
@@ -234,10 +242,5 @@ public class Burrow extends Module {
     return air1 && air2 && air3 && air4;
   }
 
-  public enum Block {
-    EChest,
-    Obsidian,
-    Anvil,
-    Held
-  }
+  public enum Block { EChest, Obsidian, Anvil, Held }
 }

@@ -6,6 +6,22 @@
 package nl.oxod.nekoclient.systems.modules.world;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import meteordevelopment.orbit.EventHandler;
+import meteordevelopment.orbit.EventPriority;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.events.entity.player.BlockBreakingCooldownEvent;
 import nl.oxod.nekoclient.events.neko.KeyInputEvent;
 import nl.oxod.nekoclient.events.neko.MouseClickEvent;
@@ -22,242 +38,289 @@ import nl.oxod.nekoclient.utils.misc.Names;
 import nl.oxod.nekoclient.utils.misc.input.KeyAction;
 import nl.oxod.nekoclient.utils.player.PlayerUtils;
 import nl.oxod.nekoclient.utils.player.Rotations;
+import nl.oxod.nekoclient.utils.player.SwingMode;
 import nl.oxod.nekoclient.utils.render.RenderUtils;
 import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockIterator;
 import nl.oxod.nekoclient.utils.world.BlockUtils;
-import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.orbit.EventPriority;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundPunchPacket;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
 
 public class Nuker extends Module {
+
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
   private final SettingGroup sgWhitelist = settings.createGroup("Whitelist");
   private final SettingGroup sgRender = settings.createGroup("Render");
 
   // General
-  private final Setting<Shape> shape = sgGeneral.add(new EnumSetting.Builder<Shape>()
-    .name("shape")
-    .description("The shape of nuking algorithm.")
-    .defaultValue(Shape.Sphere)
-    .build());
+  private final Setting<Shape> shape = sgGeneral.add(
+    new EnumSetting.Builder<Shape>()
+      .name("shape")
+      .description("The shape of nuking algorithm.")
+      .defaultValue(Shape.Sphere)
+      .build()
+  );
 
-  private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
-    .name("mode")
-    .description("The way the blocks are broken.")
-    .defaultValue(Mode.Flatten)
-    .build());
+  private final Setting<Mode> mode = sgGeneral.add(
+    new EnumSetting.Builder<Mode>()
+      .name("mode")
+      .description("The way the blocks are broken.")
+      .defaultValue(Mode.Flatten)
+      .build()
+  );
 
-  private final Setting<Double> range = sgGeneral.add(new DoubleSetting.Builder()
-    .name("range")
-    .description("The break range.")
-    .defaultValue(4)
-    .min(0)
-    .visible(() -> shape.get() != Shape.Cube)
-    .build());
+  private final Setting<Double> range = sgGeneral.add(
+    new DoubleSetting.Builder()
+      .name("range")
+      .description("The break range.")
+      .defaultValue(4)
+      .min(0)
+      .visible(() -> shape.get() != Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_up = sgGeneral.add(new IntSetting.Builder()
-    .name("up")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_up = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("up")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_down = sgGeneral.add(new IntSetting.Builder()
-    .name("down")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_down = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("down")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_left = sgGeneral.add(new IntSetting.Builder()
-    .name("left")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_left = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("left")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_right = sgGeneral.add(new IntSetting.Builder()
-    .name("right")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_right = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("right")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_forward = sgGeneral.add(new IntSetting.Builder()
-    .name("forward")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_forward = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("forward")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Integer> range_back = sgGeneral.add(new IntSetting.Builder()
-    .name("back")
-    .description("The break range.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> shape.get() == Shape.Cube)
-    .build());
+  private final Setting<Integer> range_back = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("back")
+      .description("The break range.")
+      .defaultValue(1)
+      .min(0)
+      .visible(() -> shape.get() == Shape.Cube)
+      .build()
+  );
 
-  private final Setting<Double> wallsRange = sgGeneral.add(new DoubleSetting.Builder()
-    .name("walls-range")
-    .description("Range in which to break when behind blocks.")
-    .defaultValue(4.0)
-    .min(0)
-    .sliderMax(6)
-    .build());
+  private final Setting<Double> wallsRange = sgGeneral.add(
+    new DoubleSetting.Builder()
+      .name("walls-range")
+      .description("Range in which to break when behind blocks.")
+      .defaultValue(4.0)
+      .min(0)
+      .sliderMax(6)
+      .build()
+  );
 
-  private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
-    .name("delay")
-    .description("Delay in ticks between breaking blocks.")
-    .defaultValue(0)
-    .build());
+  private final Setting<Integer> delay = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("delay")
+      .description("Delay in ticks between breaking blocks.")
+      .defaultValue(0)
+      .build()
+  );
 
-  private final Setting<Integer> maxBlocksPerTick = sgGeneral.add(new IntSetting.Builder()
-    .name("max-blocks-per-tick")
-    .description("Maximum blocks to try to break per tick. Useful when insta mining.")
-    .defaultValue(1)
-    .min(1)
-    .build());
+  private final Setting<Integer> maxBlocksPerTick = sgGeneral.add(
+    new IntSetting.Builder()
+      .name("max-blocks-per-tick")
+      .description(
+        "Maximum blocks to try to break per tick. Useful when insta mining."
+      )
+      .defaultValue(1)
+      .min(1)
+      .build()
+  );
 
-  private final Setting<SortMode> sortMode = sgGeneral.add(new EnumSetting.Builder<SortMode>()
-    .name("sort-mode")
-    .description("The blocks you want to mine first.")
-    .defaultValue(SortMode.Closest)
-    .build());
+  private final Setting<SortMode> sortMode = sgGeneral.add(
+    new EnumSetting.Builder<SortMode>()
+      .name("sort-mode")
+      .description("The blocks you want to mine first.")
+      .defaultValue(SortMode.Closest)
+      .build()
+  );
 
-  private final Setting<Boolean> packetMine = sgGeneral.add(new BoolSetting.Builder()
-    .name("packet-mine")
-    .description("Attempt to instamine everything at once.")
-    .defaultValue(false)
-    .build());
+  private final Setting<Boolean> packetMine = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("packet-mine")
+      .description("Attempt to instamine everything at once.")
+      .defaultValue(false)
+      .build()
+  );
 
-  private final Setting<Boolean> suitableTools = sgGeneral.add(new BoolSetting.Builder()
-    .name("only-suitable-tools")
-    .description("Only mines when using an appropriate for the block.")
-    .defaultValue(false)
-    .build());
+  private final Setting<Boolean> suitableTools = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("only-suitable-tools")
+      .description("Only mines when using an appropriate for the block.")
+      .defaultValue(false)
+      .build()
+  );
 
-  private final Setting<Boolean> interact = sgGeneral.add(new BoolSetting.Builder()
-    .name("interact")
-    .description("Interacts with the block instead of mining.")
-    .defaultValue(false)
-    .build());
+  private final Setting<Boolean> interact = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("interact")
+      .description("Interacts with the block instead of mining.")
+      .defaultValue(false)
+      .build()
+  );
 
-  private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("rotate")
-    .description("Rotates server-side to the block being mined.")
-    .defaultValue(true)
-    .build());
+  private final Setting<Boolean> rotate = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("rotate")
+      .description("Rotates server-side to the block being mined.")
+      .defaultValue(true)
+      .build()
+  );
 
   // Whitelist and blacklist
-  private final Setting<ListMode> listMode = sgWhitelist.add(new EnumSetting.Builder<ListMode>()
-    .name("list-mode")
-    .description("Selection mode.")
-    .defaultValue(ListMode.Blacklist)
-    .build());
+  private final Setting<ListMode> listMode = sgWhitelist.add(
+    new EnumSetting.Builder<ListMode>()
+      .name("list-mode")
+      .description("Selection mode.")
+      .defaultValue(ListMode.Blacklist)
+      .build()
+  );
 
-  private final Setting<List<Block>> blacklist = sgWhitelist.add(new BlockListSetting.Builder()
-    .name("blacklist")
-    .description("The blocks you don't want to mine.")
-    .visible(() -> listMode.get() == ListMode.Blacklist)
-    .build());
+  private final Setting<List<Block>> blacklist = sgWhitelist.add(
+    new BlockListSetting.Builder()
+      .name("blacklist")
+      .description("The blocks you don't want to mine.")
+      .visible(() -> listMode.get() == ListMode.Blacklist)
+      .build()
+  );
 
-  private final Setting<List<Block>> whitelist = sgWhitelist.add(new BlockListSetting.Builder()
-    .name("whitelist")
-    .description("The blocks you want to mine.")
-    .visible(() -> listMode.get() == ListMode.Whitelist)
-    .build());
+  private final Setting<List<Block>> whitelist = sgWhitelist.add(
+    new BlockListSetting.Builder()
+      .name("whitelist")
+      .description("The blocks you want to mine.")
+      .visible(() -> listMode.get() == ListMode.Whitelist)
+      .build()
+  );
 
-  private final Setting<Keybind> selectBlockBind = sgWhitelist.add(new KeybindSetting.Builder()
-    .name("select-block-bind")
-    .description("Adds targeted block to list when this button is pressed.")
-    .defaultValue(Keybind.none())
-    .build());
+  private final Setting<Keybind> selectBlockBind = sgWhitelist.add(
+    new KeybindSetting.Builder()
+      .name("select-block-bind")
+      .description("Adds targeted block to list when this button is pressed.")
+      .defaultValue(Keybind.none())
+      .build()
+  );
 
   // Rendering
-  private final Setting<Boolean> swing = sgRender.add(new BoolSetting.Builder()
-    .name("swing")
-    .description("Whether to swing hand client-side.")
-    .defaultValue(true)
-    .build());
+  private final Setting<Boolean> swing = sgRender.add(
+    new BoolSetting.Builder()
+      .name("swing")
+      .description("Whether to swing hand client-side.")
+      .defaultValue(true)
+      .build()
+  );
 
-  private final Setting<Boolean> enableRenderBounding = sgRender.add(new BoolSetting.Builder()
-    .name("bounding-box")
-    .description("Enable rendering bounding box for Cube and Uniform Cube.")
-    .defaultValue(true)
-    .build());
+  private final Setting<Boolean> enableRenderBounding = sgRender.add(
+    new BoolSetting.Builder()
+      .name("bounding-box")
+      .description("Enable rendering bounding box for Cube and Uniform Cube.")
+      .defaultValue(true)
+      .build()
+  );
 
-  private final Setting<ShapeMode> shapeModeBox = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-    .name("nuke-box-mode")
-    .description("How the shape for the bounding box is rendered.")
-    .defaultValue(ShapeMode.Both)
-    .build());
+  private final Setting<ShapeMode> shapeModeBox = sgRender.add(
+    new EnumSetting.Builder<ShapeMode>()
+      .name("nuke-box-mode")
+      .description("How the shape for the bounding box is rendered.")
+      .defaultValue(ShapeMode.Both)
+      .build()
+  );
 
-  private final Setting<SettingColor> sideColorBox = sgRender.add(new ColorSetting.Builder()
-    .name("side-color")
-    .description("The side color of the bounding box.")
-    .defaultValue(new SettingColor(16, 106, 144, 100))
-    .build());
+  private final Setting<SettingColor> sideColorBox = sgRender.add(
+    new ColorSetting.Builder()
+      .name("side-color")
+      .description("The side color of the bounding box.")
+      .defaultValue(new SettingColor(16, 106, 144, 100))
+      .build()
+  );
 
-  private final Setting<SettingColor> lineColorBox = sgRender.add(new ColorSetting.Builder()
-    .name("line-color")
-    .description("The line color of the bounding box.")
-    .defaultValue(new SettingColor(16, 106, 144, 255))
-    .build());
+  private final Setting<SettingColor> lineColorBox = sgRender.add(
+    new ColorSetting.Builder()
+      .name("line-color")
+      .description("The line color of the bounding box.")
+      .defaultValue(new SettingColor(16, 106, 144, 255))
+      .build()
+  );
 
-  private final Setting<Boolean> enableRenderBreaking = sgRender.add(new BoolSetting.Builder()
-    .name("broken-blocks")
-    .description("Enable rendering bounding box for Cube and Uniform Cube.")
-    .defaultValue(true)
-    .build());
+  private final Setting<Boolean> enableRenderBreaking = sgRender.add(
+    new BoolSetting.Builder()
+      .name("broken-blocks")
+      .description("Enable rendering bounding box for Cube and Uniform Cube.")
+      .defaultValue(true)
+      .build()
+  );
 
-  private final Setting<ShapeMode> shapeModeBreak = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-    .name("nuke-block-mode")
-    .description("How the shapes for broken blocks are rendered.")
-    .defaultValue(ShapeMode.Both)
-    .visible(enableRenderBreaking::get)
-    .build());
+  private final Setting<ShapeMode> shapeModeBreak = sgRender.add(
+    new EnumSetting.Builder<ShapeMode>()
+      .name("nuke-block-mode")
+      .description("How the shapes for broken blocks are rendered.")
+      .defaultValue(ShapeMode.Both)
+      .visible(enableRenderBreaking::get)
+      .build()
+  );
 
-  private final Setting<SettingColor> sideColor = sgRender.add(new ColorSetting.Builder()
-    .name("side-color")
-    .description("The side color of the target block rendering.")
-    .defaultValue(new SettingColor(255, 0, 0, 80))
-    .visible(enableRenderBreaking::get)
-    .build());
+  private final Setting<SettingColor> sideColor = sgRender.add(
+    new ColorSetting.Builder()
+      .name("side-color")
+      .description("The side color of the target block rendering.")
+      .defaultValue(new SettingColor(255, 0, 0, 80))
+      .visible(enableRenderBreaking::get)
+      .build()
+  );
 
-  private final Setting<SettingColor> lineColor = sgRender.add(new ColorSetting.Builder()
-    .name("line-color")
-    .description("The line color of the target block rendering.")
-    .defaultValue(new SettingColor(255, 0, 0, 255))
-    .visible(enableRenderBreaking::get)
-    .build());
+  private final Setting<SettingColor> lineColor = sgRender.add(
+    new ColorSetting.Builder()
+      .name("line-color")
+      .description("The line color of the target block rendering.")
+      .defaultValue(new SettingColor(255, 0, 0, 255))
+      .visible(enableRenderBreaking::get)
+      .build()
+  );
 
   private final List<BlockPos> blocks = new ArrayList<>();
   private final Set<BlockPos> interacted = new ObjectOpenHashSet<>();
 
   private boolean firstBlock;
-  private final BlockPos.MutableBlockPos lastBlockPos = new BlockPos.MutableBlockPos();
+  private final BlockPos.MutableBlockPos lastBlockPos =
+    new BlockPos.MutableBlockPos();
 
   private int timer;
   private int noBlockTimer;
@@ -290,7 +353,18 @@ public class Nuker extends Module {
         int maxX = Math.max(pos1.getX(), pos2.getX());
         int maxY = Math.max(pos1.getY(), pos2.getY());
         int maxZ = Math.max(pos1.getZ(), pos2.getZ());
-        event.renderer.box(minX, minY, minZ, maxX, maxY, maxZ, sideColorBox.get(), lineColorBox.get(), shapeModeBox.get(), 0);
+        event.renderer.box(
+          minX,
+          minY,
+          minZ,
+          maxX,
+          maxY,
+          maxZ,
+          sideColorBox.get(),
+          lineColorBox.get(),
+          shapeModeBox.get(),
+          0
+        );
       }
     }
   }
@@ -314,7 +388,9 @@ public class Nuker extends Module {
     }
 
     // Calculate some stuff
-    double pX = mc.player.getX(), pY = mc.player.getY(), pZ = mc.player.getZ();
+    double pX = mc.player.getX(),
+      pY = mc.player.getY(),
+      pZ = mc.player.getZ();
     double rangeSq = Math.pow(range.get(), 2);
     BlockPos playerBlockPos = mc.player.blockPosition();
 
@@ -344,28 +420,68 @@ public class Nuker extends Module {
         case Direction.SOUTH -> {
           pZ_ += 1;
           pX_ += 1;
-          pos1.set(pX_ - (range_right.get() + 1), Math.ceil(pY) - range_down.get(), pZ_ - (range_back.get() + 1)); // down
-          pos2.set(pX_ + range_left.get(), Math.ceil(pY + range_up.get() + 1), pZ_ + range_forward.get()); // up
+          pos1.set(
+            pX_ - (range_right.get() + 1),
+            Math.ceil(pY) - range_down.get(),
+            pZ_ - (range_back.get() + 1)
+          ); // down
+          pos2.set(
+            pX_ + range_left.get(),
+            Math.ceil(pY + range_up.get() + 1),
+            pZ_ + range_forward.get()
+          ); // up
         }
         case Direction.WEST -> {
-          pos1.set(pX_ - range_forward.get(), Math.ceil(pY) - range_down.get(), pZ_ - range_right.get()); // down
-          pos2.set(pX_ + range_back.get() + 1, Math.ceil(pY + range_up.get() + 1), pZ_ + range_left.get() + 1); // up
+          pos1.set(
+            pX_ - range_forward.get(),
+            Math.ceil(pY) - range_down.get(),
+            pZ_ - range_right.get()
+          ); // down
+          pos2.set(
+            pX_ + range_back.get() + 1,
+            Math.ceil(pY + range_up.get() + 1),
+            pZ_ + range_left.get() + 1
+          ); // up
         }
         case Direction.NORTH -> {
           pX_ += 1;
           pZ_ += 1;
-          pos1.set(pX_ - (range_left.get() + 1), Math.ceil(pY) - range_down.get(), pZ_ - (range_forward.get() + 1)); // down
-          pos2.set(pX_ + range_right.get(), Math.ceil(pY + range_up.get() + 1), pZ_ + range_back.get()); // up
+          pos1.set(
+            pX_ - (range_left.get() + 1),
+            Math.ceil(pY) - range_down.get(),
+            pZ_ - (range_forward.get() + 1)
+          ); // down
+          pos2.set(
+            pX_ + range_right.get(),
+            Math.ceil(pY + range_up.get() + 1),
+            pZ_ + range_back.get()
+          ); // up
         }
         case Direction.EAST -> {
           pX_ += 1;
-          pos1.set(pX_ - (range_back.get() + 1), Math.ceil(pY) - range_down.get(), pZ_ - range_left.get()); // down
-          pos2.set(pX_ + range_forward.get(), Math.ceil(pY + range_up.get() + 1), pZ_ + range_right.get() + 1); // up
+          pos1.set(
+            pX_ - (range_back.get() + 1),
+            Math.ceil(pY) - range_down.get(),
+            pZ_ - range_left.get()
+          ); // down
+          pos2.set(
+            pX_ + range_forward.get(),
+            Math.ceil(pY + range_up.get() + 1),
+            pZ_ + range_right.get() + 1
+          ); // up
         }
       }
 
       // get largest horizontal
-      maxh = 1 + Math.max(Math.max(Math.max(range_back.get(), range_right.get()), range_forward.get()), range_left.get());
+      maxh =
+        1 +
+        Math.max(
+          Math.max(
+            Math.max(range_back.get(), range_right.get()),
+            range_forward.get()
+          ),
+          range_left.get()
+        );
       maxv = 1 + Math.max(range_up.get(), range_down.get());
 
       horizontalRange = (int) Math.ceil(range.get() + 1);
@@ -378,55 +494,90 @@ public class Nuker extends Module {
     AABB box = new AABB(Vec3.atCenterOf(pos1), Vec3.atCenterOf(pos2));
 
     // Find blocks to break
-    BlockIterator.register(Math.max(horizontalRange, maxh), Math.max(verticalRange, maxv), (blockPos, blockState) -> {
-      Vec3 center = Vec3.atCenterOf(blockPos);
-      switch (shape.get()) {
-        case Sphere -> {
-          if (center.distanceToSqr(pX, pY, pZ) > rangeSq)
-            return;
+    BlockIterator.register(
+      Math.max(horizontalRange, maxh),
+      Math.max(verticalRange, maxv),
+      (blockPos, blockState) -> {
+        Vec3 center = Vec3.atCenterOf(blockPos);
+        switch (shape.get()) {
+          case Sphere -> {
+            if (center.distanceToSqr(pX, pY, pZ) > rangeSq) return;
+          }
+          case UniformCube -> {
+            if (
+              chebyshevDist(
+                playerBlockPos.getX(),
+                playerBlockPos.getY(),
+                playerBlockPos.getZ(),
+                blockPos.getX(),
+                blockPos.getY(),
+                blockPos.getZ()
+              ) >= r
+            ) return;
+          }
+          case Cube -> {
+            if (!box.contains(center)) return;
+          }
         }
-        case UniformCube -> {
-          if (chebyshevDist(playerBlockPos.getX(), playerBlockPos.getY(), playerBlockPos.getZ(), blockPos.getX(), blockPos.getY(), blockPos.getZ()) >= r)
-            return;
-        }
-        case Cube -> {
-          if (!box.contains(center)) return;
-        }
+
+        // Flatten
+        if (mode.get() == Mode.Flatten && blockPos.getY() + 0.5 < pY) return;
+
+        // Smash
+        if (
+          mode.get() == Mode.Smash &&
+          blockState.getDestroySpeed(mc.level, blockPos) != 0
+        ) return;
+
+        // Use only optimal tools
+        if (
+          suitableTools.get() &&
+          !interact.get() &&
+          !mc.player.getMainHandItem().isCorrectToolForDrops(blockState)
+        ) return;
+
+        // Block must be breakable
+        if (
+          !BlockUtils.canBreak(blockPos, blockState) && !interact.get()
+        ) return;
+
+        // Raycast to block
+        if (isOutOfRange(blockPos)) return;
+
+        // Check whitelist or blacklist
+        boolean blockInList = (
+          listMode.get() == ListMode.Whitelist
+            ? whitelist.get()
+            : blacklist.get()
+        ).contains(blockState.getBlock());
+        if (!listMode.get().allows(blockInList)) return;
+
+        if (interact.get() && interacted.contains(blockPos)) return;
+
+        // Add block
+        blocks.add(blockPos.immutable());
       }
-
-      // Flatten
-      if (mode.get() == Mode.Flatten && blockPos.getY() + 0.5 < pY) return;
-
-      // Smash
-      if (mode.get() == Mode.Smash && blockState.getDestroySpeed(mc.level, blockPos) != 0) return;
-
-      // Use only optimal tools
-      if (suitableTools.get() && !interact.get() && !mc.player.getMainHandItem().isCorrectToolForDrops(blockState))
-        return;
-
-      // Block must be breakable
-      if (!BlockUtils.canBreak(blockPos, blockState) && !interact.get()) return;
-
-      // Raycast to block
-      if (isOutOfRange(blockPos)) return;
-
-      // Check whitelist or blacklist
-      boolean blockInList = (listMode.get() == ListMode.Whitelist ? whitelist.get() : blacklist.get()).contains(blockState.getBlock());
-      if (!listMode.get().allows(blockInList)) return;
-
-      if (interact.get() && interacted.contains(blockPos)) return;
-
-      // Add block
-      blocks.add(blockPos.immutable());
-    });
+    );
 
     // Break block if found
     BlockIterator.after(() -> {
       // Sort blocks
-      if (sortMode.get() == SortMode.TopDown)
-        blocks.sort(Comparator.comparingDouble(value -> -value.getY()));
-      else if (sortMode.get() != SortMode.None)
-        blocks.sort(Comparator.comparingDouble(value -> Utils.squaredDistance(pX, pY, pZ, value.getX() + 0.5, value.getY() + 0.5, value.getZ() + 0.5) * (sortMode.get() == SortMode.Closest ? 1 : -1)));
+      if (sortMode.get() == SortMode.TopDown) blocks.sort(
+        Comparator.comparingDouble(value -> -value.getY())
+      );
+      else if (sortMode.get() != SortMode.None) blocks.sort(
+        Comparator.comparingDouble(
+          value ->
+            Utils.squaredDistance(
+              pX,
+              pY,
+              pZ,
+              value.getX() + 0.5,
+              value.getY() + 0.5,
+              value.getZ() + 0.5
+            ) * (sortMode.get() == SortMode.Closest ? 1 : -1)
+        )
+      );
 
       // Check if some block was found
       if (blocks.isEmpty()) {
@@ -456,17 +607,30 @@ public class Nuker extends Module {
 
         boolean canInstaMine = BlockUtils.canInstaBreak(block);
 
-        if (rotate.get())
-          Rotations.rotate(Rotations.getYaw(block), Rotations.getPitch(block), () -> breakBlock(block));
+        if (rotate.get()) Rotations.rotate(
+          Rotations.getYaw(block),
+          Rotations.getPitch(block),
+          () -> breakBlock(block)
+        );
         else breakBlock(block);
 
-        if (enableRenderBreaking.get())
-          RenderUtils.renderTickingBlock(block, sideColor.get(), lineColor.get(), shapeModeBreak.get(), 0, 8, true, false);
+        if (enableRenderBreaking.get()) RenderUtils.renderTickingBlock(
+          block,
+          sideColor.get(),
+          lineColor.get(),
+          shapeModeBreak.get(),
+          0,
+          8,
+          true,
+          false
+        );
         lastBlockPos.set(block);
 
         count++;
-        if (!canInstaMine && !packetMine.get() /* With packet mine attempt to break everything possible at once */)
-          break;
+        if (
+          !canInstaMine &&
+          !packetMine.get() /* With packet mine attempt to break everything possible at once */
+        ) break;
       }
 
       firstBlock = false;
@@ -479,16 +643,38 @@ public class Nuker extends Module {
   private void breakBlock(BlockPos blockPos) {
     if (interact.get()) {
       // Interact mode
-      BlockUtils.interact(new BlockHitResult(Vec3.atCenterOf(blockPos), BlockUtils.getDirection(blockPos), blockPos, true), InteractionHand.MAIN_HAND, swing.get());
+      BlockUtils.interact(
+        new BlockHitResult(
+          Vec3.atCenterOf(blockPos),
+          BlockUtils.getDirection(blockPos),
+          blockPos,
+          true
+        ),
+        InteractionHand.MAIN_HAND,
+        swing.get()
+      );
       interacted.add(blockPos);
     } else if (packetMine.get()) {
       // Packet mine mode
-      mc.gameMode.startPrediction(mc.level, sequence -> new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, blockPos, BlockUtils.getDirection(blockPos), sequence));
+      mc.gameMode.startPrediction(mc.level, sequence ->
+        new ServerboundPlayerActionPacket(
+          ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+          blockPos,
+          BlockUtils.getDirection(blockPos),
+          sequence
+        )
+      );
 
-            if (swing.get()) mc.player.swing(InteractionHand.MAIN_HAND, mc.player.getMainHandItem().getAttackAnimation(), false);
-            else mc.getConnection().send(new ServerboundPunchPacket());
+      SwingMode.of(swing.get()).attackSwing(InteractionHand.MAIN_HAND);
 
-      mc.gameMode.startPrediction(mc.level, sequence -> new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, blockPos, BlockUtils.getDirection(blockPos), sequence));
+      mc.gameMode.startPrediction(mc.level, sequence ->
+        new ServerboundPlayerActionPacket(
+          ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK,
+          blockPos,
+          BlockUtils.getDirection(blockPos),
+          sequence
+        )
+      );
     } else {
       // Legit mine mode
       BlockUtils.breakBlock(blockPos, swing.get());
@@ -497,10 +683,18 @@ public class Nuker extends Module {
 
   private boolean isOutOfRange(BlockPos blockPos) {
     Vec3 pos = Vec3.atCenterOf(blockPos);
-    ClipContext clipContext = new ClipContext(mc.player.getEyePosition(), pos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
+    ClipContext clipContext = new ClipContext(
+      mc.player.getEyePosition(),
+      pos,
+      ClipContext.Block.COLLIDER,
+      ClipContext.Fluid.NONE,
+      mc.player
+    );
     BlockHitResult result = mc.level.clip(clipContext);
-        if (!result.getBlockPos().equals(blockPos))
-      return !PlayerUtils.isWithin(pos, wallsRange.get());
+    if (!result.getBlockPos().equals(blockPos)) return !PlayerUtils.isWithin(
+      pos,
+      wallsRange.get()
+    );
 
     return false;
   }
@@ -509,12 +703,15 @@ public class Nuker extends Module {
     if (!selectBlockBind.get().isPressed() || mc.gui.screen() != null) return;
 
     HitResult hitResult = mc.hitResult;
-    if (hitResult == null || hitResult.getType() != HitResult.Type.BLOCK) return;
+    if (
+      hitResult == null || hitResult.getType() != HitResult.Type.BLOCK
+    ) return;
 
     BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
     Block targetBlock = mc.level.getBlockState(pos).getBlock();
 
-    List<Block> list = listMode.get() == ListMode.Whitelist ? whitelist.get() : blacklist.get();
+    List<Block> list =
+      listMode.get() == ListMode.Whitelist ? whitelist.get() : blacklist.get();
     String modeName = listMode.get().name();
 
     if (list.contains(targetBlock)) {
@@ -534,23 +731,30 @@ public class Nuker extends Module {
   public enum Mode {
     All,
     Flatten,
-    Smash
+    Smash,
   }
 
   public enum SortMode {
     None,
     Closest,
     Furthest,
-    TopDown
+    TopDown,
   }
 
   public enum Shape {
     Cube,
     UniformCube,
-    Sphere
+    Sphere,
   }
 
-  public static int chebyshevDist(int x1, int y1, int z1, int x2, int y2, int z2) {
+  public static int chebyshevDist(
+    int x1,
+    int y1,
+    int z1,
+    int x2,
+    int y2,
+    int z2
+  ) {
     // Gets the largest X, Y or Z difference, chebyshev distance
     int dX = Math.abs(x2 - x1);
     int dY = Math.abs(y2 - y1);

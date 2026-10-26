@@ -7,6 +7,32 @@ package nl.oxod.nekoclient.systems.modules.combat;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import it.unimi.dsi.fastutil.ints.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import meteordevelopment.orbit.EventHandler;
+import meteordevelopment.orbit.EventPriority;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import nl.oxod.nekoclient.events.entity.EntityAddedEvent;
 import nl.oxod.nekoclient.events.entity.EntityRemovedEvent;
 import nl.oxod.nekoclient.events.packets.PacketEvent;
@@ -37,34 +63,7 @@ import nl.oxod.nekoclient.utils.render.color.SettingColor;
 import nl.oxod.nekoclient.utils.world.BlockIterator;
 import nl.oxod.nekoclient.utils.world.BlockUtils;
 import nl.oxod.nekoclient.utils.world.TickRate;
-import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.orbit.EventPriority;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.*;
-import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CrystalAura extends Module {
   private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -78,481 +77,421 @@ public class CrystalAura extends Module {
   // General
 
   private final Setting<Double> targetRange = sgGeneral.add(new DoubleSetting.Builder()
-    .name("target-range")
-    .description("Range in which to target players.")
-    .defaultValue(10)
-    .min(0)
-    .sliderMax(16)
-    .build()
-  );
+          .name("target-range")
+          .description("Range in which to target players.")
+          .defaultValue(10)
+          .min(0)
+          .sliderMax(16)
+          .build());
 
   private final Setting<Boolean> predictMovement = sgGeneral.add(new BoolSetting.Builder()
-    .name("predict-movement")
-    .description("Predicts target movement.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("predict-movement")
+          .description("Predicts target movement.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Double> minDamage = sgGeneral.add(new DoubleSetting.Builder()
-    .name("min-damage")
-    .description("Minimum damage the crystal needs to deal to your target.")
-    .defaultValue(6)
-    .min(0)
-    .build()
-  );
+          .name("min-damage")
+          .description("Minimum damage the crystal needs to deal to your target.")
+          .defaultValue(6)
+          .min(0)
+          .build());
 
   private final Setting<Double> maxDamage = sgGeneral.add(new DoubleSetting.Builder()
-    .name("max-damage")
-    .description("Maximum damage crystals can deal to yourself.")
-    .defaultValue(6)
-    .range(0, 36)
-    .sliderMax(36)
-    .build()
-  );
+          .name("max-damage")
+          .description("Maximum damage crystals can deal to yourself.")
+          .defaultValue(6)
+          .range(0, 36)
+          .sliderMax(36)
+          .build());
 
   private final Setting<Boolean> antiSuicide = sgGeneral.add(new BoolSetting.Builder()
-    .name("anti-suicide")
-    .description("Will not place and break crystals if they will kill you.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("anti-suicide")
+          .description("Will not place and break crystals if they will kill you.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Boolean> ignoreNakeds = sgGeneral.add(new BoolSetting.Builder()
-    .name("ignore-nakeds")
-    .description("Ignore players with no items.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("ignore-nakeds")
+          .description("Ignore players with no items.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
-    .name("rotate")
-    .description("Rotates server-side towards the crystals being hit/placed.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("rotate")
+          .description("Rotates server-side towards the crystals being hit/placed.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<YawStepMode> yawStepMode = sgGeneral.add(new EnumSetting.Builder<YawStepMode>()
-    .name("yaw-steps-mode")
-    .description("When to run the yaw steps check.")
-    .defaultValue(YawStepMode.Break)
-    .visible(rotate::get)
-    .build()
-  );
+          .name("yaw-steps-mode")
+          .description("When to run the yaw steps check.")
+          .defaultValue(YawStepMode.Break)
+          .visible(rotate::get)
+          .build());
 
   private final Setting<Double> yawSteps = sgGeneral.add(new DoubleSetting.Builder()
-    .name("yaw-steps")
-    .description("Maximum number of degrees its allowed to rotate in one tick.")
-    .defaultValue(180)
-    .range(1, 180)
-    .visible(rotate::get)
-    .build()
-  );
+          .name("yaw-steps")
+          .description("Maximum number of degrees its allowed to rotate in one tick.")
+          .defaultValue(180)
+          .range(1, 180)
+          .visible(rotate::get)
+          .build());
 
   private final Setting<Set<EntityType<?>>> entities = sgGeneral.add(new EntityTypeListSetting.Builder()
-    .name("entities")
-    .description("Entities to attack.")
-    .onlyAttackable()
-    .defaultValue(EntityTypes.PLAYER, EntityTypes.WARDEN, EntityTypes.WITHER)
-    .build()
-  );
+          .name("entities")
+          .description("Entities to attack.")
+          .onlyAttackable()
+          .defaultValue(EntityTypes.PLAYER, EntityTypes.WARDEN, EntityTypes.WITHER)
+          .build());
 
   // Switch
 
   private final Setting<AutoSwitchMode> autoSwitch = sgSwitch.add(new EnumSetting.Builder<AutoSwitchMode>()
-    .name("auto-switch")
-    .description("Switches to crystals in your hotbar once a target is found.")
-    .defaultValue(AutoSwitchMode.Normal)
-    .build()
-  );
+          .name("auto-switch")
+          .description("Switches to crystals in your hotbar once a target is found.")
+          .defaultValue(AutoSwitchMode.Normal)
+          .build());
 
   private final Setting<Integer> switchDelay = sgSwitch.add(new IntSetting.Builder()
-    .name("switch-delay")
-    .description("The delay in ticks to wait to break a crystal after switching hotbar slot.")
-    .defaultValue(0)
-    .min(0)
-    .build()
-  );
+          .name("switch-delay")
+          .description("The delay in ticks to wait to break a crystal after switching hotbar slot.")
+          .defaultValue(0)
+          .min(0)
+          .build());
 
   private final Setting<Boolean> noGapSwitch = sgSwitch.add(new BoolSetting.Builder()
-    .name("no-gap-switch")
-    .description("Won't auto switch if you're holding a gapple.")
-    .defaultValue(true)
-    .visible(() -> autoSwitch.get() == AutoSwitchMode.Normal)
-    .build()
-  );
+          .name("no-gap-switch")
+          .description("Won't auto switch if you're holding a gapple.")
+          .defaultValue(true)
+          .visible(() -> autoSwitch.get() == AutoSwitchMode.Normal)
+          .build());
 
   private final Setting<Boolean> noBowSwitch = sgSwitch.add(new BoolSetting.Builder()
-    .name("no-bow-switch")
-    .description("Won't auto switch if you're holding a bow.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("no-bow-switch")
+          .description("Won't auto switch if you're holding a bow.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Boolean> antiWeakness = sgSwitch.add(new BoolSetting.Builder()
-    .name("anti-weakness")
-    .description("Switches to tools with so you can break crystals with the weakness effect.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("anti-weakness")
+          .description("Switches to tools with so you can break crystals with the weakness effect.")
+          .defaultValue(true)
+          .build());
 
   // Place
 
   private final Setting<Boolean> doPlace = sgPlace.add(new BoolSetting.Builder()
-    .name("place")
-    .description("If the CA should place crystals.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("place")
+          .description("If the CA should place crystals.")
+          .defaultValue(true)
+          .build());
 
   public final Setting<Integer> placeDelay = sgPlace.add(new IntSetting.Builder()
-    .name("place-delay")
-    .description("The delay in ticks to wait to place a crystal after it's exploded.")
-    .defaultValue(0)
-    .min(0)
-    .sliderMax(20)
-    .build()
-  );
+          .name("place-delay")
+          .description("The delay in ticks to wait to place a crystal after it's exploded.")
+          .defaultValue(0)
+          .min(0)
+          .sliderMax(20)
+          .build());
 
   private final Setting<Double> placeRange = sgPlace.add(new DoubleSetting.Builder()
-    .name("place-range")
-    .description("Range in which to place crystals.")
-    .defaultValue(4.5)
-    .min(0)
-    .sliderMax(6)
-    .build()
-  );
+          .name("place-range")
+          .description("Range in which to place crystals.")
+          .defaultValue(4.5)
+          .min(0)
+          .sliderMax(6)
+          .build());
 
   private final Setting<Double> placeWallsRange = sgPlace.add(new DoubleSetting.Builder()
-    .name("walls-range")
-    .description("Range in which to place crystals when behind blocks.")
-    .defaultValue(4.5)
-    .min(0)
-    .sliderMax(6)
-    .build()
-  );
+          .name("walls-range")
+          .description("Range in which to place crystals when behind blocks.")
+          .defaultValue(4.5)
+          .min(0)
+          .sliderMax(6)
+          .build());
 
   private final Setting<Boolean> placement112 = sgPlace.add(new BoolSetting.Builder()
-    .name("1.12-placement")
-    .description("Uses 1.12 crystal placement.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("1.12-placement")
+          .description("Uses 1.12 crystal placement.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<SupportMode> support = sgPlace.add(new EnumSetting.Builder<SupportMode>()
-    .name("support")
-    .description("Places a support block in air if no other position have been found.")
-    .defaultValue(SupportMode.Disabled)
-    .build()
-  );
+          .name("support")
+          .description("Places a support block in air if no other position have been found.")
+          .defaultValue(SupportMode.Disabled)
+          .build());
 
   private final Setting<Integer> supportDelay = sgPlace.add(new IntSetting.Builder()
-    .name("support-delay")
-    .description("Delay in ticks after placing support block.")
-    .defaultValue(1)
-    .min(0)
-    .visible(() -> support.get() != SupportMode.Disabled)
-    .build()
-  );
+          .name("support-delay")
+          .description("Delay in ticks after placing support block.")
+          .defaultValue(1)
+          .min(0)
+          .visible(() -> support.get() != SupportMode.Disabled)
+          .build());
 
   // Face place
 
   private final Setting<Boolean> facePlace = sgFacePlace.add(new BoolSetting.Builder()
-    .name("face-place")
-    .description("Will face-place when target is below a certain health or armor durability threshold.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("face-place")
+          .description("Will face-place when target is below a certain health or armor durability threshold.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Double> facePlaceHealth = sgFacePlace.add(new DoubleSetting.Builder()
-    .name("face-place-health")
-    .description("The health the target has to be at to start face placing.")
-    .defaultValue(8)
-    .min(1)
-    .sliderMin(1)
-    .sliderMax(36)
-    .visible(facePlace::get)
-    .build()
-  );
+          .name("face-place-health")
+          .description("The health the target has to be at to start face placing.")
+          .defaultValue(8)
+          .min(1)
+          .sliderMin(1)
+          .sliderMax(36)
+          .visible(facePlace::get)
+          .build());
 
   private final Setting<Double> facePlaceDurability = sgFacePlace.add(new DoubleSetting.Builder()
-    .name("face-place-durability")
-    .description("The durability threshold percentage to be able to face-place.")
-    .defaultValue(2)
-    .min(1)
-    .sliderMin(1)
-    .sliderMax(100)
-    .visible(facePlace::get)
-    .build()
-  );
+          .name("face-place-durability")
+          .description("The durability threshold percentage to be able to face-place.")
+          .defaultValue(2)
+          .min(1)
+          .sliderMin(1)
+          .sliderMax(100)
+          .visible(facePlace::get)
+          .build());
 
   private final Setting<Boolean> facePlaceArmor = sgFacePlace.add(new BoolSetting.Builder()
-    .name("face-place-missing-armor")
-    .description("Automatically starts face placing when a target misses a piece of armor.")
-    .defaultValue(false)
-    .visible(facePlace::get)
-    .build()
-  );
+          .name("face-place-missing-armor")
+          .description("Automatically starts face placing when a target misses a piece of armor.")
+          .defaultValue(false)
+          .visible(facePlace::get)
+          .build());
 
   private final Setting<Keybind> forceFacePlace = sgFacePlace.add(new KeybindSetting.Builder()
-    .name("force-face-place")
-    .description("Starts face place when this button is pressed.")
-    .defaultValue(Keybind.none())
-    .build()
-  );
+          .name("force-face-place")
+          .description("Starts face place when this button is pressed.")
+          .defaultValue(Keybind.none())
+          .build());
 
   // Break
 
   private final Setting<Boolean> doBreak = sgBreak.add(new BoolSetting.Builder()
-    .name("break")
-    .description("If the CA should break crystals.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("break")
+          .description("If the CA should break crystals.")
+          .defaultValue(true)
+          .build());
 
   private final Setting<Integer> breakDelay = sgBreak.add(new IntSetting.Builder()
-    .name("break-delay")
-    .description("The delay in ticks to wait to break a crystal after it's placed.")
-    .defaultValue(0)
-    .min(0)
-    .sliderMax(20)
-    .build()
-  );
+          .name("break-delay")
+          .description("The delay in ticks to wait to break a crystal after it's placed.")
+          .defaultValue(0)
+          .min(0)
+          .sliderMax(20)
+          .build());
 
   private final Setting<Boolean> smartDelay = sgBreak.add(new BoolSetting.Builder()
-    .name("smart-delay")
-    .description("Only breaks crystals when the target can receive damage.")
-    .defaultValue(false)
-    .build()
-  );
+          .name("smart-delay")
+          .description("Only breaks crystals when the target can receive damage.")
+          .defaultValue(false)
+          .build());
 
   private final Setting<Double> breakRange = sgBreak.add(new DoubleSetting.Builder()
-    .name("break-range")
-    .description("Range in which to break crystals.")
-    .defaultValue(4.5)
-    .min(0)
-    .sliderMax(6)
-    .build()
-  );
+          .name("break-range")
+          .description("Range in which to break crystals.")
+          .defaultValue(4.5)
+          .min(0)
+          .sliderMax(6)
+          .build());
 
   private final Setting<Double> breakWallsRange = sgBreak.add(new DoubleSetting.Builder()
-    .name("walls-range")
-    .description("Range in which to break crystals when behind blocks.")
-    .defaultValue(4.5)
-    .min(0)
-    .sliderMax(6)
-    .build()
-  );
+          .name("walls-range")
+          .description("Range in which to break crystals when behind blocks.")
+          .defaultValue(4.5)
+          .min(0)
+          .sliderMax(6)
+          .build());
 
-  private final Setting<Boolean> onlyBreakOwn = sgBreak.add(new BoolSetting.Builder()
-    .name("only-own")
-    .description("Only breaks own crystals.")
-    .defaultValue(false)
-    .build()
-  );
+  private final Setting<Boolean> onlyBreakOwn = sgBreak.add(
+      new BoolSetting.Builder().name("only-own").description("Only breaks own crystals.").defaultValue(false).build());
 
   private final Setting<Integer> breakAttempts = sgBreak.add(new IntSetting.Builder()
-    .name("break-attempts")
-    .description("How many times to hit a crystal before stopping to target it.")
-    .defaultValue(2)
-    .sliderMin(1)
-    .sliderMax(5)
-    .build()
-  );
+          .name("break-attempts")
+          .description("How many times to hit a crystal before stopping to target it.")
+          .defaultValue(2)
+          .sliderMin(1)
+          .sliderMax(5)
+          .build());
 
   private final Setting<Integer> ticksExisted = sgBreak.add(new IntSetting.Builder()
-    .name("ticks-existed")
-    .description("Amount of ticks a crystal needs to have lived for it to be attacked by CrystalAura.")
-    .defaultValue(0)
-    .min(0)
-    .build()
-  );
+          .name("ticks-existed")
+          .description("Amount of ticks a crystal needs to have lived for it to be attacked by CrystalAura.")
+          .defaultValue(0)
+          .min(0)
+          .build());
 
   private final Setting<Integer> attackFrequency = sgBreak.add(new IntSetting.Builder()
-    .name("attack-frequency")
-    .description("Maximum hits to do per second.")
-    .defaultValue(25)
-    .min(1)
-    .sliderRange(1, 30)
-    .build()
-  );
+          .name("attack-frequency")
+          .description("Maximum hits to do per second.")
+          .defaultValue(25)
+          .min(1)
+          .sliderRange(1, 30)
+          .build());
 
   private final Setting<Boolean> fastBreak = sgBreak.add(new BoolSetting.Builder()
-    .name("fast-break")
-    .description("Ignores break delay and tries to break the crystal as soon as it's spawned in the world.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("fast-break")
+          .description("Ignores break delay and tries to break the crystal as soon as it's spawned in the world.")
+          .defaultValue(true)
+          .build());
 
   // Pause
 
   public final Setting<PauseMode> pauseOnUse = sgPause.add(new EnumSetting.Builder<PauseMode>()
-    .name("pause-on-use")
-    .description("Which processes should be paused while using an item.")
-    .defaultValue(PauseMode.Place)
-    .build()
-  );
+          .name("pause-on-use")
+          .description("Which processes should be paused while using an item.")
+          .defaultValue(PauseMode.Place)
+          .build());
 
   public final Setting<PauseMode> pauseOnMine = sgPause.add(new EnumSetting.Builder<PauseMode>()
-    .name("pause-on-mine")
-    .description("Which processes should be paused while mining a block.")
-    .defaultValue(PauseMode.None)
-    .build()
-  );
+          .name("pause-on-mine")
+          .description("Which processes should be paused while mining a block.")
+          .defaultValue(PauseMode.None)
+          .build());
 
   private final Setting<Boolean> pauseOnLag = sgPause.add(new BoolSetting.Builder()
-    .name("pause-on-lag")
-    .description("Whether to pause if the server is not responding.")
-    .defaultValue(true)
-    .build()
-  );
+          .name("pause-on-lag")
+          .description("Whether to pause if the server is not responding.")
+          .defaultValue(true)
+          .build());
 
   public final Setting<List<Module>> pauseModules = sgPause.add(new ModuleListSetting.Builder()
-    .name("pause-modules")
-    .description("Pauses while any of the selected modules are active.")
-    .defaultValue(BedAura.class)
-    .build()
-  );
+          .name("pause-modules")
+          .description("Pauses while any of the selected modules are active.")
+          .defaultValue(BedAura.class)
+          .build());
 
   public final Setting<Double> pauseHealth = sgPause.add(new DoubleSetting.Builder()
-    .name("pause-health")
-    .description("Pauses when you go below a certain health.")
-    .defaultValue(5)
-    .range(0, 36)
-    .sliderRange(0, 36)
-    .build()
-  );
+          .name("pause-health")
+          .description("Pauses when you go below a certain health.")
+          .defaultValue(5)
+          .range(0, 36)
+          .sliderRange(0, 36)
+          .build());
 
   // Render
 
   public final Setting<SwingMode> swingMode = sgRender.add(new EnumSetting.Builder<SwingMode>()
-    .name("swing-mode")
-    .description("How to swing when placing.")
-    .defaultValue(SwingMode.Both)
-    .build()
-  );
+          .name("swing-mode")
+          .description("How to swing when placing.")
+          .defaultValue(SwingMode.Both)
+          .build());
 
   private final Setting<RenderMode> renderMode = sgRender.add(new EnumSetting.Builder<RenderMode>()
-    .name("render-mode")
-    .description("The mode to render in.")
-    .defaultValue(RenderMode.Normal)
-    .build()
-  );
+          .name("render-mode")
+          .description("The mode to render in.")
+          .defaultValue(RenderMode.Normal)
+          .build());
 
   private final Setting<Boolean> renderPlace = sgRender.add(new BoolSetting.Builder()
-    .name("render-place")
-    .description("Renders a block overlay over the block the crystals are being placed on.")
-    .defaultValue(true)
-    .visible(() -> renderMode.get() == RenderMode.Normal)
-    .build()
-  );
+          .name("render-place")
+          .description("Renders a block overlay over the block the crystals are being placed on.")
+          .defaultValue(true)
+          .visible(() -> renderMode.get() == RenderMode.Normal)
+          .build());
 
   private final Setting<Integer> placeRenderTime = sgRender.add(new IntSetting.Builder()
-    .name("place-time")
-    .description("How long to render placements.")
-    .defaultValue(10)
-    .min(0)
-    .sliderMax(20)
-    .visible(() -> renderMode.get() == RenderMode.Normal && renderPlace.get())
-    .build()
-  );
+          .name("place-time")
+          .description("How long to render placements.")
+          .defaultValue(10)
+          .min(0)
+          .sliderMax(20)
+          .visible(() -> renderMode.get() == RenderMode.Normal && renderPlace.get())
+          .build());
 
   private final Setting<Boolean> renderBreak = sgRender.add(new BoolSetting.Builder()
-    .name("render-break")
-    .description("Renders a block overlay over the block the crystals are broken on.")
-    .defaultValue(false)
-    .visible(() -> renderMode.get() == RenderMode.Normal)
-    .build()
-  );
+          .name("render-break")
+          .description("Renders a block overlay over the block the crystals are broken on.")
+          .defaultValue(false)
+          .visible(() -> renderMode.get() == RenderMode.Normal)
+          .build());
 
   private final Setting<Integer> breakRenderTime = sgRender.add(new IntSetting.Builder()
-    .name("break-time")
-    .description("How long to render breaking for.")
-    .defaultValue(13)
-    .min(0)
-    .sliderMax(20)
-    .visible(() -> renderMode.get() == RenderMode.Normal && renderBreak.get())
-    .build()
-  );
+          .name("break-time")
+          .description("How long to render breaking for.")
+          .defaultValue(13)
+          .min(0)
+          .sliderMax(20)
+          .visible(() -> renderMode.get() == RenderMode.Normal && renderBreak.get())
+          .build());
 
   private final Setting<Integer> smoothness = sgRender.add(new IntSetting.Builder()
-    .name("smoothness")
-    .description("How smoothly the render should move around.")
-    .defaultValue(10)
-    .min(0)
-    .sliderMax(20)
-    .visible(() -> renderMode.get() == RenderMode.Smooth)
-    .build()
-  );
+          .name("smoothness")
+          .description("How smoothly the render should move around.")
+          .defaultValue(10)
+          .min(0)
+          .sliderMax(20)
+          .visible(() -> renderMode.get() == RenderMode.Smooth)
+          .build());
 
   private final Setting<Double> height = sgRender.add(new DoubleSetting.Builder()
-    .name("height")
-    .description("How tall the gradient should be.")
-    .defaultValue(0.7)
-    .min(0)
-    .sliderMax(1)
-    .visible(() -> renderMode.get() == RenderMode.Gradient)
-    .build()
-  );
+          .name("height")
+          .description("How tall the gradient should be.")
+          .defaultValue(0.7)
+          .min(0)
+          .sliderMax(1)
+          .visible(() -> renderMode.get() == RenderMode.Gradient)
+          .build());
 
   private final Setting<Integer> renderTime = sgRender.add(new IntSetting.Builder()
-    .name("render-time")
-    .description("How long to render placements.")
-    .defaultValue(10)
-    .min(0)
-    .sliderMax(20)
-    .visible(() -> renderMode.get() == RenderMode.Smooth || renderMode.get() == RenderMode.Fading)
-    .build()
-  );
+          .name("render-time")
+          .description("How long to render placements.")
+          .defaultValue(10)
+          .min(0)
+          .sliderMax(20)
+          .visible(() -> renderMode.get() == RenderMode.Smooth || renderMode.get() == RenderMode.Fading)
+          .build());
 
   private final Setting<ShapeMode> shapeMode = sgRender.add(new EnumSetting.Builder<ShapeMode>()
-    .name("shape-mode")
-    .description("How the shapes are rendered.")
-    .defaultValue(ShapeMode.Both)
-    .visible(() -> renderMode.get() != RenderMode.None)
-    .build()
-  );
+          .name("shape-mode")
+          .description("How the shapes are rendered.")
+          .defaultValue(ShapeMode.Both)
+          .visible(() -> renderMode.get() != RenderMode.None)
+          .build());
 
   private final Setting<SettingColor> sideColor = sgRender.add(new ColorSetting.Builder()
-    .name("side-color")
-    .description("The side color of the block overlay.")
-    .defaultValue(new SettingColor(255, 255, 255, 45))
-    .visible(() -> shapeMode.get().sides() && renderMode.get() != RenderMode.None)
-    .build()
-  );
+          .name("side-color")
+          .description("The side color of the block overlay.")
+          .defaultValue(new SettingColor(255, 255, 255, 45))
+          .visible(() -> shapeMode.get().sides() && renderMode.get() != RenderMode.None)
+          .build());
 
   private final Setting<SettingColor> lineColor = sgRender.add(new ColorSetting.Builder()
-    .name("line-color")
-    .description("The line color of the block overlay.")
-    .defaultValue(new SettingColor(255, 255, 255))
-    .visible(() -> shapeMode.get().lines() && renderMode.get() != RenderMode.None)
-    .build()
-  );
+          .name("line-color")
+          .description("The line color of the block overlay.")
+          .defaultValue(new SettingColor(255, 255, 255))
+          .visible(() -> shapeMode.get().lines() && renderMode.get() != RenderMode.None)
+          .build());
 
   private final Setting<Boolean> renderDamageText = sgRender.add(new BoolSetting.Builder()
-    .name("damage")
-    .description("Renders crystal damage text in the block overlay.")
-    .defaultValue(true)
-    .visible(() -> renderMode.get() != RenderMode.None)
-    .build()
-  );
+          .name("damage")
+          .description("Renders crystal damage text in the block overlay.")
+          .defaultValue(true)
+          .visible(() -> renderMode.get() != RenderMode.None)
+          .build());
 
   private final Setting<SettingColor> damageColor = sgRender.add(new ColorSetting.Builder()
-    .name("damage-color")
-    .description("The color of the damage text.")
-    .defaultValue(new SettingColor(255, 255, 255))
-    .visible(() -> renderMode.get() != RenderMode.None && renderDamageText.get())
-    .build()
-  );
+          .name("damage-color")
+          .description("The color of the damage text.")
+          .defaultValue(new SettingColor(255, 255, 255))
+          .visible(() -> renderMode.get() != RenderMode.None && renderDamageText.get())
+          .build());
 
   private final Setting<Double> damageTextScale = sgRender.add(new DoubleSetting.Builder()
-    .name("damage-scale")
-    .description("How big the damage text should be.")
-    .defaultValue(1.25)
-    .min(1)
-    .sliderMax(4)
-    .visible(() -> renderMode.get() != RenderMode.None && renderDamageText.get())
-    .build()
-  );
+          .name("damage-scale")
+          .description("How big the damage text should be.")
+          .defaultValue(1.25)
+          .min(1)
+          .sliderMax(4)
+          .visible(() -> renderMode.get() != RenderMode.None && renderDamageText.get())
+          .build());
 
   // Fields
 
@@ -610,7 +549,8 @@ public class CrystalAura extends Module {
     placeTimer = 0;
     ticksPassed = 0;
 
-    clipContext = new ClipContext(new Vec3(0, 0, 0), new Vec3(0, 0, 0), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
+    clipContext = new ClipContext(
+        new Vec3(0, 0, 0), new Vec3(0, 0, 0), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
 
     placing = false;
     placingTimer = 0;
@@ -655,36 +595,46 @@ public class CrystalAura extends Module {
 
     // Decrement placing timer
     if (placing) {
-      if (placingTimer > 0) placingTimer--;
-      else placing = false;
+      if (placingTimer > 0)
+        placingTimer--;
+      else
+        placing = false;
     }
 
-    if (kaTimer > 0) kaTimer--;
+    if (kaTimer > 0)
+      kaTimer--;
 
-    if (ticksPassed < 20) ticksPassed++;
+    if (ticksPassed < 20)
+      ticksPassed++;
     else {
       ticksPassed = 0;
       attacks = 0;
     }
 
     // Decrement best target timer
-    if (bestTargetTimer > 0) bestTargetTimer--;
+    if (bestTargetTimer > 0)
+      bestTargetTimer--;
     bestTargetDamage = 0;
 
     // Decrement break, place and switch timers
-    if (breakTimer > 0) breakTimer--;
-    if (placeTimer > 0) placeTimer--;
-    if (switchTimer > 0) switchTimer--;
+    if (breakTimer > 0)
+      breakTimer--;
+    if (placeTimer > 0)
+      placeTimer--;
+    if (switchTimer > 0)
+      switchTimer--;
 
     // Decrement render timers
-    if (placeRenderTimer > 0) placeRenderTimer--;
-    if (breakRenderTimer > 0) breakRenderTimer--;
+    if (placeRenderTimer > 0)
+      placeRenderTimer--;
+    if (breakRenderTimer > 0)
+      breakRenderTimer--;
 
     mainItem = mc.player.getMainHandItem().getItem();
     offItem = mc.player.getOffhandItem().getItem();
 
     // Update waiting to explode crystals and mark them as existing if reached threshold
-    for (IntIterator it = waitingToExplode.keySet().iterator(); it.hasNext(); ) {
+    for (IntIterator it = waitingToExplode.keySet().iterator(); it.hasNext();) {
       int id = it.nextInt();
       int ticks = waitingToExplode.get(id);
 
@@ -697,14 +647,18 @@ public class CrystalAura extends Module {
     }
 
     // Set player eye pos
-    ((IVec3) playerEyePos).neko$set(mc.player.position().x, mc.player.position().y + mc.player.getEyeHeight(mc.player.getPose()), mc.player.position().z);
+    ((IVec3) playerEyePos)
+        .neko$set(mc.player.position().x, mc.player.position().y + mc.player.getEyeHeight(mc.player.getPose()),
+            mc.player.position().z);
 
     // Find targets, break and place
     findTargets();
 
     if (!targets.isEmpty()) {
-      if (!didRotateThisTick) doBreak();
-      if (!didRotateThisTick) doPlace();
+      if (!didRotateThisTick)
+        doBreak();
+      if (!didRotateThisTick)
+        doPlace();
     }
   }
 
@@ -712,13 +666,15 @@ public class CrystalAura extends Module {
   private void onPreTickLast(TickEvent.Pre event) {
     // Rotate to last rotation
     if (rotate.get() && lastRotationTimer < getLastRotationStopDelay() && !didRotateThisTick) {
-      Rotations.rotate(isLastRotationPos ? Rotations.getYaw(lastRotationPos) : lastYaw, isLastRotationPos ? Rotations.getPitch(lastRotationPos) : lastPitch, -100, null);
+      Rotations.rotate(isLastRotationPos ? Rotations.getYaw(lastRotationPos) : lastYaw,
+          isLastRotationPos ? Rotations.getPitch(lastRotationPos) : lastPitch, -100, null);
     }
   }
 
   @EventHandler
   private void onEntityAdded(EntityAddedEvent event) {
-    if (!(event.entity instanceof EndCrystal)) return;
+    if (!(event.entity instanceof EndCrystal))
+      return;
 
     if (placing && event.entity.blockPosition().equals(placingCrystalBlockPos)) {
       placing = false;
@@ -728,7 +684,8 @@ public class CrystalAura extends Module {
 
     if (fastBreak.get() && !didRotateThisTick && attacks < attackFrequency.get()) {
       float damage = getBreakDamage(event.entity, true);
-      if (damage > minDamage.get()) doBreak(event.entity);
+      if (damage > minDamage.get())
+        doBreak(event.entity);
     }
   }
 
@@ -745,7 +702,8 @@ public class CrystalAura extends Module {
     didRotateThisTick = true;
     isLastRotationPos = isPos;
 
-    if (isPos) ((IVec3) lastRotationPos).neko$set(pos.x, pos.y, pos.z);
+    if (isPos)
+      ((IVec3) lastRotationPos).neko$set(pos.x, pos.y, pos.z);
     else {
       lastYaw = yaw;
       lastPitch = pitch;
@@ -757,8 +715,10 @@ public class CrystalAura extends Module {
   // Break
 
   private void doBreak() {
-    if (!doBreak.get() || breakTimer > 0 || switchTimer > 0 || attacks >= attackFrequency.get()) return;
-    if (shouldPause(PauseMode.Break)) return;
+    if (!doBreak.get() || breakTimer > 0 || switchTimer > 0 || attacks >= attackFrequency.get())
+      return;
+    if (shouldPause(PauseMode.Break))
+      return;
 
     float bestDamage = 0;
     Entity crystal = null;
@@ -774,26 +734,33 @@ public class CrystalAura extends Module {
     }
 
     // Break the crystal
-    if (crystal != null) doBreak(crystal);
+    if (crystal != null)
+      doBreak(crystal);
   }
 
   private float getBreakDamage(Entity entity, boolean checkCrystalAge) {
-    if (!(entity instanceof EndCrystal)) return 0;
+    if (!(entity instanceof EndCrystal))
+      return 0;
 
     // Check only break own
-    if (onlyBreakOwn.get() && !placedCrystals.contains(entity.getId())) return 0;
+    if (onlyBreakOwn.get() && !placedCrystals.contains(entity.getId()))
+      return 0;
 
     // Check if it should already be removed
-    if (removed.contains(entity.getId())) return 0;
+    if (removed.contains(entity.getId()))
+      return 0;
 
     // Check attempted breaks
-    if (attemptedBreaks.get(entity.getId()) > breakAttempts.get()) return 0;
+    if (attemptedBreaks.get(entity.getId()) > breakAttempts.get())
+      return 0;
 
     // Check crystal age
-    if (checkCrystalAge && entity.tickCount < ticksExisted.get()) return 0;
+    if (checkCrystalAge && entity.tickCount < ticksExisted.get())
+      return 0;
 
     // Check range
-    if (isOutOfRange(entity.position(), entity.blockPosition(), false)) return 0;
+    if (isOutOfRange(entity.position(), entity.blockPosition(), false))
+      return 0;
 
     // Check damage to self and anti suicide
     blockPos.set(entity.blockPosition()).move(0, -1, 0);
@@ -806,7 +773,8 @@ public class CrystalAura extends Module {
     boolean shouldFacePlace = shouldFacePlace();
     double minimumDamage = shouldFacePlace ? Math.min(minDamage.get(), 1.5d) : minDamage.get();
 
-    if (damage < minimumDamage) return 0f;
+    if (damage < minimumDamage)
+      return 0f;
 
     return damage;
   }
@@ -871,11 +839,7 @@ public class CrystalAura extends Module {
     // Attack
     mc.player.connection.send(new ServerboundAttackPacket(entity.getId()));
 
-    InteractionHand hand = InvUtils.findInHotbar(Items.END_CRYSTAL).getHand();
-    if (hand == null) hand = InteractionHand.MAIN_HAND;
-
-        if (swingMode.get().client()) mc.player.swing(hand, mc.player.getItemInHand(hand).getAttackAnimation(), false);
-        if (swingMode.get().packet()) mc.getConnection().send(new ServerboundPunchPacket());
+    swingMode.get().attackSwing(InteractionHand.MAIN_HAND);
 
     attacks++;
   }
@@ -890,26 +854,31 @@ public class CrystalAura extends Module {
   // Place
 
   private void doPlace() {
-    if (!doPlace.get() || placeTimer > 0) return;
-    if (shouldPause(PauseMode.Place)) return;
+    if (!doPlace.get() || placeTimer > 0)
+      return;
+    if (shouldPause(PauseMode.Place))
+      return;
 
     // Return if there are no crystals in hotbar or offhand
-    if (!InvUtils.testInHotbar(Items.END_CRYSTAL)) return;
+    if (!InvUtils.testInHotbar(Items.END_CRYSTAL))
+      return;
 
     // Return if there are no crystals in either hand and auto switch mode is none
     if (autoSwitch.get() != AutoSwitchMode.None) {
       if (noGapSwitch.get() && autoSwitch.get() == AutoSwitchMode.Normal && offItem != Items.END_CRYSTAL) {
-        if (mainItem == Items.ENCHANTED_GOLDEN_APPLE
-          || offItem == Items.ENCHANTED_GOLDEN_APPLE
-          || mainItem == Items.GOLDEN_APPLE
-          || offItem == Items.GOLDEN_APPLE) return;
+        if (mainItem == Items.ENCHANTED_GOLDEN_APPLE || offItem == Items.ENCHANTED_GOLDEN_APPLE
+            || mainItem == Items.GOLDEN_APPLE || offItem == Items.GOLDEN_APPLE)
+          return;
       }
-      if (noBowSwitch.get() && (mainItem == Items.BOW || offItem == Items.BOW)) return;
-    } else if (mainItem != Items.END_CRYSTAL && offItem != Items.END_CRYSTAL) return;
+      if (noBowSwitch.get() && (mainItem == Items.BOW || offItem == Items.BOW))
+        return;
+    } else if (mainItem != Items.END_CRYSTAL && offItem != Items.END_CRYSTAL)
+      return;
 
     // Check for multiplace
     for (Entity entity : mc.level.entitiesForRendering()) {
-      if (getBreakDamage(entity, false) > 0) return;
+      if (getBreakDamage(entity, false) > 0)
+        return;
     }
 
     // Setup variables
@@ -921,21 +890,25 @@ public class CrystalAura extends Module {
     BlockIterator.register((int) Math.ceil(placeRange.get()), (int) Math.ceil(placeRange.get()), (bp, blockState) -> {
       // Check if its bedrock or obsidian and return if isSupport is false
       boolean hasBlock = blockState.is(Blocks.BEDROCK) || blockState.is(Blocks.OBSIDIAN);
-      if (!hasBlock && (!isSupport.get() || !blockState.canBeReplaced())) return;
+      if (!hasBlock && (!isSupport.get() || !blockState.canBeReplaced()))
+        return;
 
       // Check if there is air on top
       blockPos.set(bp.getX(), bp.getY() + 1, bp.getZ());
-      if (!mc.level.getBlockState(blockPos).isAir()) return;
+      if (!mc.level.getBlockState(blockPos).isAir())
+        return;
 
       if (placement112.get()) {
         blockPos.move(0, 1, 0);
-        if (!mc.level.getBlockState(blockPos).isAir()) return;
+        if (!mc.level.getBlockState(blockPos).isAir())
+          return;
       }
 
       // Check range
       ((IVec3) vec3d).neko$set(bp.getX() + 0.5, bp.getY() + 1, bp.getZ() + 0.5);
       blockPos.set(bp).move(0, 1, 0);
-      if (isOutOfRange(vec3d, blockPos, true)) return;
+      if (isOutOfRange(vec3d, blockPos, true))
+        return;
 
       // Check damage to self and anti suicide
       float selfDamage = DamageUtils.crystalDamage(mc.player, vec3d, predictMovement.get(), bp);
@@ -948,7 +921,8 @@ public class CrystalAura extends Module {
       boolean shouldFacePlace = shouldFacePlace();
       double minimumDamage = Math.min(minDamage.get(), shouldFacePlace ? 1.5 : minDamage.get());
 
-      if (damage < minimumDamage) return;
+      if (damage < minimumDamage)
+        return;
 
       // Check if it can be placed
       double x = bp.getX();
@@ -956,7 +930,8 @@ public class CrystalAura extends Module {
       double z = bp.getZ();
       ((IAABB) box).neko$set(x, y, z, x + 1, y + (placement112.get() ? 1 : 2), z + 1);
 
-      if (intersectsWithEntities(box)) return;
+      if (intersectsWithEntities(box))
+        return;
 
       // Compare damage
       if (damage > bestDamage.get() || (isSupport.get() && hasBlock)) {
@@ -964,20 +939,21 @@ public class CrystalAura extends Module {
         bestBlockPos.get().set(bp);
       }
 
-      if (hasBlock) isSupport.set(false);
+      if (hasBlock)
+        isSupport.set(false);
     });
 
     // Place the crystal
     BlockIterator.after(() -> {
-      if (bestDamage.get() == 0) return;
+      if (bestDamage.get() == 0)
+        return;
 
       BlockHitResult result = getPlaceInfo(bestBlockPos.get());
 
-      ((IVec3) vec3d).neko$set(
-        result.getBlockPos().getX() + 0.5 + result.getDirection().getUnitVec3i().getX() * 1.0 / 2.0,
-        result.getBlockPos().getY() + 0.5 + result.getDirection().getUnitVec3i().getY() * 1.0 / 2.0,
-        result.getBlockPos().getZ() + 0.5 + result.getDirection().getUnitVec3i().getZ() * 1.0 / 2.0
-      );
+      ((IVec3) vec3d)
+          .neko$set(result.getBlockPos().getX() + 0.5 + result.getDirection().getUnitVec3i().getX() * 1.0 / 2.0,
+              result.getBlockPos().getY() + 0.5 + result.getDirection().getUnitVec3i().getY() * 1.0 / 2.0,
+              result.getBlockPos().getZ() + 0.5 + result.getDirection().getUnitVec3i().getZ() * 1.0 / 2.0);
 
       if (rotate.get()) {
         double yaw = Rotations.getYaw(vec3d);
@@ -985,7 +961,8 @@ public class CrystalAura extends Module {
 
         if (yawStepMode.get() == YawStepMode.Break || doYawSteps(yaw, pitch)) {
           setRotation(true, vec3d, 0, 0);
-          Rotations.rotate(yaw, pitch, 50, () -> placeCrystal(result, bestDamage.get(), isSupport.get() ? bestBlockPos.get() : null));
+          Rotations.rotate(yaw, pitch, 50,
+              () -> placeCrystal(result, bestDamage.get(), isSupport.get() ? bestBlockPos.get() : null));
 
           placeTimer += placeDelay.get();
         }
@@ -997,16 +974,17 @@ public class CrystalAura extends Module {
   }
 
   private BlockHitResult getPlaceInfo(BlockPos blockPos) {
-    ((IVec3) vec3d).neko$set(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
+    ((IVec3) vec3d)
+        .neko$set(mc.player.getX(), mc.player.getY() + mc.player.getEyeHeight(mc.player.getPose()), mc.player.getZ());
 
     for (Direction side : Direction.values()) {
-      ((IVec3) vec3dRayTraceEnd).neko$set(
-        blockPos.getX() + 0.5 + side.getUnitVec3i().getX() * 0.5,
-        blockPos.getY() + 0.5 + side.getUnitVec3i().getY() * 0.5,
-        blockPos.getZ() + 0.5 + side.getUnitVec3i().getZ() * 0.5
-      );
+      ((IVec3) vec3dRayTraceEnd)
+          .neko$set(blockPos.getX() + 0.5 + side.getUnitVec3i().getX() * 0.5,
+              blockPos.getY() + 0.5 + side.getUnitVec3i().getY() * 0.5,
+              blockPos.getZ() + 0.5 + side.getUnitVec3i().getZ() * 0.5);
 
-      ((IClipContext) clipContext).neko$set(vec3d, vec3dRayTraceEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
+      ((IClipContext) clipContext)
+          .neko$set(vec3d, vec3dRayTraceEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
       BlockHitResult result = mc.level.clip(clipContext);
 
       if (result != null && result.getType() == HitResult.Type.BLOCK && result.getBlockPos().equals(blockPos)) {
@@ -1023,22 +1001,24 @@ public class CrystalAura extends Module {
     Item targetItem = supportBlock == null ? Items.END_CRYSTAL : Items.OBSIDIAN;
 
     FindItemResult item = InvUtils.findInHotbar(targetItem);
-    if (!item.found()) return;
+    if (!item.found())
+      return;
 
     int prevSlot = mc.player.getInventory().getSelectedSlot();
 
-    if (autoSwitch.get() != AutoSwitchMode.None && !item.isOffhand()) InvUtils.swap(item.slot(), false);
+    if (autoSwitch.get() != AutoSwitchMode.None && !item.isOffhand())
+      InvUtils.swap(item.slot(), false);
 
     InteractionHand hand = item.getHand();
-    if (hand == null) return;
+    if (hand == null)
+      return;
 
     // Place
     if (supportBlock == null) {
       // Place crystal
       mc.gameMode.startPrediction(mc.level, sequence -> new ServerboundUseItemOnPacket(hand, result, sequence));
 
-            if (swingMode.get().client()) mc.player.swing(hand, mc.player.getItemInHand(hand).getAttackAnimation(), false);
-            if (swingMode.get().packet()) mc.getConnection().send(new ServerboundPunchPacket());
+      swingMode.get().attackSwing(InteractionHand.MAIN_HAND);
 
       placing = true;
       placingTimer = 4;
@@ -1054,11 +1034,7 @@ public class CrystalAura extends Module {
         placeRenderTimer = renderTime.get();
         if (renderMode.get() == RenderMode.Fading) {
           RenderUtils.renderTickingBlock(
-            placeRenderPos, sideColor.get(),
-            lineColor.get(), shapeMode.get(),
-            0, renderTime.get(), true,
-            false
-          );
+              placeRenderPos, sideColor.get(), lineColor.get(), shapeMode.get(), 0, renderTime.get(), true, false);
         }
       }
     } else {
@@ -1066,11 +1042,13 @@ public class CrystalAura extends Module {
       BlockUtils.place(supportBlock, item, false, 0, swingMode.get().client(), true, false);
       placeTimer += supportDelay.get();
 
-      if (supportDelay.get() == 0) placeCrystal(result, damage, null);
+      if (supportDelay.get() == 0)
+        placeCrystal(result, damage, null);
     }
 
     // Switch back
-    if (autoSwitch.get() == AutoSwitchMode.Silent) InvUtils.swap(prevSlot, false);
+    if (autoSwitch.get() == AutoSwitchMode.Silent)
+      InvUtils.swap(prevSlot, false);
   }
 
   // Yaw steps
@@ -1086,21 +1064,27 @@ public class CrystalAura extends Module {
     targetYaw = Mth.wrapDegrees(targetYaw) + 180;
     double serverYaw = Mth.wrapDegrees(this.serverYaw) + 180;
 
-    if (distanceBetweenAngles(serverYaw, targetYaw) <= yawSteps.get()) return true;
+    if (distanceBetweenAngles(serverYaw, targetYaw) <= yawSteps.get())
+      return true;
 
     double delta = Math.abs(targetYaw - serverYaw);
     double yaw = this.serverYaw;
 
     if (serverYaw < targetYaw) {
-      if (delta < 180) yaw += yawSteps.get();
-      else yaw -= yawSteps.get();
+      if (delta < 180)
+        yaw += yawSteps.get();
+      else
+        yaw -= yawSteps.get();
     } else {
-      if (delta < 180) yaw -= yawSteps.get();
-      else yaw += yawSteps.get();
+      if (delta < 180)
+        yaw -= yawSteps.get();
+      else
+        yaw += yawSteps.get();
     }
 
     setRotation(false, null, yaw, targetPitch);
-    Rotations.rotate(yaw, targetPitch, -100, null); // Priority -100 so it sends the packet as the last one, im pretty sure it doesn't matte but idc
+    Rotations.rotate(yaw, targetPitch, -100,
+        null); // Priority -100 so it sends the packet as the last one, im pretty sure it doesn't matte but idc
     return false;
   }
 
@@ -1112,21 +1096,26 @@ public class CrystalAura extends Module {
   // Face place
 
   private boolean shouldFacePlace() {
-    if (!facePlace.get()) return false;
+    if (!facePlace.get())
+      return false;
 
-    if (forceFacePlace.get().isPressed()) return true;
+    if (forceFacePlace.get().isPressed())
+      return true;
 
     // Checks if the provided crystal position should face place to any target
     for (LivingEntity target : targets) {
-      if (EntityUtils.getTotalHealth(target) <= facePlaceHealth.get()) return true;
+      if (EntityUtils.getTotalHealth(target) <= facePlaceHealth.get())
+        return true;
 
       for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
         ItemStack itemStack = target.getItemBySlot(slot);
 
         if (itemStack == null || itemStack.isEmpty()) {
-          if (facePlaceArmor.get()) return true;
+          if (facePlaceArmor.get())
+            return true;
         } else {
-          if ((double) (itemStack.getMaxDamage() - itemStack.getDamageValue()) / itemStack.getMaxDamage() * 100 <= facePlaceDurability.get())
+          if ((double) (itemStack.getMaxDamage() - itemStack.getDamageValue()) / itemStack.getMaxDamage() * 100
+              <= facePlaceDurability.get())
             return true;
         }
       }
@@ -1136,20 +1125,25 @@ public class CrystalAura extends Module {
   }
 
   // Others
-
   private boolean shouldPause(PauseMode process) {
     if (mc.player.isUsingItem() || mc.options.keyUse.isDown()) {
-      if (pauseOnUse.get().matches(process)) return true;
+      if (pauseOnUse.get().matches(process))
+        return true;
     }
 
-    if (pauseOnLag.get() && TickRate.INSTANCE.getTimeSinceLastTick() >= 1.0f) return true;
-    for (Module module : pauseModules.get()) if (module.isActive()) return true;
-    if (pauseOnMine.get().matches(process) && mc.gameMode.isDestroying()) return true;
+    if (pauseOnLag.get() && TickRate.INSTANCE.getTimeSinceLastTick() >= 1.0f)
+      return true;
+    for (Module module : pauseModules.get())
+      if (module.isActive())
+        return true;
+    if (pauseOnMine.get().matches(process) && mc.gameMode.isDestroying())
+      return true;
     return (EntityUtils.getTotalHealth(mc.player) <= pauseHealth.get());
   }
 
   private boolean isOutOfRange(Vec3 vec3d, BlockPos blockPos, boolean place) {
-    ((IClipContext) clipContext).neko$set(playerEyePos, vec3d, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
+    ((IClipContext) clipContext)
+        .neko$set(playerEyePos, vec3d, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player);
 
     BlockHitResult result = mc.level.clip(clipContext);
 
@@ -1183,7 +1177,8 @@ public class CrystalAura extends Module {
         damage = DamageUtils.crystalDamage(target, vec3d, predictMovement.get(), obsidianPos);
     } else {
       for (LivingEntity target : targets) {
-        if (smartDelay.get() && breaking && target.hurtTime > 0) continue;
+        if (smartDelay.get() && breaking && target.hurtTime > 0)
+          continue;
 
         float dmg = DamageUtils.crystalDamage(target, vec3d, predictMovement.get(), obsidianPos);
 
@@ -1212,29 +1207,33 @@ public class CrystalAura extends Module {
     // Living Entities
     for (Entity entity : mc.level.entitiesForRendering()) {
       // Ignore non-living
-      if (!(entity instanceof LivingEntity livingEntity)) continue;
+      if (!(entity instanceof LivingEntity livingEntity))
+        continue;
 
       // Player
       if (livingEntity instanceof Player player) {
-        if (player.getAbilities().instabuild || livingEntity == mc.player) continue;
-        if (!player.isAlive() || !Friends.get().shouldAttack(player)) continue;
+        if (player.getAbilities().instabuild || livingEntity == mc.player)
+          continue;
+        if (!player.isAlive() || !Friends.get().shouldAttack(player))
+          continue;
 
         if (ignoreNakeds.get()) {
-          if (player.getOffhandItem().isEmpty()
-            && player.getMainHandItem().isEmpty()
-            && player.getItemBySlot(EquipmentSlot.FEET).isEmpty()
-            && player.getItemBySlot(EquipmentSlot.LEGS).isEmpty()
-            && player.getItemBySlot(EquipmentSlot.CHEST).isEmpty()
-            && player.getItemBySlot(EquipmentSlot.HEAD).isEmpty()
-          ) continue;
+          if (player.getOffhandItem().isEmpty() && player.getMainHandItem().isEmpty()
+              && player.getItemBySlot(EquipmentSlot.FEET).isEmpty()
+              && player.getItemBySlot(EquipmentSlot.LEGS).isEmpty()
+              && player.getItemBySlot(EquipmentSlot.CHEST).isEmpty()
+              && player.getItemBySlot(EquipmentSlot.HEAD).isEmpty())
+            continue;
         }
       }
 
       // Animals, water animals, monsters, bats, misc
-      if (!(entities.get().contains(livingEntity.getType()))) continue;
+      if (!(entities.get().contains(livingEntity.getType())))
+        continue;
 
       // Close enough to damage
-      if (livingEntity.distanceToSqr(mc.player) > targetRange.get() * targetRange.get()) continue;
+      if (livingEntity.distanceToSqr(mc.player) > targetRange.get() * targetRange.get())
+        continue;
 
       targets.add(livingEntity);
     }
@@ -1245,10 +1244,10 @@ public class CrystalAura extends Module {
   }
 
   // Rendering
-
   @EventHandler
   private void onRender(Render3DEvent event) {
-    if (renderMode.get() == RenderMode.None) return;
+    if (renderMode.get() == RenderMode.None)
+      return;
 
     switch (renderMode.get()) {
       case Normal -> {
@@ -1261,30 +1260,30 @@ public class CrystalAura extends Module {
       }
 
       case Smooth -> {
-        if (placeRenderTimer <= 0) return;
+        if (placeRenderTimer <= 0)
+          return;
 
-        if (renderBoxOne == null) renderBoxOne = new AABB(placeRenderPos);
-        if (renderBoxTwo == null) renderBoxTwo = new AABB(placeRenderPos);
-        else ((IAABB) renderBoxTwo).neko$set(placeRenderPos);
+        if (renderBoxOne == null)
+          renderBoxOne = new AABB(placeRenderPos);
+        if (renderBoxTwo == null)
+          renderBoxTwo = new AABB(placeRenderPos);
+        else
+          ((IAABB) renderBoxTwo).neko$set(placeRenderPos);
 
         double offsetX = (renderBoxTwo.minX - renderBoxOne.minX) / smoothness.get();
         double offsetY = (renderBoxTwo.minY - renderBoxOne.minY) / smoothness.get();
         double offsetZ = (renderBoxTwo.minZ - renderBoxOne.minZ) / smoothness.get();
 
-        ((IAABB) renderBoxOne).neko$set(
-          renderBoxOne.minX + offsetX,
-          renderBoxOne.minY + offsetY,
-          renderBoxOne.minZ + offsetZ,
-          renderBoxOne.maxX + offsetX,
-          renderBoxOne.maxY + offsetY,
-          renderBoxOne.maxZ + offsetZ
-        );
+        ((IAABB) renderBoxOne)
+            .neko$set(renderBoxOne.minX + offsetX, renderBoxOne.minY + offsetY, renderBoxOne.minZ + offsetZ,
+                renderBoxOne.maxX + offsetX, renderBoxOne.maxY + offsetY, renderBoxOne.maxZ + offsetZ);
 
         event.renderer.box(renderBoxOne, sideColor.get(), lineColor.get(), shapeMode.get(), 0);
       }
 
       case Gradient -> {
-        if (placeRenderTimer <= 0) return;
+        if (placeRenderTimer <= 0)
+          return;
 
         Color bottom = new Color(0, 0, 0, 0);
 
@@ -1317,13 +1316,17 @@ public class CrystalAura extends Module {
 
   @EventHandler
   private void onRender2D(Render2DEvent event) {
-    if (renderMode.get() == RenderMode.None || !renderDamageText.get()) return;
-    if (placeRenderTimer <= 0 && breakRenderTimer <= 0) return;
+    if (renderMode.get() == RenderMode.None || !renderDamageText.get())
+      return;
+    if (placeRenderTimer <= 0 && breakRenderTimer <= 0)
+      return;
 
     if (renderMode.get() == RenderMode.Smooth) {
-      if (renderBoxOne == null) return;
+      if (renderBoxOne == null)
+        return;
       vec3.set(renderBoxOne.minX + 0.5, renderBoxOne.minY + 0.5, renderBoxOne.minZ + 0.5);
-    } else vec3.set(placeRenderPos.getX() + 0.5, placeRenderPos.getY() + 0.5, placeRenderPos.getZ() + 0.5);
+    } else
+      vec3.set(placeRenderPos.getX() + 0.5, placeRenderPos.getY() + 0.5, placeRenderPos.getZ() + 0.5);
 
     if (NametagUtils.to2D(vec3, damageTextScale.get())) {
       NametagUtils.begin(vec3, event.graphics);
@@ -1343,17 +1346,9 @@ public class CrystalAura extends Module {
     All,
   }
 
-  public enum AutoSwitchMode {
-    Normal,
-    Silent,
-    None
-  }
+  public enum AutoSwitchMode { Normal, Silent, None }
 
-  public enum SupportMode {
-    Disabled,
-    Accurate,
-    Fast
-  }
+  public enum SupportMode { Disabled, Accurate, Fast }
 
   public enum PauseMode {
     Both,
@@ -1366,26 +1361,5 @@ public class CrystalAura extends Module {
     }
   }
 
-  public enum SwingMode {
-    Both,
-    Packet,
-    Client,
-    None;
-
-    public boolean packet() {
-      return this == Packet || this == Both;
-    }
-
-    public boolean client() {
-      return this == Client || this == Both;
-    }
-  }
-
-  public enum RenderMode {
-    Normal,
-    Smooth,
-    Fading,
-    Gradient,
-    None
-  }
+  public enum RenderMode { Normal, Smooth, Fading, Gradient, None }
 }
