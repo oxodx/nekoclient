@@ -17,7 +17,8 @@ public final class KillAuraRotation {
 
   private static int resetTicks = 0;
 
-  private KillAuraRotation() {}
+  private KillAuraRotation() {
+  }
 
   public static void setTarget(RotationUtil.Rotation rotation) {
     targetRotation = rotation;

@@ -129,8 +129,13 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
       int i = font.width(text.getVisualOrderText());
       int j = x + width / 2 - 12;
       ClientTooltipComponent tooltipComponent = ClientTooltipComponent.create(text.getVisualOrderText());
-      graphics.tooltip(font, List.of(tooltipComponent), j - i / 2, y - 37, DefaultTooltipPositioner.INSTANCE,
-          itemStack.get(DataComponents.TOOLTIP_STYLE), false);
+      graphics.tooltip(font,
+          List.of(tooltipComponent),
+          j - i / 2,
+          y - 37,
+          DefaultTooltipPositioner.INSTANCE,
+          itemStack.get(DataComponents.TOOLTIP_STYLE),
+          false);
     }
   }
 
@@ -143,7 +148,11 @@ public class BundleTooltipComponent implements ClientTooltipComponent, NekoToolt
         : BUNDLE_PROGRESS_BAR_FILL_TEXTURE;
 
     graphics.blitSprite(RenderPipelines.GUI_TEXTURED, fillTexture, x + 1, y, fillAmount, PROGRESS_BAR_HEIGHT);
-    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BUNDLE_PROGRESS_BAR_BORDER_TEXTURE, x, y, PROGRESS_BAR_WIDTH,
+    graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
+        BUNDLE_PROGRESS_BAR_BORDER_TEXTURE,
+        x,
+        y,
+        PROGRESS_BAR_WIDTH,
         PROGRESS_BAR_HEIGHT);
 
     Component label = getProgressBarLabel();

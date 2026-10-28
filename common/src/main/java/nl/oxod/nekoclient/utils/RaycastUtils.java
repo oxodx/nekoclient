@@ -53,8 +53,11 @@ public class RaycastUtils {
     Vec3 vec3d = camera;
     Vec3 vec3d2 = rotation;
     Vec3 vec3d3 = vec3d.add(vec3d2.x * maxDistance, vec3d2.y * maxDistance, vec3d2.z * maxDistance);
-    return mc.level.clip(new ClipContext(vec3d, vec3d3, ClipContext.Block.OUTLINE,
-        includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, mc.player));
+    return mc.level.clip(new ClipContext(vec3d,
+        vec3d3,
+        ClipContext.Block.OUTLINE,
+        includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE,
+        mc.player));
   }
 
   public static BlockHitResult bucketRaycast(Vec3 camera, float pitch, float yaw, ClipContext.Fluid fluidHandling) {

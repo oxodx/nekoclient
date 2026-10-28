@@ -56,53 +56,96 @@ public class OutlineRenderCommandQueue extends SubmitNodeStorage {
 
     @Override
     public void submitShadow(
-        PoseStack poseStack, float shadowRadius, List<EntityRenderState.ShadowPiece> shadowPieces) {}
+        PoseStack poseStack, float shadowRadius, List<EntityRenderState.ShadowPiece> shadowPieces) {
+    }
 
     @Override
-    public void submitNameTag(PoseStack poseStack, @Nullable Vec3 nameTagAttachment, int offset, Component name,
-        boolean seeThrough, int lightCoords, CameraRenderState cameraRenderState) {}
+    public void submitNameTag(PoseStack poseStack,
+        @Nullable Vec3 nameTagAttachment,
+        int offset,
+        Component name,
+        boolean seeThrough,
+        int lightCoords,
+        CameraRenderState cameraRenderState) {
+    }
 
     @Override
-    public void submitText(PoseStack poseStack, float x, float y, FormattedCharSequence text, boolean dropShadow,
-        Font.DisplayMode layerType, int light, int color, int backgroundColor, int outlineColor) {}
+    public void submitText(PoseStack poseStack,
+        float x,
+        float y,
+        FormattedCharSequence text,
+        boolean dropShadow,
+        Font.DisplayMode layerType,
+        int light,
+        int color,
+        int backgroundColor,
+        int outlineColor) {
+    }
 
     @Override
-    public void submitFlame(PoseStack poseStack, EntityRenderState entityRenderState, Quaternionf rotation) {}
+    public void submitFlame(PoseStack poseStack, EntityRenderState entityRenderState, Quaternionf rotation) {
+    }
 
     @Override
-    public void submitLeash(PoseStack poseStack, EntityRenderState.LeashState leashState) {}
+    public void submitLeash(PoseStack poseStack, EntityRenderState.LeashState leashState) {
+    }
 
     @Override
-    public <S> void submitModel(Model<? super S> model, S state, PoseStack poseStack, RenderType renderType,
-        int lightCoords, int overlayCoords, int tintedColor, @Nullable UvMapping uvMapping, int outlineColor) {
+    public <S> void submitModel(Model<? super S> model,
+        S state,
+        PoseStack poseStack,
+        RenderType renderType,
+        int lightCoords,
+        int overlayCoords,
+        int tintedColor,
+        @Nullable UvMapping uvMapping,
+        int outlineColor) {
       super.submitModel(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, uvMapping, color);
     }
 
     @Override
-    public void submitModelPart(final ModelPart modelPart, final PoseStack poseStack, final RenderType renderType,
-        final int lightCoords, final int overlayCoords, final @Nullable UvMapping uvMapping, final int tintedColor,
+    public void submitModelPart(final ModelPart modelPart,
+        final PoseStack poseStack,
+        final RenderType renderType,
+        final int lightCoords,
+        final int overlayCoords,
+        final @Nullable UvMapping uvMapping,
+        final int tintedColor,
         final int outlineColor) {
       super.submitModelPart(
           modelPart, poseStack, renderType, lightCoords, overlayCoords, uvMapping, tintedColor, color);
     }
 
     @Override
-    public void submitMovingBlock(PoseStack poseStack, MovingBlockRenderState state, int outlineColor) {}
+    public void submitMovingBlock(PoseStack poseStack, MovingBlockRenderState state, int outlineColor) {
+    }
 
     @Override
-    public void submitBlockModel(PoseStack poseStack, RenderType renderType, List<BlockStateModelPart> modelParts,
-        int[] tintLayers, int lightCoords, int overlayCoords, int outlineColor) {
+    public void submitBlockModel(PoseStack poseStack,
+        RenderType renderType,
+        List<BlockStateModelPart> modelParts,
+        int[] tintLayers,
+        int lightCoords,
+        int overlayCoords,
+        int outlineColor) {
       Arrays.fill(tintLayers, color);
       super.submitBlockModel(poseStack, renderType, modelParts, tintLayers, lightCoords, overlayCoords, color);
     }
 
     @Override
     public void submitBreakingBlockModel(
-        PoseStack poseStack, List<BlockStateModelPart> parts, int progress, final boolean isBlockTranslucent) {}
+        PoseStack poseStack, List<BlockStateModelPart> parts, int progress, final boolean isBlockTranslucent) {
+    }
 
     @Override
-    public void submitItem(PoseStack poseStack, ItemDisplayContext displayContext, int lightCoords, int overlayCoords,
-        int outlineColor, int[] tintLayers, ItemQuads quads, ItemStackRenderState.FoilType foilType) {
+    public void submitItem(PoseStack poseStack,
+        ItemDisplayContext displayContext,
+        int lightCoords,
+        int overlayCoords,
+        int outlineColor,
+        int[] tintLayers,
+        ItemQuads quads,
+        ItemStackRenderState.FoilType foilType) {
       if (tints == null || tints[0] != color) {
         tints = new int[] {color, color, color, color};
       }
@@ -112,9 +155,11 @@ public class OutlineRenderCommandQueue extends SubmitNodeStorage {
 
     @Override
     public void submitCustomGeometry(
-        PoseStack poseStack, RenderType renderType, CustomGeometryRenderer customGeometryRenderer) {}
+        PoseStack poseStack, RenderType renderType, CustomGeometryRenderer customGeometryRenderer) {
+    }
 
     @Override
-    public void submitQuadParticleGroup(QuadParticleRenderState quadParticleRenderState) {}
+    public void submitQuadParticleGroup(QuadParticleRenderState quadParticleRenderState) {
+    }
   }
 }

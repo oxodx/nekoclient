@@ -18,7 +18,8 @@ import org.reflections.scanners.Scanners;
 public class ReflectInit {
   private static final List<Reflections> reflections = new ArrayList<>();
 
-  private ReflectInit() {}
+  private ReflectInit() {
+  }
 
   public static void registerPackages() {
     for (NekoAddon addon : AddonManager.ADDONS) {
@@ -68,8 +69,9 @@ public class ReflectInit {
     try {
       task.invoke(null);
     } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new IllegalStateException("Error running @%s task '%s.%s'".formatted(annotation.getSimpleName(),
-                                          task.getDeclaringClass().getSimpleName(), task.getName()),
+      throw new IllegalStateException(
+          "Error running @%s task '%s.%s'".formatted(
+              annotation.getSimpleName(), task.getDeclaringClass().getSimpleName(), task.getName()),
           e);
     } catch (NullPointerException e) {
       throw new RuntimeException(

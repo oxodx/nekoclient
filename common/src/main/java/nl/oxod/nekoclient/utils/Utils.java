@@ -85,7 +85,8 @@ public class Utils {
 
   private static final ProjectionMatrixBuffer matrixBuffer = new ProjectionMatrixBuffer("nekoclient-projection-matrix");
 
-  private Utils() {}
+  private Utils() {
+  }
 
   @PreInit
   public static void init() {
@@ -368,7 +369,10 @@ public class Utils {
 
   public static int searchLevenshteinDefault(String text, String filter, boolean caseSensitive) {
     return levenshteinDistance(caseSensitive ? filter : filter.toLowerCase(Locale.ROOT),
-        caseSensitive ? text : text.toLowerCase(Locale.ROOT), 1, 8, 8);
+        caseSensitive ? text : text.toLowerCase(Locale.ROOT),
+        1,
+        8,
+        8);
   }
 
   public static int searchInWords(String text, String filter) {
@@ -494,8 +498,8 @@ public class Utils {
   public static boolean canOpenGui() {
     if (canUpdate())
       return mc.gui.screen() == null;
-    return (mc.gui.screen() instanceof TitleScreen || mc.gui.screen() instanceof JoinMultiplayerScreen
-        || mc.gui.screen() instanceof SelectWorldScreen);
+    return (mc.gui.screen() instanceof TitleScreen || mc.gui.screen() instanceof JoinMultiplayerScreen ||
+        mc.gui.screen() instanceof SelectWorldScreen);
   }
 
   public static boolean canCloseGui() {
@@ -533,19 +537,19 @@ public class Utils {
   }
 
   public static <T> boolean contains(ColorCollection<T> collection, T value) {
-    return (collection.white() == value || collection.orange() == value || collection.magenta() == value
-        || collection.lightBlue() == value || collection.yellow() == value || collection.lime() == value
-        || collection.pink() == value || collection.gray() == value || collection.lightGray() == value
-        || collection.cyan() == value || collection.purple() == value || collection.blue() == value
-        || collection.brown() == value || collection.green() == value || collection.red() == value
-        || collection.black() == value);
+    return (collection.white() == value || collection.orange() == value || collection.magenta() == value ||
+        collection.lightBlue() == value || collection.yellow() == value || collection.lime() == value ||
+        collection.pink() == value || collection.gray() == value || collection.lightGray() == value ||
+        collection.cyan() == value || collection.purple() == value || collection.blue() == value ||
+        collection.brown() == value || collection.green() == value || collection.red() == value ||
+        collection.black() == value);
   }
 
   public static boolean isThrowable(Item item) {
-    return (item instanceof ExperienceBottleItem || item instanceof BowItem || item instanceof CrossbowItem
-        || item instanceof SnowballItem || item instanceof EggItem || item instanceof EnderpearlItem
-        || item instanceof SplashPotionItem || item instanceof LingeringPotionItem || item instanceof FishingRodItem
-        || item instanceof TridentItem);
+    return (item instanceof ExperienceBottleItem || item instanceof BowItem || item instanceof CrossbowItem ||
+        item instanceof SnowballItem || item instanceof EggItem || item instanceof EnderpearlItem ||
+        item instanceof SplashPotionItem || item instanceof LingeringPotionItem || item instanceof FishingRodItem ||
+        item instanceof TridentItem);
   }
 
   public static void addEnchantment(ItemStack itemStack, Holder<Enchantment> enchantment, int level) {
@@ -565,7 +569,8 @@ public class Utils {
   }
 
   public static Color lerp(Color first, Color second, @Range(from = 0, to = 1) float v) {
-    return new Color((int) (first.r * (1 - v) + second.r * v), (int) (first.g * (1 - v) + second.g * v),
+    return new Color((int) (first.r * (1 - v) + second.r * v),
+        (int) (first.g * (1 - v) + second.g * v),
         (int) (first.b * (1 - v) + second.b * v));
   }
 
@@ -636,20 +641,20 @@ public class Utils {
   // Filters
 
   public static boolean nameFilter(String text, char character) {
-    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
-        || (character >= '0' && character <= '9') || character == '_' || character == '-' || character == '.'
-        || character == ' ');
+    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+        (character >= '0' && character <= '9') || character == '_' || character == '-' || character == '.' ||
+        character == ' ');
   }
 
   public static boolean fileNameFilter(String text, char character) {
-    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
-        || (character >= '0' && character <= '9') || character == '_' || character == '-' || character == ' ');
+    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+        (character >= '0' && character <= '9') || character == '_' || character == '-' || character == ' ');
   }
 
   public static boolean ipFilter(String text, char character) {
     if (text.contains(":") && character == ':')
       return false;
-    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
-        || (character >= '0' && character <= '9') || character == '.' || character == '-' || character == ':');
+    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+        (character >= '0' && character <= '9') || character == '.' || character == '-' || character == ':');
   }
 }

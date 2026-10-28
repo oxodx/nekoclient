@@ -22,7 +22,8 @@ public final class InputClicker {
   private static PacedUseOwner pacedUseInProgress = PacedUseOwner.NONE;
   private static KeyMapping hotbarPressed;
 
-  private InputClicker() {}
+  private InputClicker() {
+  }
 
   public static void queueAttackClick() {
     attackQueued = true;
@@ -112,8 +113,8 @@ public final class InputClicker {
       simulate(MC.options.keyUse, true);
       usePressed = true;
     }
-    if (hotbarSlotQueued >= 0 && MC.options.keyHotbarSlots != null
-        && hotbarSlotQueued < MC.options.keyHotbarSlots.length) {
+    if (hotbarSlotQueued >= 0 && MC.options.keyHotbarSlots != null &&
+        hotbarSlotQueued < MC.options.keyHotbarSlots.length) {
       hotbarPressed = MC.options.keyHotbarSlots[hotbarSlotQueued];
       simulate(hotbarPressed, true);
     }
@@ -178,8 +179,8 @@ public final class InputClicker {
   }
 
   private static boolean canProcessInput() {
-    return MC != null && MC.player != null && MC.level != null && MC.options != null && MC.getWindow() != null
-        && MC.gui.screen() == null && MC.gui.overlay() == null;
+    return MC != null && MC.player != null && MC.level != null && MC.options != null && MC.getWindow() != null &&
+        MC.gui.screen() == null && MC.gui.overlay() == null;
   }
 
   private static void simulate(KeyMapping mapping, boolean pressed) {

@@ -28,7 +28,8 @@ public final class ScaffoldPlaceRenderer {
   private static volatile boolean customColor;
   private static volatile int color = 0xFFFF3B3B;
 
-  private ScaffoldPlaceRenderer() {}
+  private ScaffoldPlaceRenderer() {
+  }
 
   public static void push(boolean enabled, boolean custom, int customArgb) {
     on = enabled;

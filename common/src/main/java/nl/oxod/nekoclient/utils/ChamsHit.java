@@ -22,7 +22,8 @@ public final class ChamsHit {
 
   private record Pending(int prevHurtTime, int ticksLeft) {}
 
-  private ChamsHit() {}
+  private ChamsHit() {
+  }
 
   public static void onAttack(Entity entity) {
     if (!(entity instanceof LivingEntity living))
@@ -49,8 +50,8 @@ public final class ChamsHit {
       Map.Entry<Integer, Pending> e = it.next();
       Entity entity = mc.level.getEntity(e.getKey());
       Pending p = e.getValue();
-      boolean landed = entity instanceof LivingEntity living
-          && (living.hurtTime > p.prevHurtTime() || p.prevHurtTime() >= HURT_TIME && living.hurtTime >= HURT_TIME);
+      boolean landed = entity instanceof LivingEntity living &&
+          (living.hurtTime > p.prevHurtTime() || p.prevHurtTime() >= HURT_TIME && living.hurtTime >= HURT_TIME);
       if (landed) {
         FLASH.put(e.getKey(), System.currentTimeMillis());
         it.remove();

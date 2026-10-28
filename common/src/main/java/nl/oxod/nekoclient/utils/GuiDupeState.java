@@ -22,7 +22,8 @@ public final class GuiDupeState {
   private static Screen storedScreen;
   private static AbstractContainerMenu storedMenu;
 
-  private GuiDupeState() {}
+  private GuiDupeState() {
+  }
 
   public static boolean shouldSendGuiPackets() {
     return sendGuiPackets;

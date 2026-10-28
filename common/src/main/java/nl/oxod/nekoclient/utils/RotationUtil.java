@@ -11,7 +11,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public final class RotationUtil {
-  private RotationUtil() {}
+  private RotationUtil() {
+  }
 
   public record Rotation(float yaw, float pitch) {}
 

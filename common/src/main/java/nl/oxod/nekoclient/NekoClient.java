@@ -128,7 +128,8 @@ public class NekoClient {
 
   private static boolean platformBound;
 
-  private NekoClient() {}
+  private NekoClient() {
+  }
 
   /**
    * Runs the client bootstrap. Safe to call more than once; only the first call does anything.
@@ -282,9 +283,9 @@ public class NekoClient {
       if (GuiThemes.get().hideHUD() || wasHudHiddenRoot) {
         // Always show the MC HUD in the HUD editor screen since people like
         // to align some items with the hotbar or chat
-        mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = !(event.screen instanceof HudEditorScreen)
-            && !(event.screen instanceof AddHudElementScreen) && !(event.screen instanceof HudElementScreen)
-            && !(event.screen instanceof HudElementPresetsScreen);
+        mc.gameRenderer.gameRenderState().guiRenderState.isHudHidden = !(event.screen instanceof HudEditorScreen) &&
+            !(event.screen instanceof AddHudElementScreen) && !(event.screen instanceof HudElementScreen) &&
+            !(event.screen instanceof HudElementPresetsScreen);
       }
     } else {
       if (wasWidgetScreen)
@@ -303,8 +304,8 @@ public class NekoClient {
     if (!(screen instanceof WidgetScreen))
       return false;
 
-    return (!(screen instanceof HudEditorScreen) && !(screen instanceof AddHudElementScreen)
-        && !(screen instanceof HudElementScreen));
+    return (!(screen instanceof HudEditorScreen) && !(screen instanceof AddHudElementScreen) &&
+        !(screen instanceof HudElementScreen));
   }
 
   public static Identifier identifier(String path) {

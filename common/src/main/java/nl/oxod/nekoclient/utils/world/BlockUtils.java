@@ -48,7 +48,8 @@ public class BlockUtils {
   public static boolean breaking;
   private static boolean breakingThisTick;
 
-  private BlockUtils() {}
+  private BlockUtils() {
+  }
 
   @PreInit
   public static void init() {
@@ -74,25 +75,52 @@ public class BlockUtils {
     return place(blockPos, findItemResult, true, rotationPriority, true, checkEntities);
   }
 
-  public static boolean place(BlockPos blockPos, FindItemResult findItemResult, boolean rotate, int rotationPriority,
-      boolean swingHand, boolean checkEntities) {
+  public static boolean place(BlockPos blockPos,
+      FindItemResult findItemResult,
+      boolean rotate,
+      int rotationPriority,
+      boolean swingHand,
+      boolean checkEntities) {
     return place(blockPos, findItemResult, rotate, rotationPriority, swingHand, checkEntities, true);
   }
 
-  public static boolean place(BlockPos blockPos, FindItemResult findItemResult, boolean rotate, int rotationPriority,
-      boolean swingHand, boolean checkEntities, boolean swapBack) {
+  public static boolean place(BlockPos blockPos,
+      FindItemResult findItemResult,
+      boolean rotate,
+      int rotationPriority,
+      boolean swingHand,
+      boolean checkEntities,
+      boolean swapBack) {
     if (findItemResult.isOffhand()) {
-      return place(blockPos, InteractionHand.OFF_HAND, mc.player.getInventory().getSelectedSlot(), rotate,
-          rotationPriority, swingHand, checkEntities, swapBack);
+      return place(blockPos,
+          InteractionHand.OFF_HAND,
+          mc.player.getInventory().getSelectedSlot(),
+          rotate,
+          rotationPriority,
+          swingHand,
+          checkEntities,
+          swapBack);
     } else if (findItemResult.isHotbar()) {
-      return place(blockPos, InteractionHand.MAIN_HAND, findItemResult.slot(), rotate, rotationPriority, swingHand,
-          checkEntities, swapBack);
+      return place(blockPos,
+          InteractionHand.MAIN_HAND,
+          findItemResult.slot(),
+          rotate,
+          rotationPriority,
+          swingHand,
+          checkEntities,
+          swapBack);
     }
     return false;
   }
 
-  public static boolean place(BlockPos blockPos, InteractionHand hand, int slot, boolean rotate, int rotationPriority,
-      boolean swingHand, boolean checkEntities, boolean swapBack) {
+  public static boolean place(BlockPos blockPos,
+      InteractionHand hand,
+      int slot,
+      boolean rotate,
+      int rotationPriority,
+      boolean swingHand,
+      boolean checkEntities,
+      boolean swapBack) {
     if (slot < 0 || slot > 8)
       return false;
 
@@ -146,8 +174,8 @@ public class BlockUtils {
 
     InteractionResult result = mc.gameMode.useItemOn(mc.player, hand, blockHitResult);
 
-    if (result instanceof InteractionResult.Success success
-        && success.swingSource() == InteractionResult.SwingSource.PREDICTED) {
+    if (result instanceof InteractionResult.Success success &&
+        success.swingSource() == InteractionResult.SwingSource.PREDICTED) {
       SwingMode.of(swing).interactSwing(hand);
     }
 
@@ -317,11 +345,11 @@ public class BlockUtils {
   // Other
 
   public static boolean isClickable(Block block) {
-    return (block instanceof CraftingTableBlock || block instanceof AnvilBlock || block instanceof LoomBlock
-        || block instanceof CartographyTableBlock || block instanceof GrindstoneBlock
-        || block instanceof StonecutterBlock || block instanceof ButtonBlock || block instanceof BasePressurePlateBlock
-        || block instanceof BaseEntityBlock || block instanceof BedBlock || block instanceof FenceGateBlock
-        || block instanceof DoorBlock || block instanceof NoteBlock || block instanceof TrapDoorBlock);
+    return (block instanceof CraftingTableBlock || block instanceof AnvilBlock || block instanceof LoomBlock ||
+        block instanceof CartographyTableBlock || block instanceof GrindstoneBlock ||
+        block instanceof StonecutterBlock || block instanceof ButtonBlock || block instanceof BasePressurePlateBlock ||
+        block instanceof BaseEntityBlock || block instanceof BedBlock || block instanceof FenceGateBlock ||
+        block instanceof DoorBlock || block instanceof NoteBlock || block instanceof TrapDoorBlock);
   }
 
   public static MobSpawn isValidMobSpawn(BlockPos blockPos, BlockState blockState, int spawnLightLimit) {
@@ -343,8 +371,8 @@ public class BlockUtils {
   public static boolean isValidSpawnBlock(BlockState blockState) {
     Block block = blockState.getBlock();
 
-    if (block == Blocks.BEDROCK || block == Blocks.BARRIER || block instanceof TransparentBlock
-        || block instanceof ScaffoldingBlock)
+    if (block == Blocks.BEDROCK || block == Blocks.BARRIER || block instanceof TransparentBlock ||
+        block instanceof ScaffoldingBlock)
       return false;
 
     if (block == Blocks.SOUL_SAND || block == Blocks.MUD)
@@ -364,8 +392,8 @@ public class BlockUtils {
 
     if (eyePos > pos.getY() + outline.max(Direction.Axis.Y) && mc.level.getBlockState(pos.above()).canBeReplaced()) {
       return Direction.UP;
-    } else if (eyePos < pos.getY() + outline.min(Direction.Axis.Y)
-        && mc.level.getBlockState(pos.below()).canBeReplaced()) {
+    } else if (eyePos < pos.getY() + outline.min(Direction.Axis.Y) &&
+        mc.level.getBlockState(pos.below()).canBeReplaced()) {
       return Direction.DOWN;
     } else {
       BlockPos difference = pos.subtract(mc.player.blockPosition());
@@ -401,9 +429,9 @@ public class BlockUtils {
     if (hardness == -1)
       return 0;
     else {
-      return (getDestroySpeed(slot, state) / hardness
-          / (!state.requiresCorrectToolForDrops()
-                      || mc.player.getInventory().getNonEquipmentItems().get(slot).isCorrectToolForDrops(state)
+      return (getDestroySpeed(slot, state) / hardness /
+          (!state.requiresCorrectToolForDrops() ||
+                      mc.player.getInventory().getNonEquipmentItems().get(slot).isCorrectToolForDrops(state)
                   ? 30
                   : 100));
     }

@@ -31,7 +31,8 @@ public class BlockIterator {
 
   private static boolean disableCurrent;
 
-  private BlockIterator() {}
+  private BlockIterator() {
+  }
 
   @PreInit
   public static void init() {
@@ -78,7 +79,8 @@ public class BlockIterator {
     callbackPool.freeAll(callbacks);
     callbacks.clear();
 
-    for (Runnable callback : afterCallbacks) callback.run();
+    for (Runnable callback : afterCallbacks)
+      callback.run();
     afterCallbacks.clear();
   }
 

@@ -14,7 +14,8 @@ public final class CpsTracker {
   private static int leftIdx;
   private static int rightIdx;
 
-  private CpsTracker() {}
+  private CpsTracker() {
+  }
 
   public static void recordLeft() {
     LEFT[leftIdx] = System.nanoTime();

@@ -66,8 +66,14 @@ public class BannerTooltipComponent implements NekoTooltipData, ClientTooltipCom
 
     GuiGraphicsExtractorAccessor contextAccessor = (GuiGraphicsExtractorAccessor) graphics;
 
-    contextAccessor.getGuiRenderState().addPicturesInPictureState(
-        new CustomBannerGuiElementRenderState(bannerFlag, color, patterns, centerX + x, y, centerX + x + getWidth(null),
-            y + getHeight(null), contextAccessor.getScissorStack().peek(), 16 * 2));
+    contextAccessor.getGuiRenderState().addPicturesInPictureState(new CustomBannerGuiElementRenderState(bannerFlag,
+        color,
+        patterns,
+        centerX + x,
+        y,
+        centerX + x + getWidth(null),
+        y + getHeight(null),
+        contextAccessor.getScissorStack().peek(),
+        16 * 2));
   }
 }

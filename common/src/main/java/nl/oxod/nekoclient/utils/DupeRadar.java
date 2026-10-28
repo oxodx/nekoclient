@@ -75,7 +75,8 @@ public final class DupeRadar {
   private static ProviderCache cache = loadCache();
   private static volatile RadarState state = initialState();
 
-  private DupeRadar() {}
+  private DupeRadar() {
+  }
 
   public static RadarState state() {
     ensureUserFromCache();
@@ -211,8 +212,18 @@ public final class DupeRadar {
     ProviderCache loaded = cache;
     boolean authed = loaded != null && loaded.accessToken != null && !loaded.accessToken.isBlank();
     String username = loaded == null ? null : loaded.username;
-    return new RadarState(PROVIDER_ID, PROVIDER_LABEL, authed, false, false, username,
-        authed ? "Ready." : "Login required.", null, List.of(), 0, 0L, false);
+    return new RadarState(PROVIDER_ID,
+        PROVIDER_LABEL,
+        authed,
+        false,
+        false,
+        username,
+        authed ? "Ready." : "Login required.",
+        null,
+        List.of(),
+        0,
+        0L,
+        false);
   }
 
   private static void ensureUserFromCache() {
@@ -237,8 +248,8 @@ public final class DupeRadar {
       int port = server.getLocalPort();
       String redirect = "http://127.0.0.1:" + port + "/callback";
       String loginUrl = BASE_URL + "/api/oauth/authorize?response_type=code"
-          + "&client_id=" + url(CLIENT_ID) + "&redirect_uri=" + url(redirect) + "&code_challenge=" + url(challenge)
-          + "&code_challenge_method=S256"
+          + "&client_id=" + url(CLIENT_ID) + "&redirect_uri=" + url(redirect) + "&code_challenge=" + url(challenge) +
+          "&code_challenge_method=S256"
           + "&state=" + url(stateToken);
       Blaze3D.openUri(URI.create(loginUrl));
       publish(generation, state.withBusy(true, false, "Waiting for browser login...", null));
@@ -261,11 +272,11 @@ public final class DupeRadar {
           }
         }
         String responseBody = "<html><body style=\"font-family:sans-serif;background:#111;color:#eee\"><h2>NekoClient "
-                              + "Radar login received.</h2>You can close this tab.</body></html>";
+            + "Radar login received.</h2>You can close this tab.</body></html>";
         byte[] responseBytes = responseBody.getBytes(StandardCharsets.UTF_8);
         OutputStream out = socket.getOutputStream();
-        out.write(("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: "
-            + responseBytes.length + "\r\n\r\n")
+        out.write(("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " +
+            responseBytes.length + "\r\n\r\n")
                 .getBytes(StandardCharsets.UTF_8));
         out.write(responseBytes);
         out.flush();
@@ -313,9 +324,16 @@ public final class DupeRadar {
 
           boolean exact = findingsNamePlugin(findings, snapshot.displayName());
           String provider = firstAffectedPlugin(findings, snapshot.displayName());
-          RadarMatch match = new RadarMatch(snapshot.displayName(), provider, exact ? "Exact" : "Fuzzy",
-              exact ? MatchSource.PLUGIN : MatchSource.PLUGIN_FUZZY, exact ? 1.0D : 0.9D, snapshot.displayName(),
-              BASE_URL + "/?plugin=" + url(provider), PROVIDER_LABEL, findings, newestTimestamp(findings));
+          RadarMatch match = new RadarMatch(snapshot.displayName(),
+              provider,
+              exact ? "Exact" : "Fuzzy",
+              exact ? MatchSource.PLUGIN : MatchSource.PLUGIN_FUZZY,
+              exact ? 1.0D : 0.9D,
+              snapshot.displayName(),
+              BASE_URL + "/?plugin=" + url(provider),
+              PROVIDER_LABEL,
+              findings,
+              newestTimestamp(findings));
           addDedupedHits(dedupedHits, match);
         } catch (Exception ignored) {
         }
@@ -328,8 +346,16 @@ public final class DupeRadar {
         if (findings.isEmpty())
           continue;
         MatchSource source = identity.ip() ? MatchSource.SERVER_IP : MatchSource.SERVER_DOMAIN;
-        RadarMatch match = new RadarMatch(identity.value(), identity.value(), "Server", source, 1.0D, identity.value(),
-            BASE_URL, PROVIDER_LABEL, findings, newestTimestamp(findings));
+        RadarMatch match = new RadarMatch(identity.value(),
+            identity.value(),
+            "Server",
+            source,
+            1.0D,
+            identity.value(),
+            BASE_URL,
+            PROVIDER_LABEL,
+            findings,
+            newestTimestamp(findings));
         addDedupedHits(dedupedHits, match);
       }
 
@@ -410,8 +436,8 @@ public final class DupeRadar {
     Map<String, RadarMatchBuilder> builders = new LinkedHashMap<>();
     for (RadarFindingHit hit : hits.values()) {
       RadarMatch match = hit.match;
-      String key = match.matchSource().name() + "|" + normalize(match.detectedPlugin()) + "|"
-          + normalize(match.providerPlugin());
+      String key = match.matchSource().name() + "|" + normalize(match.detectedPlugin()) + "|" +
+          normalize(match.providerPlugin());
       RadarMatchBuilder builder = builders.computeIfAbsent(key, unused -> new RadarMatchBuilder(match));
       builder.findings.add(hit.finding);
     }
@@ -467,13 +493,13 @@ public final class DupeRadar {
   }
 
   private static String pluginSearchEndpoint(String plugin) {
-    return BASE_URL + "/api/exploits/search?scope=plugin&q=" + url(plugin) + "&status=" + EXPLOIT_SEARCH_STATUSES
-        + "&sort=date_submitted&order=desc&page=1&limit=" + MAX_FINDINGS_PER_PLUGIN;
+    return BASE_URL + "/api/exploits/search?scope=plugin&q=" + url(plugin) + "&status=" + EXPLOIT_SEARCH_STATUSES +
+        "&sort=date_submitted&order=desc&page=1&limit=" + MAX_FINDINGS_PER_PLUGIN;
   }
 
   private static String serverSearchEndpoint(String host) {
-    return BASE_URL + "/api/exploits/search?scope=serverip&q=" + url(host) + "&status=" + EXPLOIT_SEARCH_STATUSES
-        + "&sort=date_submitted&order=desc&page=1&limit=" + MAX_FINDINGS_PER_PLUGIN;
+    return BASE_URL + "/api/exploits/search?scope=serverip&q=" + url(host) + "&status=" + EXPLOIT_SEARCH_STATUSES +
+        "&sort=date_submitted&order=desc&page=1&limit=" + MAX_FINDINGS_PER_PLUGIN;
   }
 
   private static List<RadarFinding> getPluginFindings(String plugin, boolean forceRefresh) throws IOException {
@@ -541,8 +567,15 @@ public final class DupeRadar {
       long timestamp = parseTimestampMs(object, fallbackTimestamp);
       String sourceUrl = safeFindingUrl(null, id == null || id.isBlank() ? title : id);
       unique.putIfAbsent(finalId,
-          new RadarFinding(finalId, title.trim(), status, cardBadge(object), affectedPlugin, sourceUrl, PROVIDER_LABEL,
-              timestamp, cardServerIps(object)));
+          new RadarFinding(finalId,
+              title.trim(),
+              status,
+              cardBadge(object),
+              affectedPlugin,
+              sourceUrl,
+              PROVIDER_LABEL,
+              timestamp,
+              cardServerIps(object)));
     }
     List<RadarFinding> out = new ArrayList<>(unique.values());
     out.sort(Comparator.comparingLong(RadarFinding::sortTimestampMs)
@@ -678,8 +711,8 @@ public final class DupeRadar {
       try {
         URI uri = URI.create(clean);
         String host = uri.getHost();
-        if (host == null
-            || !("dupedb.net".equalsIgnoreCase(host) || host.toLowerCase(Locale.ROOT).endsWith(".dupedb.net"))) {
+        if (host == null ||
+            !("dupedb.net".equalsIgnoreCase(host) || host.toLowerCase(Locale.ROOT).endsWith(".dupedb.net"))) {
           return looksLikeExploitId(fallbackText) ? BASE_URL + "/exploit/" + urlPath(fallbackText)
                                                   : BASE_URL + "/?q=" + url(fallbackText);
         }
@@ -701,8 +734,8 @@ public final class DupeRadar {
                                                 : BASE_URL + "/?q=" + url(fallbackText);
       }
     }
-    if (lower.startsWith("/exploit/") || lower.startsWith("/exploits/") || lower.startsWith(BASE_URL + "/exploit/")
-        || lower.startsWith(BASE_URL + "/exploits/")) {
+    if (lower.startsWith("/exploit/") || lower.startsWith("/exploits/") || lower.startsWith(BASE_URL + "/exploit/") ||
+        lower.startsWith(BASE_URL + "/exploits/")) {
       String id = clean.substring(clean.lastIndexOf('/') + 1);
       return BASE_URL + "/exploit/" + urlPath(id);
     }
@@ -721,8 +754,8 @@ public final class DupeRadar {
 
   private static TokenResponse exchangeCode(String code, String verifier, String redirectUri) throws IOException {
     String body = "grant_type=authorization_code"
-        + "&client_id=" + url(CLIENT_ID) + "&code=" + url(code) + "&code_verifier=" + url(verifier)
-        + "&redirect_uri=" + url(redirectUri);
+        + "&client_id=" + url(CLIENT_ID) + "&code=" + url(code) + "&code_verifier=" + url(verifier) +
+        "&redirect_uri=" + url(redirectUri);
     String raw = httpPost(BASE_URL + "/api/oauth/token", body);
     JsonObject object = JsonParser.parseString(raw).getAsJsonObject();
     String accessToken = firstString(object, "access_token", "accessToken", "token");
@@ -1102,11 +1135,32 @@ public final class DupeRadar {
   private static long parseTimestampMs(JsonObject object, long fallbackMs) {
     if (object == null)
       return fallbackMs;
-    for (String key : List.of("updated_at", "updatedAt", "published_at", "publishedAt", "submitted_at", "submittedAt",
-             "date_submitted", "dateSubmitted", "created_at", "createdAt", "last_activity_at", "lastActivityAt",
-             "marked_working_at", "markedWorkingAt", "marked_patched_at", "markedPatchedAt", "verified_at",
-             "verifiedAt", "working_at", "patched_at", "sighting_created_at", "sightingCreatedAt",
-             "sighting_updated_at", "sightingUpdatedAt", "sighting_date", "sightingDate")) {
+    for (String key : List.of("updated_at",
+             "updatedAt",
+             "published_at",
+             "publishedAt",
+             "submitted_at",
+             "submittedAt",
+             "date_submitted",
+             "dateSubmitted",
+             "created_at",
+             "createdAt",
+             "last_activity_at",
+             "lastActivityAt",
+             "marked_working_at",
+             "markedWorkingAt",
+             "marked_patched_at",
+             "markedPatchedAt",
+             "verified_at",
+             "verifiedAt",
+             "working_at",
+             "patched_at",
+             "sighting_created_at",
+             "sightingCreatedAt",
+             "sighting_updated_at",
+             "sightingUpdatedAt",
+             "sighting_date",
+             "sightingDate")) {
       if (!object.has(key))
         continue;
       JsonElement value = object.get(key);
@@ -1191,8 +1245,13 @@ public final class DupeRadar {
     return url(value).replace("+", "%20");
   }
 
-  public record RadarPluginSnapshot(String displayName, String canonicalKey, String confidence, int commandCount,
-      List<String> channels, List<String> guis, boolean feature) {
+  public record RadarPluginSnapshot(String displayName,
+      String canonicalKey,
+      String confidence,
+      int commandCount,
+      List<String> channels,
+      List<String> guis,
+      boolean feature) {
     public RadarPluginSnapshot {
       displayName = displayName == null ? "" : displayName.trim();
       canonicalKey = canonicalKey == null ? normalize(displayName) : canonicalKey.trim();
@@ -1250,16 +1309,30 @@ public final class DupeRadar {
     }
   }
 
-  public record RadarFinding(String id, String title, String status, String summary, String affectedPlugin,
-      String sourceUrl, String provider, long sortTimestampMs, List<String> affectedServers) {
+  public record RadarFinding(String id,
+      String title,
+      String status,
+      String summary,
+      String affectedPlugin,
+      String sourceUrl,
+      String provider,
+      long sortTimestampMs,
+      List<String> affectedServers) {
     public RadarFinding {
       affectedServers = affectedServers == null ? List.of() : List.copyOf(affectedServers);
     }
   }
 
-  public record RadarMatch(String detectedPlugin, String providerPlugin, String matchConfidence,
-      MatchSource matchSource, double matchScore, String matchedInput, String sourceUrl, String provider,
-      List<RadarFinding> findings, long sortTimestampMs) {
+  public record RadarMatch(String detectedPlugin,
+      String providerPlugin,
+      String matchConfidence,
+      MatchSource matchSource,
+      double matchScore,
+      String matchedInput,
+      String sourceUrl,
+      String provider,
+      List<RadarFinding> findings,
+      long sortTimestampMs) {
     public RadarMatch {
       detectedPlugin = detectedPlugin == null ? "" : detectedPlugin;
       providerPlugin = providerPlugin == null ? "" : providerPlugin;
@@ -1280,36 +1353,95 @@ public final class DupeRadar {
     }
   }
 
-  public record RadarState(String providerId, String providerLabel, boolean authenticated, boolean authenticating,
-      boolean checking, String username, String status, String error, List<RadarMatch> matches, int detectedPluginCount,
-      long updatedAtMs, boolean stale) {
+  public record RadarState(String providerId,
+      String providerLabel,
+      boolean authenticated,
+      boolean authenticating,
+      boolean checking,
+      String username,
+      String status,
+      String error,
+      List<RadarMatch> matches,
+      int detectedPluginCount,
+      long updatedAtMs,
+      boolean stale) {
     public RadarState {
       matches = matches == null ? List.of() : List.copyOf(matches);
     }
 
     public RadarState withAuth(boolean authenticated, String username) {
-      return new RadarState(providerId, providerLabel, authenticated, authenticating, checking, username, status, error,
-          matches, detectedPluginCount, updatedAtMs, stale);
+      return new RadarState(providerId,
+          providerLabel,
+          authenticated,
+          authenticating,
+          checking,
+          username,
+          status,
+          error,
+          matches,
+          detectedPluginCount,
+          updatedAtMs,
+          stale);
     }
 
     public RadarState withBusy(boolean authenticating, boolean checking, String status, String error) {
-      return new RadarState(providerId, providerLabel, authenticated, authenticating, checking, username,
-          status == null ? this.status : status, error, matches, detectedPluginCount, updatedAtMs, stale);
+      return new RadarState(providerId,
+          providerLabel,
+          authenticated,
+          authenticating,
+          checking,
+          username,
+          status == null ? this.status : status,
+          error,
+          matches,
+          detectedPluginCount,
+          updatedAtMs,
+          stale);
     }
 
     public RadarState withMatches(List<RadarMatch> matches, int detectedPluginCount, boolean stale) {
-      return new RadarState(providerId, providerLabel, authenticated, authenticating, checking, username, status, error,
-          matches, detectedPluginCount, System.currentTimeMillis(), stale);
+      return new RadarState(providerId,
+          providerLabel,
+          authenticated,
+          authenticating,
+          checking,
+          username,
+          status,
+          error,
+          matches,
+          detectedPluginCount,
+          System.currentTimeMillis(),
+          stale);
     }
 
     public RadarState withPluginCount(int count) {
-      return new RadarState(providerId, providerLabel, authenticated, authenticating, checking, username, status, error,
-          matches, count, updatedAtMs, stale);
+      return new RadarState(providerId,
+          providerLabel,
+          authenticated,
+          authenticating,
+          checking,
+          username,
+          status,
+          error,
+          matches,
+          count,
+          updatedAtMs,
+          stale);
     }
 
     public RadarState markStale() {
-      return new RadarState(providerId, providerLabel, authenticated, authenticating, checking, username, status, error,
-          matches, detectedPluginCount, updatedAtMs, true);
+      return new RadarState(providerId,
+          providerLabel,
+          authenticated,
+          authenticating,
+          checking,
+          username,
+          status,
+          error,
+          matches,
+          detectedPluginCount,
+          updatedAtMs,
+          true);
     }
   }
 
@@ -1350,9 +1482,16 @@ public final class DupeRadar {
 
     RadarMatch toMatch() {
       long newest = newestTimestamp(findings);
-      return new RadarMatch(prototype.detectedPlugin(), prototype.providerPlugin(), prototype.matchConfidence(),
-          prototype.matchSource(), prototype.matchScore(), prototype.matchedInput(), prototype.sourceUrl(),
-          prototype.provider(), findings, newest);
+      return new RadarMatch(prototype.detectedPlugin(),
+          prototype.providerPlugin(),
+          prototype.matchConfidence(),
+          prototype.matchSource(),
+          prototype.matchScore(),
+          prototype.matchedInput(),
+          prototype.sourceUrl(),
+          prototype.provider(),
+          findings,
+          newest);
     }
   }
 

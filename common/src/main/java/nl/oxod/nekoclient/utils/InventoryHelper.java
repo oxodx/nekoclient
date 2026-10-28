@@ -9,7 +9,8 @@ import net.minecraft.client.Minecraft;
 import nl.oxod.nekoclient.mixin.KillAuraMultiPlayerGameModeAccessor;
 
 public final class InventoryHelper {
-  private InventoryHelper() {}
+  private InventoryHelper() {
+  }
 
   public static void selectHotbarSlot(Minecraft mc, int slot) {
     if (mc == null || mc.player == null || mc.gameMode == null || mc.getConnection() == null)

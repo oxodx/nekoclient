@@ -19,7 +19,8 @@ public final class KillAuraRenderer {
   private static volatile long hitAtMs;
   private static volatile Color hitMarkerFill = new Color(0x59FF3B3B);
 
-  private KillAuraRenderer() {}
+  private KillAuraRenderer() {
+  }
 
   public record RenderSettings(Color color, boolean targetBox, boolean hitMarker, long hitMarkerDurationMs) {}
 
@@ -46,8 +47,16 @@ public final class KillAuraRenderer {
 
     AABB marker = frozenBox;
     if (settings.hitMarker() && marker != null && now - hitAtMs < settings.hitMarkerDurationMs()) {
-      event.renderer.box(marker.minX, marker.minY, marker.minZ, marker.maxX, marker.maxY, marker.maxZ,
-          new Color(hitMarkerFill), null, ShapeMode.Sides, 0);
+      event.renderer.box(marker.minX,
+          marker.minY,
+          marker.minZ,
+          marker.maxX,
+          marker.maxY,
+          marker.maxZ,
+          new Color(hitMarkerFill),
+          null,
+          ShapeMode.Sides,
+          0);
     }
   }
 

@@ -43,8 +43,8 @@ public class ChunkIterator implements Iterator<ChunkAccess> {
     int x = chunk.getPos().x();
     int z = chunk.getPos().z();
 
-    return mc.level.getChunkSource().hasChunk(x + 1, z) && mc.level.getChunkSource().hasChunk(x - 1, z)
-        && mc.level.getChunkSource().hasChunk(x, z + 1) && mc.level.getChunkSource().hasChunk(x, z - 1);
+    return mc.level.getChunkSource().hasChunk(x + 1, z) && mc.level.getChunkSource().hasChunk(x - 1, z) &&
+        mc.level.getChunkSource().hasChunk(x, z + 1) && mc.level.getChunkSource().hasChunk(x, z - 1);
   }
 
   @Override
