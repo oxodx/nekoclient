@@ -6,28 +6,26 @@
 package nl.oxod.nekoclient.systems.modules.combat;
 
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
-import nl.oxod.nekoclient.events.world.TickEvent;
+import nl.oxod.nekoclient.events.entity.player.AttackEntityEvent;
 import nl.oxod.nekoclient.mixininterface.IServerboundMovePlayerPacket;
 import nl.oxod.nekoclient.settings.BoolSetting;
 import nl.oxod.nekoclient.settings.DoubleSetting;
-import nl.oxod.nekoclient.settings.IntSetting;
 import nl.oxod.nekoclient.settings.Setting;
 import nl.oxod.nekoclient.settings.SettingGroup;
 import nl.oxod.nekoclient.systems.modules.Categories;
 import nl.oxod.nekoclient.systems.modules.Module;
-import nl.oxod.nekoclient.utils.player.ChatUtils;
+import nl.oxod.nekoclient.utils.player.InvUtils;
 
 public class MaceDMG extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<Double> fakeHeight = sgGeneral.add(new DoubleSetting.Builder()
         .name("fake-height")
-        .description("Fake height in blocks sent before the hit.")
+        .description("Fall distance to spoof for mace damage.")
         .defaultValue(22.0)
         .min(1.0)
         .max(50.0)
@@ -35,121 +33,51 @@ public class MaceDMG extends Module {
         .build()
     );
 
-    private final Setting<Integer> attackInterval = sgGeneral.add(new IntSetting.Builder()
-        .name("attack-interval")
-        .description("Attack interval in ms.")
-        .defaultValue(55)
-        .min(25)
-        .max(2000)
-        .sliderRange(25, 500)
-        .build()
-    );
-
-    private final Setting<Boolean> globalDetection = sgGeneral.add(new BoolSetting.Builder()
-        .name("global-attack-detect")
-        .description("Intercepts all attack events when enabled.")
-        .defaultValue(true)
-        .build()
-    );
-
     private final Setting<Boolean> autoSwitch = sgGeneral.add(new BoolSetting.Builder()
         .name("auto-switch")
-        .description("Auto-switch to mace when one is in the inventory.")
+        .description("Auto-switch to mace when hitting.")
         .defaultValue(true)
         .build()
     );
 
-    private final Setting<Integer> normalPackets = sgGeneral.add(new IntSetting.Builder()
-        .name("normal-packets")
-        .description("Normal position packets before the high packet.")
-        .defaultValue(4)
-        .min(1)
-        .max(10)
-        .sliderRange(1, 8)
-        .build()
-    );
-
-    private final Setting<Boolean> chatInfo = sgGeneral.add(new BoolSetting.Builder()
-        .name("chat-info")
-        .description("Show trigger info in chat.")
+    private final Setting<Boolean> onlyPlayers = sgGeneral.add(new BoolSetting.Builder()
+        .name("only-players")
+        .description("Only work on players.")
         .defaultValue(false)
         .build()
     );
 
-    private long lastAttackTime;
-    private float lastCooldown;
-
     public MaceDMG() {
-        super(Categories.Combat, "mace-dmg", "Fakes fall height on mace hits for max damage.");
-    }
-
-    @Override
-    public void onActivate() {
-        lastAttackTime = 0;
-        lastCooldown = 0;
+        super(Categories.Combat, "mace-dmg", "Spoofs fall height on mace hits.");
     }
 
     @EventHandler
-    private void onTick(TickEvent.Post event) {
-        if (mc.player == null || mc.level == null) return;
-        if (nl.oxod.nekoclient.utils.player.PlayerUtils.getGameMode() == GameType.SPECTATOR) return;
+    private void onAttack(AttackEntityEvent event) {
+        if (mc.player == null || mc.getConnection() == null || mc.level == null) return;
+        if (!(event.entity instanceof LivingEntity)) return;
+        if (onlyPlayers.get() && !(event.entity instanceof Player)) return;
 
-        if (autoSwitch.get() && !isHoldingMace(mc.player)) {
+        if (!isHoldingMace(mc.player)) {
+            if (!autoSwitch.get()) return;
             switchToMace();
+            if (!isHoldingMace(mc.player)) return;
         }
 
-        if (!isHoldingMace(mc.player)) return;
-
-        boolean shouldAttack = false;
-
-        if (globalDetection.get()) {
-            float currentCooldown = mc.player.getAttackStrengthScale(0);
-            if (lastCooldown > 0.5f && currentCooldown < 0.01f) {
-                shouldAttack = true;
-            }
-            lastCooldown = currentCooldown;
-        } else {
-            if (mc.options.keyAttack.isDown()) {
-                // Manual trigger - rely on player clicking
-            }
-            if (mc.options.keyAttack.consumeClick()) {
-                shouldAttack = true;
-            }
-        }
-
-        if (!shouldAttack) return;
-
-        long now = System.currentTimeMillis();
-        if (lastAttackTime == 0) lastAttackTime = now;
-        long elapsed = now - lastAttackTime;
-        if (elapsed < attackInterval.get()) return;
-        lastAttackTime = now;
-
-        performMaceDMG();
-    }
-
-    private void performMaceDMG() {
-        if (mc.player == null || mc.getConnection() == null) return;
         double height = fakeHeight.get();
-
-        sendFake(height);
-        sendFake(height);
-        sendFake(0);
-        mc.player.fallDistance = (float) height;
-
-        if (chatInfo.get()) {
-            info("MaceDMG triggered | height=" + String.format("%.1f", height));
-        }
-    }
-
-    private void sendFake(double extra) {
-        if (mc.player == null || mc.getConnection() == null) return;
         double x = mc.player.getX();
         double y = mc.player.getY();
         double z = mc.player.getZ();
-        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(x, y + extra, z, false, mc.player.horizontalCollision);
+
+        mc.getConnection().send(newMovePacket(x, y + height, z, false));
+        mc.getConnection().send(newMovePacket(x, y + height + 0.01, z, false));
+        mc.getConnection().send(newMovePacket(x, y, z, false));
+        mc.player.fallDistance = (float) height;
+    }
+
+    private ServerboundMovePlayerPacket newMovePacket(double x, double y, double z, boolean onGround) {
+        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(x, y, z, onGround, mc.player.horizontalCollision);
         ((IServerboundMovePlayerPacket) packet).neko$setTag(1337);
-        mc.getConnection().send(packet);
+        return packet;
     }
 
     private boolean isHoldingMace(Player player) {
