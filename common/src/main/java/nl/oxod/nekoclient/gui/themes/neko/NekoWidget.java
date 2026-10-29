@@ -29,6 +29,7 @@ public interface NekoWidget extends BaseWidget {
 
   default void renderBackground(GuiRenderer renderer, WWidget widget, boolean pressed, boolean mouseOver) {
     NekoGuiTheme theme = theme();
-    renderBackground(renderer, widget, theme.outlineColor.get(pressed, mouseOver), theme.backgroundColor.get(pressed, mouseOver));
+    Color surface = pressed || mouseOver ? theme.surfaceHighColor.get() : theme.surfaceColor.get();
+    renderBackground(renderer, widget, theme.outlineColor.get(pressed, mouseOver), surface);
   }
 }

@@ -48,6 +48,7 @@ public class WNekoDropdown<T> extends WDropdown<T> implements NekoWidget {
             double s = theme.scale(2);
             Color c = theme.outlineColor.get();
 
+            renderer.quad(this, theme.surfaceColor.get());
             renderer.quad(x, y + height - s, width, s, c);
             renderer.quad(x, y, s, height - s, c);
             renderer.quad(x + width - s, y, s, height - s, c);
@@ -67,14 +68,7 @@ public class WNekoDropdown<T> extends WDropdown<T> implements NekoWidget {
         protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
             NekoGuiTheme theme = theme();
 
-            Color color = theme.backgroundColor.get(pressed, mouseOver, true);
-            int preA = color.a;
-            color.a += color.a / 2;
-            color.validate();
-
-            renderer.quad(this, color);
-
-            color.a = preA;
+            renderer.quad(this, pressed || mouseOver ? theme.surfaceHighColor.get() : theme.surfaceColor.get());
 
             String text = value.toString();
             renderer.text(text, x + width / 2 - theme.textWidth(text) / 2, y + pad(), theme.textColor.get(), false);

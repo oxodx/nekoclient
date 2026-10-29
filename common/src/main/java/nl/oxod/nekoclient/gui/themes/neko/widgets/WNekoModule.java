@@ -73,11 +73,11 @@ public class WNekoModule extends WPressable implements NekoWidget {
     animationProgress2 += delta * 6 * (module.isActive() ? 1 : -1);
     animationProgress2 = Mth.clamp(animationProgress2, 0, 1);
 
-    if (animationProgress1 > 0) {
-      renderer.quad(x, y, width * animationProgress1, height, theme.moduleBackground.get());
-    }
+    renderer.quad(this, theme.surfaceColor.get());
+    if (animationProgress1 > 0) renderer.quad(x, y, width, height, theme.surfaceHighColor.get());
+    if (animationProgress2 > 0) renderer.quad(x, y, width * animationProgress2, height, theme.activeSurfaceColor.get());
     if (animationProgress2 > 0) {
-      renderer.quad(x, y + height * (1 - animationProgress2), theme.scale(2), height * animationProgress2, theme.accentColor.get());
+      renderer.quad(x, y, theme.scale(2), height, theme.accentColor.get());
     }
 
     double x = this.x + pad;
@@ -89,6 +89,6 @@ public class WNekoModule extends WPressable implements NekoWidget {
       x += w - titleWidth;
     }
 
-    renderer.text(title, x, y + pad, theme.textColor.get(), false);
+    renderer.text(title, x, y + pad, animationProgress2 > 0.5 ? theme.titleTextColor.get() : theme.textColor.get(), false);
   }
 }

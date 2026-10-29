@@ -63,7 +63,7 @@ public class NekoGuiTheme extends GuiTheme {
   public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
     .name("module-alignment")
     .description("How module titles are aligned.")
-    .defaultValue(AlignmentX.Center)
+    .defaultValue(AlignmentX.Left)
     .build()
   );
 
@@ -90,18 +90,18 @@ public class NekoGuiTheme extends GuiTheme {
 
   // Colors
 
-  public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(145, 61, 226));
-  public final Setting<SettingColor> checkboxColor = color("checkbox", "Color of checkbox.", new SettingColor(145, 61, 226));
-  public final Setting<SettingColor> plusColor = color("plus", "Color of plus button.", new SettingColor(50, 255, 50));
-  public final Setting<SettingColor> minusColor = color("minus", "Color of minus button.", new SettingColor(255, 50, 50));
+  public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(192, 166, 255));
+  public final Setting<SettingColor> checkboxColor = color("checkbox", "Color of checkbox.", new SettingColor(192, 166, 255));
+  public final Setting<SettingColor> plusColor = color("plus", "Color of plus button.", new SettingColor(126, 231, 181));
+  public final Setting<SettingColor> minusColor = color("minus", "Color of minus button.", new SettingColor(255, 180, 171));
   public final Setting<SettingColor> favoriteColor = color("favorite", "Color of checked favorite button.", new SettingColor(250, 215, 0));
 
   // Text
 
-  public final Setting<SettingColor> textColor = color(sgTextColors, "text", "Color of text.", new SettingColor(255, 255, 255));
-  public final Setting<SettingColor> textSecondaryColor = color(sgTextColors, "text-secondary-text", "Color of secondary text.", new SettingColor(150, 150, 150));
+  public final Setting<SettingColor> textColor = color(sgTextColors, "text", "Color of text.", new SettingColor(235, 229, 241));
+  public final Setting<SettingColor> textSecondaryColor = color(sgTextColors, "text-secondary-text", "Color of secondary text.", new SettingColor(183, 177, 190));
   public final Setting<SettingColor> textHighlightColor = color(sgTextColors, "text-highlight", "Color of text highlighting.", new SettingColor(45, 125, 245, 100));
-  public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(255, 255, 255));
+  public final Setting<SettingColor> titleTextColor = color(sgTextColors, "title-text", "Color of title text.", new SettingColor(235, 229, 241));
   public final Setting<SettingColor> loggedInColor = color(sgTextColors, "logged-in-text", "Color of logged in account name.", new SettingColor(45, 225, 45));
   public final Setting<SettingColor> placeholderColor = color(sgTextColors, "placeholder", "Color of placeholder text.", new SettingColor(255, 255, 255, 20));
 
@@ -110,21 +110,24 @@ public class NekoGuiTheme extends GuiTheme {
   public final ThreeStateColorSetting backgroundColor = new ThreeStateColorSetting(
     sgBackgroundColors,
     "background",
-    new SettingColor(20, 20, 20, 200),
-    new SettingColor(30, 30, 30, 200),
-    new SettingColor(40, 40, 40, 200)
+    new SettingColor(20, 18, 24, 238),
+    new SettingColor(31, 29, 36, 242),
+    new SettingColor(43, 41, 49, 246)
   );
 
-  public final Setting<SettingColor> moduleBackground = color(sgBackgroundColors, "module-background", "Color of module background when active.", new SettingColor(50, 50, 50));
+  public final Setting<SettingColor> surfaceColor = color(sgBackgroundColors, "surface", "Base surface used by controls and module cards.", new SettingColor(31, 29, 36, 244));
+  public final Setting<SettingColor> surfaceHighColor = color(sgBackgroundColors, "surface-high", "Raised and hovered surface color.", new SettingColor(46, 43, 52, 248));
+  public final Setting<SettingColor> activeSurfaceColor = color(sgBackgroundColors, "active-surface", "Surface used by enabled modules.", new SettingColor(72, 55, 112, 246));
+  public final Setting<SettingColor> moduleBackground = color(sgBackgroundColors, "module-background", "Legacy active module color.", new SettingColor(72, 55, 112, 246));
 
   // Outline
 
   public final ThreeStateColorSetting outlineColor = new ThreeStateColorSetting(
     sgOutline,
     "outline",
-    new SettingColor(0, 0, 0),
-    new SettingColor(10, 10, 10),
-    new SettingColor(20, 20, 20)
+    new SettingColor(89, 85, 96, 110),
+    new SettingColor(127, 120, 139, 150),
+    new SettingColor(192, 166, 255, 190)
   );
 
   // Separator
@@ -148,13 +151,13 @@ public class NekoGuiTheme extends GuiTheme {
   public final ThreeStateColorSetting sliderHandle = new ThreeStateColorSetting(
     sgSlider,
     "slider-handle",
-    new SettingColor(130, 0, 255),
-    new SettingColor(140, 30, 255),
-    new SettingColor(150, 60, 255)
+    new SettingColor(192, 166, 255),
+    new SettingColor(207, 187, 255),
+    new SettingColor(224, 210, 255)
   );
 
-  public final Setting<SettingColor> sliderLeft = color(sgSlider, "slider-left", "Color of slider left part.", new SettingColor(100, 35, 170));
-  public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(50, 50, 50));
+  public final Setting<SettingColor> sliderLeft = color(sgSlider, "slider-left", "Color of slider left part.", new SettingColor(192, 166, 255));
+  public final Setting<SettingColor> sliderRight = color(sgSlider, "slider-right", "Color of slider right part.", new SettingColor(69, 65, 75));
 
   // Starscript
 

@@ -19,9 +19,10 @@ public class WNekoTooltip extends WTooltip implements NekoWidget {
   @Override
   protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (TextRenderer.get() == VanillaTextRenderer.INSTANCE) {
-      renderer.fill(this, theme().backgroundColor.get());
+      renderer.fill(this, theme().surfaceHighColor.get());
     } else {
-      renderer.quad(this, theme().backgroundColor.get());
+      renderer.quad(this, theme().surfaceHighColor.get());
     }
+    renderer.quad(x, y, theme().scale(2), height, theme().accentColor.get());
   }
 }

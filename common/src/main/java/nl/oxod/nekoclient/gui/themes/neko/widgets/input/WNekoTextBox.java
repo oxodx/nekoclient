@@ -36,12 +36,7 @@ public class WNekoTextBox extends WTextBox implements NekoWidget {
                 double s = theme1.scale(2);
                 Color c = theme1.outlineColor.get();
 
-                Color col = theme1.backgroundColor.get();
-                int preA = col.a;
-                col.a += col.a / 2;
-                col.validate();
-                renderer1.quad(this, col);
-                col.a = preA;
+                renderer1.quad(this, theme1.surfaceColor.get());
 
                 renderer1.quad(x, y + height - s, width, s, c);
                 renderer1.quad(x, y, s, height - s, c);
@@ -105,11 +100,14 @@ public class WNekoTextBox extends WTextBox implements NekoWidget {
             cursorTimer += delta * 1.75;
         }
 
-        renderBackground(renderer, this, false, false);
+        renderBackground(renderer, this, focused, mouseOver);
 
         NekoGuiTheme theme = theme();
         double pad = pad();
         double overflowWidth = getOverflowWidthForRender();
+
+        renderer.quad(x, y + height - theme.scale(focused ? 2 : 1), width,
+            theme.scale(focused ? 2 : 1), focused ? theme.accentColor.get() : theme.outlineColor.get());
 
         renderer.scissorStart(x + pad, y + pad, width - pad * 2, height - pad * 2);
 

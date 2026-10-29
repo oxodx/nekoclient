@@ -24,6 +24,9 @@ public class WNekoWindow extends WWindow implements NekoWidget {
   protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (expanded || animProgress > 0) {
       renderer.quad(x, y + header.height, width, height - header.height, theme().backgroundColor.get());
+      double s = theme().scale(1);
+      renderer.quad(x, y + header.height, s, height - header.height, theme().outlineColor.get());
+      renderer.quad(x + width - s, y + header.height, s, height - header.height, theme().outlineColor.get());
     }
   }
 
@@ -34,7 +37,9 @@ public class WNekoWindow extends WWindow implements NekoWidget {
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-      renderer.quad(this, theme().accentColor.get());
+      renderer.quad(this, theme().surfaceHighColor.get());
+      renderer.quad(x, y, theme().scale(3), height, theme().accentColor.get());
+      renderer.quad(x, y + height - theme().scale(1), width, theme().scale(1), theme().outlineColor.get());
     }
   }
 }

@@ -12,7 +12,9 @@ import nl.oxod.nekoclient.utils.render.color.Color;
 public class WNekoTopBar extends WTopBar implements NekoWidget {
   @Override
   protected Color getButtonColor(boolean pressed, boolean hovered) {
-    return theme().backgroundColor.get(pressed, hovered);
+    if (pressed) return theme().activeSurfaceColor.get();
+    if (hovered) return theme().surfaceHighColor.get();
+    return theme().surfaceColor.get();
   }
 
   @Override
