@@ -463,6 +463,7 @@ public class Modules extends System<Modules> {
     add(new FastUse());
     add(new GhostHand());
     add(new InstantRebreak());
+    add(new InfiniteReach());
     add(new LiquidInteract());
     add(new MiddleClickExtra());
     add(new Multitask());

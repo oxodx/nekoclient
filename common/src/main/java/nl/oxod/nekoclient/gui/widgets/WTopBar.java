@@ -22,6 +22,12 @@ public abstract class WTopBar extends WHorizontalList {
 
   protected abstract Color getNameColor();
 
+  protected void renderButton(GuiRenderer renderer, WWidget widget, boolean active, boolean pressed,
+                              boolean hovered, double pad, String name) {
+    renderer.quad(widget.x, widget.y, widget.width, widget.height, getButtonColor(pressed || active, hovered));
+    renderer.text(name, widget.x + pad, widget.y + pad, getNameColor(), false);
+  }
+
   public WTopBar() {
     spacing = 0;
   }
@@ -64,10 +70,8 @@ public abstract class WTopBar extends WHorizontalList {
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
       double pad = pad();
-      Color color = getButtonColor(pressed || (mc.gui.screen() instanceof TabScreen tabScreen && tabScreen.tab == tab), mouseOver);
-
-      renderer.quad(x, y, width, height, color);
-      renderer.text(tab.name, x + pad, y + pad, getNameColor(), false);
+      boolean active = mc.gui.screen() instanceof TabScreen tabScreen && tabScreen.tab == tab;
+      renderButton(renderer, this, active, pressed, mouseOver, pad, tab.name);
     }
   }
 }

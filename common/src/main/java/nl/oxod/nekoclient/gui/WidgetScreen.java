@@ -337,6 +337,7 @@ public abstract class WidgetScreen extends Screen {
 
     RENDERER.begin(graphics);
     RENDERER.setAlpha(animProgress);
+    theme.renderScreenBackground(RENDERER, getWindowWidth(), getWindowHeight());
     root.render(RENDERER, mouseX, mouseY, delta / 20);
     RENDERER.setAlpha(1);
     RENDERER.end();

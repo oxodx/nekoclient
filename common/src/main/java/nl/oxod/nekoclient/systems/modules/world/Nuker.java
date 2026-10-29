@@ -174,11 +174,20 @@ public class Nuker extends Module {
       .build()
   );
 
-  private final Setting<Boolean> packetMine = sgGeneral.add(
+  private final Setting<Boolean> instaMine = sgGeneral.add(
     new BoolSetting.Builder()
-      .name("packet-mine")
-      .description("Attempt to instamine everything at once.")
+      .name("insta-mine")
+      .description("Sends start and stop destroy packets together to mine multiple blocks instantly.")
       .defaultValue(false)
+      .build()
+  );
+
+  private final Setting<Boolean> onlyInstaMineable = sgGeneral.add(
+    new BoolSetting.Builder()
+      .name("only-insta-mineable")
+      .description("Only targets blocks your current tool can break instantly.")
+      .defaultValue(false)
+      .visible(instaMine::get)
       .build()
   );
 
@@ -541,6 +550,14 @@ public class Nuker extends Module {
           !BlockUtils.canBreak(blockPos, blockState) && !interact.get()
         ) return;
 
+        // Insta mine can either attempt every valid block or restrict itself to
+        // blocks the held tool can actually destroy in one tick.
+        if (
+          instaMine.get() &&
+          onlyInstaMineable.get() &&
+          !BlockUtils.canInstaBreak(blockPos)
+        ) return;
+
         // Raycast to block
         if (isOutOfRange(blockPos)) return;
 
@@ -629,7 +646,7 @@ public class Nuker extends Module {
         count++;
         if (
           !canInstaMine &&
-          !packetMine.get() /* With packet mine attempt to break everything possible at once */
+          !instaMine.get() /* With insta mine attempt to break everything possible at once */
         ) break;
       }
 
@@ -654,8 +671,9 @@ public class Nuker extends Module {
         swing.get()
       );
       interacted.add(blockPos);
-    } else if (packetMine.get()) {
-      // Packet mine mode
+    } else if (instaMine.get()) {
+      // Insta mine mode. Prediction supplies the sequence ids required by
+      // modern servers while START + STOP in the same tick performs the break.
       mc.gameMode.startPrediction(mc.level, sequence ->
         new ServerboundPlayerActionPacket(
           ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,

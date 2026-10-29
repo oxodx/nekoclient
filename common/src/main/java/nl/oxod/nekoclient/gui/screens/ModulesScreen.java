@@ -293,39 +293,39 @@ public class ModulesScreen extends TabScreen {
 
     @Override
     protected void onCalculateWidgetPositions() {
-      double pad = theme.scale(4);
-      double h = theme.scale(40);
+      double gap = theme.scale(10);
+      double margin = theme.scale(18);
+      double contentWidth = Math.max(0, getWindowWidth() - margin * 2);
+      double y = this.y + theme.scale(44);
+      int rowStart = 0;
 
-      double x = this.x + pad;
-      double y = this.y;
+      while (rowStart < cells.size()) {
+        int rowEnd = rowStart;
+        double rowWidth = 0;
+        double rowHeight = 0;
 
-      for (Cell<?> cell : cells) {
-        double windowWidth = getWindowWidth();
-        double windowHeight = getWindowHeight();
-
-        if (x + cell.width > windowWidth) {
-          x = x + pad;
-          y += h;
+        while (rowEnd < cells.size()) {
+          Cell<?> candidate = cells.get(rowEnd);
+          double nextWidth = rowWidth + (rowEnd > rowStart ? gap : 0) + candidate.widget().width;
+          if (rowEnd > rowStart && nextWidth > contentWidth) break;
+          rowWidth = nextWidth;
+          rowHeight = Math.max(rowHeight, candidate.widget().height);
+          rowEnd++;
         }
 
-        if (x > windowWidth) {
-          x = windowWidth / 2.0 - cell.width / 2.0;
-          if (x < 0) x = 0;
+        double x = Math.max(margin, (getWindowWidth() - rowWidth) / 2);
+        for (int i = rowStart; i < rowEnd; i++) {
+          Cell<?> cell = cells.get(i);
+          cell.x = x;
+          cell.y = y;
+          cell.width = cell.widget().width;
+          cell.height = cell.widget().height;
+          cell.alignWidget();
+          x += cell.width + gap;
         }
-        if (y > windowHeight) {
-          y = windowHeight / 2.0 - cell.height / 2.0;
-          if (y < 0) y = 0;
-        }
 
-        cell.x = x;
-        cell.y = y;
-
-        cell.width = cell.widget().width;
-        cell.height = cell.widget().height;
-
-        cell.alignWidget();
-
-        x += cell.width + pad;
+        y += rowHeight + gap;
+        rowStart = rowEnd;
       }
     }
   }

@@ -9,6 +9,7 @@ import nl.oxod.nekoclient.gui.DefaultSettingsWidgetFactory;
 import nl.oxod.nekoclient.gui.GuiTheme;
 import nl.oxod.nekoclient.gui.WidgetScreen;
 import nl.oxod.nekoclient.gui.renderer.packer.GuiTexture;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.themes.neko.widgets.*;
 import nl.oxod.nekoclient.gui.themes.neko.widgets.input.WNekoDropdown;
 import nl.oxod.nekoclient.gui.themes.neko.widgets.input.WNekoSlider;
@@ -78,6 +79,13 @@ public class NekoGuiTheme extends GuiTheme {
     .build()
   );
 
+  public final Setting<Boolean> dashboardBackdrop = sgGeneral.add(new BoolSetting.Builder()
+    .name("dashboard-backdrop")
+    .description("Draws the unified LiquidBounce-style dashboard shell behind screens.")
+    .defaultValue(true)
+    .build()
+  );
+
   public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
     .name("module-alignment")
     .description("How module titles are aligned.")
@@ -137,6 +145,8 @@ public class NekoGuiTheme extends GuiTheme {
   public final Setting<SettingColor> surfaceHighColor = color(sgBackgroundColors, "surface-high", "Raised and hovered surface color.", new SettingColor(46, 43, 52, 248));
   public final Setting<SettingColor> activeSurfaceColor = color(sgBackgroundColors, "active-surface", "Surface used by enabled modules.", new SettingColor(72, 55, 112, 246));
   public final Setting<SettingColor> shadowColor = color(sgBackgroundColors, "shadow", "Color of soft window shadows.", new SettingColor(0, 0, 0, 150));
+  public final Setting<SettingColor> backdropColor = color(sgBackgroundColors, "backdrop", "Color behind the dashboard.", new SettingColor(7, 9, 14, 220));
+  public final Setting<SettingColor> glowColor = color(sgBackgroundColors, "glow", "Subtle accent glow at the top of the dashboard.", new SettingColor(112, 76, 255, 38));
   public final Setting<SettingColor> moduleBackground = color(sgBackgroundColors, "module-background", "Legacy active module color.", new SettingColor(72, 55, 112, 246));
 
   // Outline
@@ -195,6 +205,20 @@ public class NekoGuiTheme extends GuiTheme {
     super("NekoClient");
 
     settingsFactory = new DefaultSettingsWidgetFactory(this);
+  }
+
+  @Override
+  public void renderScreenBackground(GuiRenderer renderer, double width, double height) {
+    if (!dashboardBackdrop.get()) return;
+
+    renderer.quad(0, 0, width, height, backdropColor.get());
+    double glowHeight = Math.min(height * 0.42, scale(260));
+    Color transparent = glowColor.get().copy().a(0);
+    renderer.quad(0, 0, width, glowHeight,
+      glowColor.get(), glowColor.get(), transparent, transparent);
+
+    double rail = scale(1);
+    renderer.quad(0, 0, width, rail, accentColor.get().copy().a(150));
   }
 
   private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color) {

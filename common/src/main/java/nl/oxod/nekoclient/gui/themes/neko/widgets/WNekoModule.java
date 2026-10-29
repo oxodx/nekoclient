@@ -49,10 +49,11 @@ public class WNekoModule extends WPressable implements NekoWidget {
   @Override
   protected void onCalculateSize() {
     double pad = pad();
+    double toggleWidth = theme.scale(18);
 
     if (titleWidth == 0) titleWidth = theme.textWidth(title);
 
-    width = pad + titleWidth + pad;
+    width = pad + titleWidth + pad + toggleWidth + pad;
     height = pad + theme.textHeight() + pad;
   }
 
@@ -75,13 +76,17 @@ public class WNekoModule extends WPressable implements NekoWidget {
 
     double radius = theme.scale(theme.cornerRadius.get());
     renderer.roundedQuad(this, radius, theme.surfaceColor.get());
-    if (animationProgress1 > 0) renderer.roundedQuad(this, radius, theme.surfaceHighColor.get());
-    if (animationProgress2 > 0) {
-      renderer.roundedQuad(x, y, width * animationProgress2, height,
-        Math.min(radius, width * animationProgress2 / 2), theme.activeSurfaceColor.get());
+    if (animationProgress1 > 0) {
+      renderer.setAlpha(animationProgress1);
+      renderer.roundedQuad(this, radius, theme.surfaceHighColor.get());
+      renderer.setAlpha(1);
     }
     if (animationProgress2 > 0) {
-      renderer.quad(x, y, theme.scale(2), height, theme.accentColor.get());
+      renderer.setAlpha(animationProgress2 * 0.55);
+      renderer.roundedQuad(this, radius, theme.activeSurfaceColor.get());
+      renderer.setAlpha(1);
+      renderer.roundedQuad(x, y + pad, theme.scale(2), height - pad * 2,
+        theme.scale(1), theme.accentColor.get());
     }
 
     double x = this.x + pad;
@@ -94,5 +99,16 @@ public class WNekoModule extends WPressable implements NekoWidget {
     }
 
     renderer.text(title, x, y + pad, animationProgress2 > 0.5 ? theme.titleTextColor.get() : theme.textColor.get(), false);
+
+    double trackW = theme.scale(17);
+    double trackH = theme.scale(9);
+    double trackX = this.x + width - pad - trackW;
+    double trackY = y + (height - trackH) / 2;
+    renderer.roundedQuad(trackX, trackY, trackW, trackH, trackH / 2,
+      animationProgress2 > 0.5 ? theme.accentColor.get() : theme.outlineColor.get());
+    double knob = theme.scale(7);
+    double knobX = trackX + theme.scale(1) + (trackW - knob - theme.scale(2)) * animationProgress2;
+    renderer.roundedQuad(knobX, trackY + (trackH - knob) / 2, knob, knob, knob / 2,
+      theme.textColor.get());
   }
 }

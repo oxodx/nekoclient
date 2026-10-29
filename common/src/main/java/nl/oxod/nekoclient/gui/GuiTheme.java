@@ -6,6 +6,7 @@
 package nl.oxod.nekoclient.gui;
 
 import nl.oxod.nekoclient.gui.renderer.packer.GuiTexture;
+import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.screens.ModuleScreen;
 import nl.oxod.nekoclient.gui.screens.ModulesScreen;
 import nl.oxod.nekoclient.gui.screens.NotebotSongsScreen;
@@ -55,6 +56,9 @@ public abstract class GuiTheme implements ISerializable<GuiTheme> {
   public void beforeRender() {
     disableHoverColor = false;
   }
+
+  /** Renders the theme's full-screen shell below every widget. */
+  public void renderScreenBackground(GuiRenderer renderer, double width, double height) {}
 
   // Widgets
 
