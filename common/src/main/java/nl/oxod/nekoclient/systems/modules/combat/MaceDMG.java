@@ -131,28 +131,23 @@ public class MaceDMG extends Module {
     private void performMaceDMG() {
         if (mc.player == null || mc.getConnection() == null) return;
         double height = fakeHeight.get();
+        double x = mc.player.getX();
+        double y = mc.player.getY();
+        double z = mc.player.getZ();
 
-        for (int i = 0; i < normalPackets.get(); i++) {
-            sendFakeY(0);
-        }
-        sendFakeYAir(height);
-        mc.player.fallDistance = 0;
+        sendPacket(x, y, z, false);
+        sendPacket(x, y + height, z, false);
+        sendPacket(x, y, z, false);
+        mc.player.fallDistance = (float) height;
 
         if (chatInfo.get()) {
             info("MaceDMG triggered | height=" + String.format("%.1f", height));
         }
     }
 
-    private void sendFakeY(double offset) {
+    private void sendPacket(double x, double y, double z, boolean onGround) {
         if (mc.player == null || mc.getConnection() == null) return;
-        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + offset, mc.player.getZ(), true, mc.player.horizontalCollision);
-        ((IServerboundMovePlayerPacket) packet).neko$setTag(1337);
-        mc.getConnection().send(packet);
-    }
-
-    private void sendFakeYAir(double offset) {
-        if (mc.player == null || mc.getConnection() == null) return;
-        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(mc.player.getX(), mc.player.getY() + offset, mc.player.getZ(), false, mc.player.horizontalCollision);
+        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(x, y, z, onGround, mc.player.horizontalCollision);
         ((IServerboundMovePlayerPacket) packet).neko$setTag(1337);
         mc.getConnection().send(packet);
     }
