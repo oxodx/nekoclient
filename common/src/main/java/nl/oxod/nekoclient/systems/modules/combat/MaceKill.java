@@ -14,7 +14,7 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ServerboundAttackPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -136,7 +136,21 @@ public class MaceKill extends Module {
         if (mc.player.isPassenger() || mc.player.getMainHandItem().getItem() != Items.MACE) return;
         if (!(event.packet instanceof ServerboundAttackPacket packet)) return;
 
-        Entity targetEntity = mc.level.getEntity(packet.targetId());
+        Entity targetEntity = null;
+        try {
+            java.lang.reflect.Field f = ServerboundAttackPacket.class.getDeclaredField("target");
+            f.setAccessible(true);
+            Object o = f.get(packet);
+            if (o instanceof net.minecraft.world.entity.Entity e) targetEntity = e;
+        } catch (Exception ignored) {}
+        if (targetEntity == null) {
+            try {
+                java.lang.reflect.Field f = ServerboundAttackPacket.class.getDeclaredField("entityId");
+                f.setAccessible(true);
+                int id = f.getInt(packet);
+                targetEntity = mc.level.getEntity(id);
+            } catch (Exception ignored) {}
+        }
         if (!(targetEntity instanceof LivingEntity living)) return;
         if (packetDisable.get() && (living.isBlocking() || living.isInvulnerable())) return;
         if (!living.isAlive()) return;
@@ -164,10 +178,9 @@ public class MaceKill extends Module {
 
                 sendingAttacks = true;
                 if (swing.get()) {
-                    mc.getConnection().send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
                     mc.player.swing(InteractionHand.MAIN_HAND);
                 }
-                mc.getConnection().send(new ServerboundAttackPacket(living.getId()));
+                mc.getConnection().send(new ServerboundAttackPacket(living));
 
                 currentHeight += increase.get();
             }
