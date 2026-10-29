@@ -177,8 +177,8 @@ public class MaceKill extends Module {
                 mc.player.setPos(previousPos);
 
                 sendingAttacks = true;
-                if (swing.get()) {
-                    mc.player.swing(InteractionHand.MAIN_HAND);
+                if (swing.get() && mc.player != null) {
+                    nl.oxod.nekoclient.utils.player.SwingMode.Client.attackSwing(InteractionHand.MAIN_HAND);
                 }
                 mc.getConnection().send(new ServerboundAttackPacket(living.getId()));
 
