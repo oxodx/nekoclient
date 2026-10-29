@@ -8,8 +8,6 @@ package nl.oxod.nekoclient.gui.themes.neko.widgets;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.themes.neko.NekoWidget;
 import nl.oxod.nekoclient.gui.widgets.WTooltip;
-import nl.oxod.nekoclient.renderer.text.TextRenderer;
-import nl.oxod.nekoclient.renderer.text.VanillaTextRenderer;
 
 public class WNekoTooltip extends WTooltip implements NekoWidget {
   public WNekoTooltip(String text) {
@@ -18,11 +16,9 @@ public class WNekoTooltip extends WTooltip implements NekoWidget {
 
   @Override
   protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-    if (TextRenderer.get() == VanillaTextRenderer.INSTANCE) {
-      renderer.fill(this, theme().surfaceHighColor.get());
-    } else {
-      renderer.quad(this, theme().surfaceHighColor.get());
-    }
-    renderer.quad(x, y, theme().scale(2), height, theme().accentColor.get());
+    renderer.roundedQuad(this, theme().scale(theme().cornerRadius.get()), theme().surfaceHighColor.get());
+    double marker = theme().scale(2);
+    renderer.roundedQuad(x + marker, y + marker, marker, height - marker * 2,
+      marker / 2, theme().accentColor.get());
   }
 }

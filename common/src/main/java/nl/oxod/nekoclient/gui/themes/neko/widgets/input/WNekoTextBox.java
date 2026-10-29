@@ -36,7 +36,7 @@ public class WNekoTextBox extends WTextBox implements NekoWidget {
                 double s = theme1.scale(2);
                 Color c = theme1.outlineColor.get();
 
-                renderer1.quad(this, theme1.surfaceColor.get());
+                renderer1.roundedQuad(this, theme1.scale(theme1.cornerRadius.get()), theme1.surfaceColor.get());
 
                 renderer1.quad(x, y + height - s, width, s, c);
                 renderer1.quad(x, y, s, height - s, c);

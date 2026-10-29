@@ -23,10 +23,10 @@ public class WNekoWindow extends WWindow implements NekoWidget {
   @Override
   protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (expanded || animProgress > 0) {
-      renderer.quad(x, y + header.height, width, height - header.height, theme().backgroundColor.get());
-      double s = theme().scale(1);
-      renderer.quad(x, y + header.height, s, height - header.height, theme().outlineColor.get());
-      renderer.quad(x + width - s, y + header.height, s, height - header.height, theme().outlineColor.get());
+      double radius = theme().scale(theme().cornerRadius.get() + 2);
+      double shadow = theme().scale(theme().shadowSize.get());
+      if (shadow > 0) renderer.shadow(x, y, width, height, radius, shadow, theme().shadowColor.get());
+      renderer.roundedQuad(x, y, width, height, radius, theme().backgroundColor.get());
     }
   }
 
@@ -37,8 +37,10 @@ public class WNekoWindow extends WWindow implements NekoWidget {
 
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-      renderer.quad(this, theme().surfaceHighColor.get());
-      renderer.quad(x, y, theme().scale(3), height, theme().accentColor.get());
+      renderer.roundedQuad(this, theme().scale(theme().cornerRadius.get() + 2), theme().surfaceHighColor.get());
+      double accentWidth = theme().scale(3);
+      renderer.roundedQuad(x + theme().scale(2), y + theme().scale(3), accentWidth,
+        height - theme().scale(6), accentWidth / 2, theme().accentColor.get());
       renderer.quad(x, y + height - theme().scale(1), width, theme().scale(1), theme().outlineColor.get());
     }
   }

@@ -238,6 +238,35 @@ public class GuiRenderer {
     quad(widget.x, widget.y, widget.width, widget.height, color);
   }
 
+  public void roundedQuad(double x, double y, double width, double height, double radius, Color color) {
+    r.roundedQuad(x, y, width, height, radius, color);
+  }
+
+  public void roundedQuad(WWidget widget, double radius, Color color) {
+    roundedQuad(widget.x, widget.y, widget.width, widget.height, radius, color);
+  }
+
+  public void roundedOutline(double x, double y, double width, double height, double radius,
+                             double thickness, Color outline, Color fill) {
+    roundedQuad(x, y, width, height, radius, outline);
+    double inset = Math.min(thickness, Math.min(width, height) / 2);
+    roundedQuad(x + inset, y + inset, width - inset * 2, height - inset * 2,
+      Math.max(0, radius - inset), fill);
+  }
+
+  public void shadow(double x, double y, double width, double height, double radius,
+                     double size, Color color) {
+    int layers = Math.max(1, (int) Math.ceil(size));
+    for (int i = layers; i >= 1; i--) {
+      double expansion = size * i / layers;
+      double strength = 1.0 - (double) i / (layers + 1);
+      Color layer = new Color(color);
+      layer.a = Math.max(1, (int) (color.a * strength / layers));
+      roundedQuad(x - expansion, y - expansion * 0.65, width + expansion * 2,
+        height + expansion * 1.65, radius + expansion, layer);
+    }
+  }
+
   public void fill(WWidget widget, Color color) {
     graphics.fill((int) widget.x, (int) widget.y, (int) (widget.x + widget.width), (int) (widget.y + widget.height), color.getPacked());
   }

@@ -60,6 +60,24 @@ public class NekoGuiTheme extends GuiTheme {
     .build()
   );
 
+  public final Setting<Double> cornerRadius = sgGeneral.add(new DoubleSetting.Builder()
+    .name("corner-radius")
+    .description("Roundness of cards and controls.")
+    .defaultValue(4)
+    .min(0)
+    .sliderRange(0, 10)
+    .build()
+  );
+
+  public final Setting<Double> shadowSize = sgGeneral.add(new DoubleSetting.Builder()
+    .name("shadow-size")
+    .description("Size of soft shadows behind floating windows.")
+    .defaultValue(5)
+    .min(0)
+    .sliderRange(0, 12)
+    .build()
+  );
+
   public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
     .name("module-alignment")
     .description("How module titles are aligned.")
@@ -118,6 +136,7 @@ public class NekoGuiTheme extends GuiTheme {
   public final Setting<SettingColor> surfaceColor = color(sgBackgroundColors, "surface", "Base surface used by controls and module cards.", new SettingColor(31, 29, 36, 244));
   public final Setting<SettingColor> surfaceHighColor = color(sgBackgroundColors, "surface-high", "Raised and hovered surface color.", new SettingColor(46, 43, 52, 248));
   public final Setting<SettingColor> activeSurfaceColor = color(sgBackgroundColors, "active-surface", "Surface used by enabled modules.", new SettingColor(72, 55, 112, 246));
+  public final Setting<SettingColor> shadowColor = color(sgBackgroundColors, "shadow", "Color of soft window shadows.", new SettingColor(0, 0, 0, 150));
   public final Setting<SettingColor> moduleBackground = color(sgBackgroundColors, "module-background", "Legacy active module color.", new SettingColor(72, 55, 112, 246));
 
   // Outline

@@ -73,9 +73,13 @@ public class WNekoModule extends WPressable implements NekoWidget {
     animationProgress2 += delta * 6 * (module.isActive() ? 1 : -1);
     animationProgress2 = Mth.clamp(animationProgress2, 0, 1);
 
-    renderer.quad(this, theme.surfaceColor.get());
-    if (animationProgress1 > 0) renderer.quad(x, y, width, height, theme.surfaceHighColor.get());
-    if (animationProgress2 > 0) renderer.quad(x, y, width * animationProgress2, height, theme.activeSurfaceColor.get());
+    double radius = theme.scale(theme.cornerRadius.get());
+    renderer.roundedQuad(this, radius, theme.surfaceColor.get());
+    if (animationProgress1 > 0) renderer.roundedQuad(this, radius, theme.surfaceHighColor.get());
+    if (animationProgress2 > 0) {
+      renderer.roundedQuad(x, y, width * animationProgress2, height,
+        Math.min(radius, width * animationProgress2 / 2), theme.activeSurfaceColor.get());
+    }
     if (animationProgress2 > 0) {
       renderer.quad(x, y, theme.scale(2), height, theme.accentColor.get());
     }

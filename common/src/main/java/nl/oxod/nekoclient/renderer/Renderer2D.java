@@ -13,6 +13,7 @@ import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.Minecraft;
 
 public class Renderer2D {
+  private static final int ROUNDED_CORNER_SEGMENTS = 6;
   public static Renderer2D COLOR;
   public static Renderer2D TEXTURE;
 
@@ -128,6 +129,51 @@ public class Renderer2D {
 
   public void quad(double x, double y, double width, double height, Color color) {
     quad(x, y, width, height, color, color, color, color);
+  }
+
+  /**
+   * Draws a rounded rectangle as one non-overlapping triangle fan. Keeping it in the colored mesh
+   * avoids stretched corner textures and the dark seams caused by stacking translucent circles on
+   * top of a rectangle.
+   */
+  public void roundedQuad(double x, double y, double width, double height, double radius, Color color) {
+    if (width <= 0 || height <= 0) return;
+
+    radius = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+    if (radius == 0) {
+      quad(x, y, width, height, color);
+      return;
+    }
+
+    int perimeterVertices = 4 * (ROUNDED_CORNER_SEGMENTS + 1);
+    triangles.ensureCapacity(perimeterVertices + 1, perimeterVertices * 3);
+
+    int center = triangles.vec2(x + width / 2, y + height / 2).color(color).next();
+    int first = -1;
+    int previous = -1;
+
+    double[][] corners = {
+      {x + width - radius, y + radius, -90},
+      {x + width - radius, y + height - radius, 0},
+      {x + radius, y + height - radius, 90},
+      {x + radius, y + radius, 180}
+    };
+
+    for (double[] corner : corners) {
+      for (int i = 0; i <= ROUNDED_CORNER_SEGMENTS; i++) {
+        double angle = Math.toRadians(corner[2] + 90.0 * i / ROUNDED_CORNER_SEGMENTS);
+        int vertex = triangles.vec2(
+          corner[0] + Math.cos(angle) * radius,
+          corner[1] + Math.sin(angle) * radius
+        ).color(color).next();
+
+        if (first == -1) first = vertex;
+        if (previous != -1) triangles.triangle(center, previous, vertex);
+        previous = vertex;
+      }
+    }
+
+    triangles.triangle(center, previous, first);
   }
 
   // Textured quads
