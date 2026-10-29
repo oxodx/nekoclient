@@ -50,6 +50,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import nl.oxod.nekoclient.systems.modules.combat.KillAura;
+import nl.oxod.nekoclient.systems.modules.combat.MaceKill;
 import nl.oxod.nekoclient.systems.modules.misc.DupeRadarModule;
 import nl.oxod.nekoclient.systems.modules.misc.GuiDupe;
 import nl.oxod.nekoclient.systems.modules.movement.Scaffold;
@@ -435,6 +436,7 @@ public class Modules extends System<Modules> {
     add(new HoleFiller());
     add(new KillAura());
     add(new MaceDMG());
+    add(new MaceKill());
     add(new Offhand());
     add(new Quiver());
     add(new SelfAnvil());
