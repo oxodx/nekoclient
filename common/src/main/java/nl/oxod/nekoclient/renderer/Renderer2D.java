@@ -168,12 +168,12 @@ public class Renderer2D {
         ).color(color).next();
 
         if (first == -1) first = vertex;
-        if (previous != -1) triangles.triangle(center, previous, vertex);
+        if (previous != -1) triangles.triangle(center, vertex, previous);
         previous = vertex;
       }
     }
 
-    triangles.triangle(center, previous, first);
+    triangles.triangle(center, first, previous);
   }
 
   // Textured quads
