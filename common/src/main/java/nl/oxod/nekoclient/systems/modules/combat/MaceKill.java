@@ -180,7 +180,7 @@ public class MaceKill extends Module {
                 if (swing.get()) {
                     mc.player.swing(InteractionHand.MAIN_HAND);
                 }
-                mc.getConnection().send(new ServerboundAttackPacket(living));
+                mc.getConnection().send(new ServerboundAttackPacket(living.getId()));
 
                 currentHeight += increase.get();
             }
