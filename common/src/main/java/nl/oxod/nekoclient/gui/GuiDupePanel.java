@@ -23,15 +23,15 @@ import static nl.oxod.nekoclient.NekoClient.mc;
 
 public class GuiDupePanel extends AbstractWidget {
   // ---- Panel geometry ----
-  private static final int PANEL_W = 176;
-  private static final int PAD = 5;
-  private static final int HEADER_H = 16;
-  private static final int SECTION_H = 13;
-  private static final int BUTTON_H = 15;
-  private static final int ROW_GAP = 2;
-  private static final int SECTION_GAP = 5;
-  private static final int CHAT_H = 16;
-  private static final int METRIC_H = 11;
+  private static final int PANEL_W = 196;
+  private static final int PAD = 8;
+  private static final int HEADER_H = 24;
+  private static final int SECTION_H = 14;
+  private static final int BUTTON_H = 19;
+  private static final int ROW_GAP = 4;
+  private static final int SECTION_GAP = 7;
+  private static final int CHAT_H = 20;
+  private static final int METRIC_H = 16;
 
   private static int panelX = 6;
   private static int panelY = 6;
@@ -50,8 +50,10 @@ public class GuiDupePanel extends AbstractWidget {
   private static final int FALLBACK_SUCCESS = 0xFF32FF32;
   private static final int FALLBACK_SUCCESS_FILL = 0x3C32FF32;
   private static final int FALLBACK_BTN_FILL_INACTIVE = 0x70121316;
-
-  private static final int BTN_FILL_HOVER = 0x20FFFFFF;
+  private static final int FALLBACK_SURFACE = 0xF41F1D24;
+  private static final int FALLBACK_SURFACE_HIGH = 0xF82E2B34;
+  private static final int FALLBACK_ACTIVE_SURFACE = 0xF6483770;
+  private static final int FALLBACK_SHADOW = 0x70000000;
 
   private final AbstractContainerScreen<?> screen;
   private final EditBox chatField;
@@ -113,7 +115,23 @@ public class GuiDupePanel extends AbstractWidget {
   }
 
   private static int headerFillColor() {
-    return themeInt(theme -> theme.moduleBackground.get().getPacked(), FALLBACK_HEADER_FILL);
+    return themeInt(theme -> theme.surfaceHighColor.get().getPacked(), FALLBACK_HEADER_FILL);
+  }
+
+  private static int surfaceColor() {
+    return themeInt(theme -> theme.surfaceColor.get().getPacked(), FALLBACK_SURFACE);
+  }
+
+  private static int surfaceHighColor() {
+    return themeInt(theme -> theme.surfaceHighColor.get().getPacked(), FALLBACK_SURFACE_HIGH);
+  }
+
+  private static int activeSurfaceColor() {
+    return themeInt(theme -> theme.activeSurfaceColor.get().getPacked(), FALLBACK_ACTIVE_SURFACE);
+  }
+
+  private static int shadowColor() {
+    return themeInt(theme -> theme.shadowColor.get().copy().a(112).getPacked(), FALLBACK_SHADOW);
   }
 
   private static int borderColor() {
@@ -157,20 +175,20 @@ public class GuiDupePanel extends AbstractWidget {
     int pw = PANEL_W;
     int ph = panelHeight();
 
-    neko$rect(g, px, py, px + pw, py + ph, windowFillColor());
-    neko$rect(g, px + 1, py + 1, px + pw - 1, py + HEADER_H - 1, headerFillColor());
-    neko$outline(g, px, py, px + pw, py + ph, borderColor());
-    neko$line(g, px, py + HEADER_H - 1, px + pw, accentColor());
+    neko$roundedRect(g, px + 2, py + 3, px + pw + 2, py + ph + 3, shadowColor());
+    neko$roundedOutline(g, px, py, px + pw, py + ph, borderColor(), windowFillColor());
+    neko$roundedRect(g, px + 1, py + 1, px + pw - 1, py + HEADER_H, headerFillColor());
+    neko$roundedRect(g, px + 5, py + 6, px + 8, py + HEADER_H - 6, accentColor());
+    neko$line(g, px + 8, py + HEADER_H - 1, px + pw - 8, borderColor());
 
     int titleY = py + (HEADER_H - 8) / 2 - 1;
-    graphics_text(g, "GUI DUPE", px + PAD, titleY, textColor());
-    int titleW = neko$font().width("GUI DUPE");
-    graphics_text(g, " Rev:" + getMenu().getStateId(), px + PAD + titleW + 6, titleY, mutedColor());
+    graphics_text(g, "GUI DUPE", px + PAD + 5, titleY, textColor());
+    graphics_text(g, "REV " + getMenu().getStateId(), px + pw - PAD - neko$font().width("REV " + getMenu().getStateId()), titleY, mutedColor());
 
     int x = px + PAD;
     int y = py + PAD + HEADER_H;
 
-    graphics_text(g, "PACKET", x, y + 2, mutedColor());
+    neko$renderSectionLabel(g, x, y, "PACKETS");
     y += SECTION_H;
 
     int pw2 = pairWidth();
@@ -186,7 +204,7 @@ public class GuiDupePanel extends AbstractWidget {
     y += BUTTON_H;
 
     y += SECTION_GAP;
-    graphics_text(g, "SCREEN", x, y + 2, mutedColor());
+    neko$renderSectionLabel(g, x, y, "CONTAINER");
     y += SECTION_H;
 
     neko$renderButton(g, x, y, pw2, BUTTON_H, "Close", mouseX, mouseY, screenButtons, 0);
@@ -202,12 +220,12 @@ public class GuiDupePanel extends AbstractWidget {
     y += BUTTON_H;
 
     y += SECTION_GAP;
-    neko$rect(g, panelX + PAD, y, panelX + PANEL_W - PAD, y + CHAT_H, windowFillColor());
-    neko$outline(g, panelX + PAD, y, panelX + PANEL_W - PAD, y + CHAT_H, chatField != null && chatField.isFocused() ? accentColor() : mutedColor());
+    neko$roundedOutline(g, panelX + PAD, y, panelX + PANEL_W - PAD, y + CHAT_H,
+      chatField != null && chatField.isFocused() ? accentColor() : borderColor(), surfaceColor());
     if (chatField != null) {
-      chatField.setX(panelX + PAD + 2);
-      chatField.setY(y + 1);
-      chatField.setWidth(PANEL_W - PAD * 2 - 4);
+      chatField.setX(panelX + PAD + 5);
+      chatField.setY(y + 2);
+      chatField.setWidth(PANEL_W - PAD * 2 - 10);
     }
     y += CHAT_H;
 
@@ -216,12 +234,13 @@ public class GuiDupePanel extends AbstractWidget {
     String sync = Integer.toString(getMenu().containerId);
     net.minecraft.world.inventory.Slot hovered = ((AbstractContainerScreenAccessor) screen).neko$getHoveredSlot();
     String slot = hovered != null ? Integer.toString(hovered.index) : "--";
-    neko$renderMetric(g, x, y, "Rev: ", rev, accentColor());
-    neko$renderMetric(g, x + pw2, y, "Sync: ", sync, textColor());
-    neko$renderMetric(g, x + pw2 * 2 + ROW_GAP * 2, y, "Slot: ", slot, successColor());
+    int metricW = (PANEL_W - PAD * 2 - ROW_GAP * 2) / 3;
+    neko$renderMetric(g, x, y, metricW, "REV", rev, accentColor());
+    neko$renderMetric(g, x + metricW + ROW_GAP, y, metricW, "SYNC", sync, textColor());
+    neko$renderMetric(g, x + (metricW + ROW_GAP) * 2, y, metricW, "SLOT", slot, successColor());
 
     if (dragging) {
-      neko$rect(g, px, py, px + pw, py + HEADER_H - 1, accentSoftColor());
+      neko$roundedRect(g, px + 1, py + 1, px + pw - 1, py + HEADER_H, accentSoftColor());
     }
   }
 
@@ -336,20 +355,37 @@ public class GuiDupePanel extends AbstractWidget {
     g.fill(x1, y1, x2, y2, color);
   }
 
-  private void neko$line(GuiGraphicsExtractor g, int x1, int y, int x2, int color) {
-    g.horizontalLine(x1, x2, y, color);
+  private void neko$roundedRect(GuiGraphicsExtractor g, int x1, int y1, int x2, int y2, int color) {
+    int width = x2 - x1;
+    int height = y2 - y1;
+    if (width <= 0 || height <= 0) return;
+    if (width < 6 || height < 6) {
+      neko$rect(g, x1, y1, x2, y2, color);
+      return;
+    }
+
+    neko$rect(g, x1 + 2, y1, x2 - 2, y1 + 1, color);
+    neko$rect(g, x1 + 1, y1 + 1, x2 - 1, y1 + 2, color);
+    neko$rect(g, x1, y1 + 2, x2, y2 - 2, color);
+    neko$rect(g, x1 + 1, y2 - 2, x2 - 1, y2 - 1, color);
+    neko$rect(g, x1 + 2, y2 - 1, x2 - 2, y2, color);
   }
 
-  private void neko$outline(GuiGraphicsExtractor g, int x, int y, int right, int bottom, int color) {
-    g.outline(x, y, right - x, bottom - y, color);
+  private void neko$roundedOutline(GuiGraphicsExtractor g, int x, int y, int right, int bottom,
+                                   int outlineColor, int fillColor) {
+    neko$roundedRect(g, x, y, right, bottom, outlineColor);
+    neko$roundedRect(g, x + 1, y + 1, right - 1, bottom - 1, fillColor);
+  }
+
+  private void neko$line(GuiGraphicsExtractor g, int x1, int y, int x2, int color) {
+    g.horizontalLine(x1, x2, y, color);
   }
 
   private void neko$renderButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String label,
                                  int mouseX, int mouseY, List<int[]> out, int slot) {
     boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
-    neko$rect(g, x, y, x + w, y + h, windowFillColor());
-    neko$outline(g, x, y, x + w, y + h, borderColor());
-    if (hovered) neko$rect(g, x + 1, y + 1, x + w - 1, y + h - 1, BTN_FILL_HOVER);
+    neko$roundedOutline(g, x, y, x + w, y + h, hovered ? accentSoftColor() : borderColor(),
+      hovered ? surfaceHighColor() : surfaceColor());
     graphics_text(g, label, x + (w - neko$font().width(label)) / 2, y + (h - 8) / 2 - 1, textColor());
     setBounds(out, slot, x, y, x + w, y + h);
   }
@@ -357,13 +393,15 @@ public class GuiDupePanel extends AbstractWidget {
   private void neko$renderToggle(GuiGraphicsExtractor g, int x, int y, int w, int h, String label,
                                  boolean on, boolean colored, int mouseX, int mouseY, List<int[]> out, int slot) {
     boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
-    int fill = on ? (colored ? successFillColor() : windowFillColor()) : buttonFillInactiveColor();
+    int fill = on ? (colored ? successFillColor() : activeSurfaceColor()) : buttonFillInactiveColor();
     int border = on ? (colored ? successColor() : textColor()) : mutedColor();
     int textColor = on ? (colored ? successColor() : textColor()) : mutedColor();
-    neko$rect(g, x, y, x + w, y + h, fill);
-    neko$outline(g, x, y, x + w, y + h, border);
-    if (hovered) neko$rect(g, x + 1, y + 1, x + w - 1, y + h - 1, BTN_FILL_HOVER);
-    graphics_text(g, label, x + (w - neko$font().width(label)) / 2, y + (h - 8) / 2 - 1, textColor);
+    neko$roundedOutline(g, x, y, x + w, y + h, hovered ? accentColor() : border,
+      hovered && !on ? surfaceHighColor() : fill);
+    int dot = 5;
+    neko$roundedRect(g, x + 6, y + (h - dot) / 2, x + 6 + dot, y + (h - dot) / 2 + dot,
+      on ? (colored ? successColor() : accentColor()) : mutedColor());
+    graphics_text(g, label, x + 15, y + (h - 8) / 2 - 1, textColor);
     setBounds(out, slot, x, y, x + w, y + h);
   }
 
@@ -372,10 +410,15 @@ public class GuiDupePanel extends AbstractWidget {
     out.set(slot, new int[]{x, y, right, bottom});
   }
 
-  private void neko$renderMetric(GuiGraphicsExtractor g, int x, int y, String key, String value, int valueColor) {
-    int keyW = neko$font().width(key);
-    graphics_text(g, key, x, y, mutedColor());
-    graphics_text(g, value, x + keyW, y, valueColor);
+  private void neko$renderMetric(GuiGraphicsExtractor g, int x, int y, int width, String key, String value, int valueColor) {
+    neko$roundedRect(g, x, y, x + width, y + METRIC_H, surfaceColor());
+    graphics_text(g, key, x + 5, y + 4, mutedColor());
+    graphics_text(g, value, x + width - 5 - neko$font().width(value), y + 4, valueColor);
+  }
+
+  private void neko$renderSectionLabel(GuiGraphicsExtractor g, int x, int y, String label) {
+    neko$roundedRect(g, x, y + 4, x + 3, y + SECTION_H - 3, accentColor());
+    graphics_text(g, label, x + 7, y + 2, mutedColor());
   }
 
   private void graphics_text(GuiGraphicsExtractor g, String text, int x, int y, int color) {
