@@ -131,13 +131,10 @@ public class MaceDMG extends Module {
     private void performMaceDMG() {
         if (mc.player == null || mc.getConnection() == null) return;
         double height = fakeHeight.get();
-        double x = mc.player.getX();
-        double y = mc.player.getY();
-        double z = mc.player.getZ();
 
-        sendPacket(x, y, z, false);
-        sendPacket(x, y + height, z, false);
-        sendPacket(x, y, z, false);
+        sendFake(height);
+        sendFake(height);
+        sendFake(0);
         mc.player.fallDistance = (float) height;
 
         if (chatInfo.get()) {
@@ -145,9 +142,12 @@ public class MaceDMG extends Module {
         }
     }
 
-    private void sendPacket(double x, double y, double z, boolean onGround) {
+    private void sendFake(double extra) {
         if (mc.player == null || mc.getConnection() == null) return;
-        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(x, y, z, onGround, mc.player.horizontalCollision);
+        double x = mc.player.getX();
+        double y = mc.player.getY();
+        double z = mc.player.getZ();
+        ServerboundMovePlayerPacket packet = new ServerboundMovePlayerPacket.Pos(x, y + extra, z, false, mc.player.horizontalCollision);
         ((IServerboundMovePlayerPacket) packet).neko$setTag(1337);
         mc.getConnection().send(packet);
     }
