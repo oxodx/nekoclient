@@ -84,6 +84,7 @@ public class HudEditorScreen extends WidgetScreen implements Snapper.Container {
       HudElement hovered = getHovered((int) mouseX, (int) mouseY);
       dragging = hovered != null;
       if (dragging) {
+        hud.bringToFront(hovered);
         if (!selection.contains(hovered)) {
           selection.clear();
           selection.add(hovered);
@@ -259,12 +260,7 @@ public class HudEditorScreen extends WidgetScreen implements Snapper.Container {
   }
 
   private HudElement getHovered(int mouseX, int mouseY) {
-    for (HudElement element : hud) {
-      if (mouseX >= element.x && mouseX <= element.x + element.getWidth() && mouseY >= element.y && mouseY <= element.y + element.getHeight())
-        return element;
-    }
-
-    return null;
+    return hud.pick(mouseX, mouseY);
   }
 
   private void renderQuad(double x, double y, double w, double h, Color bgColor, Color olColor) {

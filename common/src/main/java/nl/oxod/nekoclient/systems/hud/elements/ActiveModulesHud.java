@@ -59,6 +59,37 @@ public class ActiveModulesHud extends HudElement {
     .build()
   );
 
+  private final Setting<Boolean> liquidStyle = sgGeneral.add(new BoolSetting.Builder()
+    .name("liquid-style")
+    .description("Uses compact translucent cards with an accent rail like LiquidBounce's array list.")
+    .defaultValue(true)
+    .build()
+  );
+
+  private final Setting<SettingColor> liquidBackground = sgColor.add(new ColorSetting.Builder()
+    .name("liquid-background")
+    .description("Background of Liquid-style module cards.")
+    .defaultValue(new SettingColor(0, 0, 0, 150))
+    .visible(liquidStyle::get)
+    .build()
+  );
+
+  private final Setting<SettingColor> liquidAccent = sgColor.add(new ColorSetting.Builder()
+    .name("liquid-accent")
+    .description("Accent rail color of Liquid-style module cards.")
+    .defaultValue(new SettingColor(70, 119, 255))
+    .visible(liquidStyle::get)
+    .build()
+  );
+
+  private final Setting<SettingColor> liquidText = sgColor.add(new ColorSetting.Builder()
+    .name("liquid-text")
+    .description("Text color of Liquid-style module cards.")
+    .defaultValue(new SettingColor(255, 255, 255))
+    .visible(liquidStyle::get)
+    .build()
+  );
+
   private final Setting<Boolean> outlines = sgGeneral.add(new BoolSetting.Builder()
     .name("outlines")
     .description("Whether or not to render outlines")
@@ -222,8 +253,8 @@ public class ActiveModulesHud extends HudElement {
     double height = 0;
 
     for (Module module : modules) {
-      width = Math.max(width, getModuleWidth(renderer, module));
-      height += renderer.textHeight(shadow.get(), getScale());
+      width = Math.max(width, getModuleWidth(renderer, module) + (liquidStyle.get() ? 12 : 0));
+      height += renderer.textHeight(shadow.get(), getScale()) + (liquidStyle.get() ? 6 : 0);
     }
 
     setSize(width, height);
@@ -251,11 +282,35 @@ public class ActiveModulesHud extends HudElement {
     emptySpace = renderer.textWidth(" ", shadow.get(), getScale());
 
     for (int i = 0; i < modules.size(); i++) {
-      double offset = alignX(getModuleWidth(renderer, modules.get(i)), alignment.get());
-      renderModule(renderer, i, x + offset, y);
+      double moduleWidth = getModuleWidth(renderer, modules.get(i)) + (liquidStyle.get() ? 12 : 0);
+      double offset = alignX(moduleWidth, alignment.get());
+      if (liquidStyle.get()) renderLiquidModule(renderer, modules.get(i), x + offset, y, moduleWidth);
+      else renderModule(renderer, i, x + offset, y);
 
       lastX = x + offset;
-      y += renderer.textHeight(shadow.get(), getScale());
+      y += renderer.textHeight(shadow.get(), getScale()) + (liquidStyle.get() ? 6 : 0);
+    }
+  }
+
+  private void renderLiquidModule(HudRenderer renderer, Module module, double x, double y, double width) {
+    double textHeight = renderer.textHeight(shadow.get(), getScale());
+    double height = textHeight + 6;
+    renderer.roundedQuad(x, y, width, height, 3, liquidBackground.get());
+    renderer.roundedQuad(x, y, 3, height, 2, liquidAccent.get());
+
+    double textX = x + 7;
+    renderer.text(module.title, textX, y + 3, liquidText.get(), shadow.get(), getScale());
+    textX += renderer.textWidth(module.title, shadow.get(), getScale());
+
+    if (showKeybind.get() && module.keybind.isSet()) {
+      String keybind = " [" + module.keybind + "]";
+      renderer.text(keybind, textX, y + 3, moduleInfoColor.get(), shadow.get(), getScale());
+      textX += renderer.textWidth(keybind, shadow.get(), getScale());
+    }
+
+    if (activeInfo.get()) {
+      String info = module.getInfoString();
+      if (info != null) renderer.text(" " + info, textX, y + 3, moduleInfoColor.get(), shadow.get(), getScale());
     }
   }
 

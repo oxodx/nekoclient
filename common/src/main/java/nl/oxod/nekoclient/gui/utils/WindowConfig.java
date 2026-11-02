@@ -12,6 +12,8 @@ public class WindowConfig implements ISerializable<WindowConfig> {
   public boolean expanded = true;
   public double x = -1;
   public double y = -1;
+  public double scroll;
+  public long zIndex;
 
   // Saving
 
@@ -22,6 +24,8 @@ public class WindowConfig implements ISerializable<WindowConfig> {
     tag.putBoolean("expanded", expanded);
     tag.putDouble("x", x);
     tag.putDouble("y", y);
+    tag.putDouble("scroll", scroll);
+    tag.putLong("zIndex", zIndex);
 
     return tag;
   }
@@ -31,6 +35,8 @@ public class WindowConfig implements ISerializable<WindowConfig> {
     tag.getBoolean("expanded").ifPresent(bool -> expanded = bool);
     tag.getDouble("x").ifPresent(x1 -> x = x1);
     tag.getDouble("y").ifPresent(y1 -> y = y1);
+    tag.getDouble("scroll").ifPresent(value -> scroll = Math.max(0, value));
+    tag.getLong("zIndex").ifPresent(value -> zIndex = value);
 
     return this;
   }

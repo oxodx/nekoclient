@@ -13,8 +13,6 @@ import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -26,9 +24,9 @@ import net.minecraft.util.Mth;
 import nl.oxod.nekoclient.NekoClient;
 import nl.oxod.nekoclient.gui.renderer.GuiDebugRenderer;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
+import nl.oxod.nekoclient.gui.engine.UiScene;
 import nl.oxod.nekoclient.gui.tabs.TabScreen;
 import nl.oxod.nekoclient.gui.utils.Cell;
-import nl.oxod.nekoclient.gui.widgets.WRoot;
 import nl.oxod.nekoclient.gui.widgets.WWidget;
 import nl.oxod.nekoclient.gui.widgets.containers.WContainer;
 import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
@@ -47,7 +45,7 @@ public abstract class WidgetScreen extends Screen {
   protected Runnable enterAction;
 
   public Screen parent;
-  private final WContainer root;
+  private final UiScene root;
 
   protected final GuiTheme theme;
 
@@ -58,7 +56,6 @@ public abstract class WidgetScreen extends Screen {
 
   private boolean closing;
 
-  private double lastMouseX, lastMouseY;
 
   public double animProgress;
 
@@ -70,7 +67,7 @@ public abstract class WidgetScreen extends Screen {
     super(Component.literal(title));
 
     this.parent = mc.gui.screen();
-    this.root = new WFullScreenRoot();
+    this.root = new UiScene(theme);
     this.theme = theme;
 
     root.theme = theme;
@@ -96,8 +93,11 @@ public abstract class WidgetScreen extends Screen {
     root.invalidate();
   }
 
+  public boolean isDraggingPanel() { return root.input.draggingPanel(); }
+
   @Override
   protected void init() {
+    root.viewport(getWindowWidth(), getWindowHeight());
     NekoClient.EVENT_BUS.subscribe(this);
 
     closed = false;
@@ -136,18 +136,7 @@ public abstract class WidgetScreen extends Screen {
     mouseX *= s;
     mouseY *= s;
 
-    // Unfocus all text boxes that are not under the mouse cursor
-    loopWidgets(root, widget -> {
-      if (
-        widget instanceof WTextBox textBox &&
-        textBox.isFocused() &&
-        !textBox.mouseOver
-      ) {
-        textBox.setFocused(false);
-      }
-    });
-
-    return root.mouseClicked(
+    return root.input.click(
       new MouseButtonEvent(mouseX, mouseY, click.buttonInfo()),
       doubled
     );
@@ -172,7 +161,7 @@ public abstract class WidgetScreen extends Screen {
       0
     );
 
-    return root.mouseReleased(
+    return root.input.release(
       new MouseButtonEvent(mouseX, mouseY, click.buttonInfo())
     );
   }
@@ -185,10 +174,8 @@ public abstract class WidgetScreen extends Screen {
     mouseX *= s;
     mouseY *= s;
 
-    root.mouseMoved(mouseX, mouseY, lastMouseX, lastMouseY);
+    root.input.move(mouseX, mouseY);
 
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
   }
 
   @Override
@@ -200,7 +187,8 @@ public abstract class WidgetScreen extends Screen {
   ) {
     if (locked) return false;
 
-    root.mouseScrolled(verticalAmount);
+    double scale = mc.getWindow().getGuiScale();
+    if (root.input.scroll(mouseX * scale, mouseY * scale, verticalAmount)) return true;
 
     return super.mouseScrolled(
       mouseX,
@@ -238,39 +226,12 @@ public abstract class WidgetScreen extends Screen {
   public boolean keyPressed(@NonNull KeyEvent input) {
     if (locked) return false;
 
-    boolean shouldReturn = root.keyPressed(input) || super.keyPressed(input);
+    boolean shouldReturn = root.input.key(input, false) || super.keyPressed(input);
     if (shouldReturn) return true;
 
     // Select next text box if TAB was pressed
     if (input.key() == KEY_TAB) {
-      AtomicReference<WTextBox> firstTextBox = new AtomicReference<>(null);
-      AtomicBoolean done = new AtomicBoolean(false);
-      AtomicBoolean foundFocused = new AtomicBoolean(false);
-
-      loopWidgets(root, wWidget -> {
-        if (done.get() || !(wWidget instanceof WTextBox textBox)) return;
-
-        if (foundFocused.get()) {
-          textBox.setFocused(true);
-          textBox.setCursorMax();
-
-          done.set(true);
-        } else {
-          if (textBox.isFocused()) {
-            textBox.setFocused(false);
-            foundFocused.set(true);
-          }
-        }
-
-        if (firstTextBox.get() == null) firstTextBox.set(textBox);
-      });
-
-      if (!done.get() && firstTextBox.get() != null) {
-        firstTextBox.get().setFocused(true);
-        firstTextBox.get().setCursorMax();
-      }
-
-      return true;
+      return root.input.focusNext(Input.modsMatch(input.modifiers(), MOD_SHIFT));
     }
 
     boolean ctrl = SystemUtils.IS_OS_MAC
@@ -286,14 +247,14 @@ public abstract class WidgetScreen extends Screen {
   public void keyRepeated(KeyEvent input) {
     if (locked) return;
 
-    root.keyRepeated(input);
+    root.input.key(input, true);
   }
 
   @Override
   public boolean charTyped(@NonNull CharacterEvent input) {
     if (locked) return false;
 
-    return root.charTyped(input);
+    return root.input.character(input);
   }
 
   @Override
@@ -336,10 +297,10 @@ public abstract class WidgetScreen extends Screen {
     theme.beforeRender();
 
     RENDERER.begin(graphics);
-    RENDERER.setAlpha(animProgress);
+    RENDERER.setFrameAlpha(animProgress);
     theme.renderScreenBackground(RENDERER, getWindowWidth(), getWindowHeight());
     root.render(RENDERER, mouseX, mouseY, delta / 20);
-    RENDERER.setAlpha(1);
+    RENDERER.setFrameAlpha(1);
     RENDERER.end();
 
     boolean tooltip = RENDERER.renderTooltip(
@@ -376,6 +337,7 @@ public abstract class WidgetScreen extends Screen {
   @Override
   public void resize(int width, int height) {
     super.resize(width, height);
+    root.viewport(getWindowWidth(), getWindowHeight());
     root.invalidate();
   }
 
@@ -390,6 +352,7 @@ public abstract class WidgetScreen extends Screen {
   public void removed() {
     if (!closed || lockedAllowClose) {
       closed = true;
+      root.input.reset();
       onClosed();
 
       Input.setCursorStyle(CursorTypes.ARROW);
@@ -468,55 +431,4 @@ public abstract class WidgetScreen extends Screen {
     return false;
   }
 
-  private static class WFullScreenRoot extends WContainer implements WRoot {
-
-    private boolean valid;
-
-    @Override
-    public void invalidate() {
-      valid = false;
-    }
-
-    @Override
-    protected void onCalculateSize() {
-      width = getWindowWidth();
-      height = getWindowHeight();
-    }
-
-    @Override
-    protected void onCalculateWidgetPositions() {
-      for (Cell<?> cell : cells) {
-        cell.x = 0;
-        cell.y = 0;
-
-        cell.width = width;
-        cell.height = height;
-
-        cell.alignWidget();
-      }
-    }
-
-    @Override
-    public boolean render(
-      GuiRenderer renderer,
-      double mouseX,
-      double mouseY,
-      double delta
-    ) {
-      if (!valid) {
-        calculateSize();
-        calculateWidgetPositions();
-
-        valid = true;
-        mouseMoved(
-          mc.mouseHandler.xpos(),
-          mc.mouseHandler.ypos(),
-          mc.mouseHandler.xpos(),
-          mc.mouseHandler.ypos()
-        );
-      }
-
-      return super.render(renderer, mouseX, mouseY, delta);
-    }
-  }
 }

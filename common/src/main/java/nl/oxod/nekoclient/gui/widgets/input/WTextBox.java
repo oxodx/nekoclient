@@ -111,8 +111,8 @@ public abstract class WTextBox extends WWidget {
   }
 
   @Override
-  public void calculateWidgetPositions() {
-    super.calculateWidgetPositions();
+  protected void onCalculateWidgetPositions() {
+    super.onCalculateWidgetPositions();
 
     if (completionsW != null) {
       completionsW.x = x;
@@ -130,6 +130,9 @@ public abstract class WTextBox extends WWidget {
   protected double maxTextWidth() {
     return width - pad() * 2;
   }
+
+  @Override
+  public WWidget popup() { return focused ? completionsW : null; }
 
   @Override
   public boolean onMouseClicked(MouseButtonEvent click, boolean doubled) {
@@ -274,6 +277,13 @@ public abstract class WTextBox extends WWidget {
     }
 
     return false;
+  }
+
+  @Override
+  public void cancelPointer() {
+    selecting = false;
+    doubleClick = false;
+    super.cancelPointer();
   }
 
   @Override

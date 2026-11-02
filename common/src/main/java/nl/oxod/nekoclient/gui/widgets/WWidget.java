@@ -12,6 +12,8 @@ import nl.oxod.nekoclient.gui.widgets.containers.WView;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import nl.oxod.nekoclient.gui.engine.UiLayout;
+import nl.oxod.nekoclient.gui.engine.UiRect;
 
 public abstract class WWidget implements BaseWidget {
   public boolean visible = true;
@@ -20,6 +22,7 @@ public abstract class WWidget implements BaseWidget {
   public double x, y;
   public double width, height;
   public double minWidth;
+  public double availableWidth = Double.POSITIVE_INFINITY;
 
   public WWidget parent;
   public String tooltip;
@@ -49,20 +52,43 @@ public abstract class WWidget implements BaseWidget {
   // Layout
 
   public void calculateSize() {
+    UiLayout.measure(this, availableWidth);
+  }
+
+  public final void measureSelf() {
     onCalculateSize();
 
     double minWidth = theme.scale(this.minWidth);
     if (width < minWidth) width = minWidth;
 
-    width = Math.round(width);
-    height = Math.round(height);
+    width = Math.max(0, Math.round(Math.min(width, availableWidth)));
+    height = Math.max(0, Math.round(height));
   }
+
+  public double contentWidth(double available) { return available; }
+
+  public UiRect bounds() { return new UiRect(x, y, width, height); }
+
+  public boolean clipsChildren() { return false; }
+
+  public boolean isStackingContext() { return false; }
+
+  public int layer() { return 0; }
+
+  /** Detached overlay content, painted above the ordinary scene and picked first. */
+  public WWidget popup() { return null; }
+
+  public void cancelPointer() { setFocused(false); }
 
   protected void onCalculateSize() {
 
   }
 
   public void calculateWidgetPositions() {
+    UiLayout.arrange(this);
+  }
+
+  public final void arrangeSelf() {
     x = Math.round(x);
     y = Math.round(y);
 
@@ -78,7 +104,7 @@ public abstract class WWidget implements BaseWidget {
   public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (!visible) return true;
 
-    if (isOver(mouseX, mouseY)) {
+    if (mouseOver) {
       mouseOverTimer += delta;
 
       if ((instantTooltips || mouseOverTimer >= 1) && tooltip != null) {

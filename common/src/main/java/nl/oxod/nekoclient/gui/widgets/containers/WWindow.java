@@ -12,6 +12,7 @@ import nl.oxod.nekoclient.gui.widgets.WWidget;
 import nl.oxod.nekoclient.gui.widgets.pressable.WTriangle;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.util.Mth;
+import nl.oxod.nekoclient.gui.engine.UiMotion;
 
 import java.util.function.Consumer;
 
@@ -21,6 +22,9 @@ import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
 
 public abstract class WWindow extends WVerticalList {
   public double padding = 8;
+  /** Optional engine-level panel constraints. A negative value keeps content sizing. */
+  public double panelWidth = -1;
+  public double maxViewHeight = -1;
   public Consumer<WContainer> beforeHeaderInit;
   public String id;
 
@@ -39,8 +43,6 @@ public abstract class WWindow extends WVerticalList {
   protected boolean moved = false;
   protected double movedX, movedY;
 
-  private boolean propagateEventsExpanded;
-
   public WWindow(WWidget icon, String title) {
     this.icon = icon;
     this.title = title;
@@ -53,14 +55,37 @@ public abstract class WWindow extends WVerticalList {
     super.add(header).expandWidgetX().widget();
 
     view = super.add(theme.view()).expandX().pad(padding).widget();
+    if (maxViewHeight >= 0) view.maxHeight = Math.min(view.maxHeight, maxViewHeight);
 
     if (id != null) {
       expanded = theme.getWindowConfig(id).expanded;
       animProgress = expanded ? 1 : 0;
+      view.restoreScroll(theme.getWindowConfig(id).scroll);
+      view.onScroll = value -> theme.getWindowConfig(id).scroll = value;
     }
   }
 
   protected abstract WHeader header(WWidget icon);
+
+  @Override
+  protected void onCalculateSize() {
+    super.onCalculateSize();
+    if (panelWidth >= 0) width = Math.min(panelWidth, availableWidth);
+    height = header.height + (height - header.height) * animProgress;
+  }
+
+  @Override
+  public double contentWidth(double available) {
+    return panelWidth >= 0 ? Math.min(panelWidth, available) : available;
+  }
+
+  @Override
+  public boolean clipsChildren() { return true; }
+
+  @Override
+  public boolean isStackingContext() { return true; }
+
+  public boolean isDragging() { return dragging; }
 
   @Override
   public <T extends WWidget> Cell<T> add(T widget) {
@@ -74,6 +99,7 @@ public abstract class WWindow extends WVerticalList {
 
   public void setExpanded(boolean expanded) {
     this.expanded = expanded;
+    invalidate();
 
     if (id != null) {
       WindowConfig config = theme.getWindowConfig(id);
@@ -90,7 +116,7 @@ public abstract class WWindow extends WVerticalList {
         x = config.x;
 
         if (x + width > getWindowWidth()) {
-          x = getWindowWidth() - width;
+          x = Math.max(0, getWindowWidth() - width);
         }
       }
 
@@ -98,7 +124,7 @@ public abstract class WWindow extends WVerticalList {
         y = config.y;
 
         if (y + height > getWindowHeight()) {
-          y = getWindowHeight() - height;
+          y = Math.max(0, getWindowHeight() - height);
         }
       }
     }
@@ -106,6 +132,8 @@ public abstract class WWindow extends WVerticalList {
     super.onCalculateWidgetPositions();
 
     if (moved) {
+      movedX = Mth.clamp(movedX, 0, Math.max(0, getWindowWidth() - width));
+      movedY = Mth.clamp(movedY, 0, Math.max(0, getWindowHeight() - height));
       move(movedX - x, movedY - y);
     }
   }
@@ -114,8 +142,12 @@ public abstract class WWindow extends WVerticalList {
   public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (!visible) return true;
 
+    double previous = animProgress;
+    animProgress = UiMotion.approach(animProgress, expanded ? 1 : 0, 20, delta);
+    if (previous != animProgress) invalidate();
+
     boolean scissor = (animProgress != 0 && animProgress != 1) || (expanded && animProgress != 1);
-    if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
+    if (scissor) renderer.scissorStart(x, y, width, height);
     boolean toReturn = super.render(renderer, mouseX, mouseY, delta);
     if (scissor) renderer.scissorEnd();
 
@@ -128,12 +160,16 @@ public abstract class WWindow extends WVerticalList {
       widget.render(renderer, mouseX, mouseY, delta);
     }
 
-    propagateEventsExpanded = expanded;
   }
 
   @Override
   protected boolean propagateEvents(WWidget widget) {
-    return widget instanceof WHeader || propagateEventsExpanded;
+    return widget instanceof WHeader || expanded;
+  }
+
+  @Override
+  public boolean isChildActive(WWidget widget) {
+    return widget.visible && (widget instanceof WHeader || expanded);
   }
 
   protected abstract class WHeader extends WContainer {
@@ -191,6 +227,7 @@ public abstract class WWindow extends WVerticalList {
     @Override
     public boolean onMouseClicked(MouseButtonEvent click, boolean doubled) {
       if (mouseOver && !doubled) {
+        if (WWindow.this.parent instanceof WContainer container) container.bringToFront(WWindow.this);
         if (click.button() == MOUSE_BUTTON_RIGHT) setExpanded(!expanded);
         else {
           dragging = true;
@@ -209,6 +246,19 @@ public abstract class WWindow extends WVerticalList {
         dragging = false;
 
         if (!dragged) setExpanded(!expanded);
+        else {
+          double snappedX = Mth.clamp(theme.snapWindowPosition(x), 0, Math.max(0, getWindowWidth() - width));
+          double snappedY = Mth.clamp(theme.snapWindowPosition(y), 0, Math.max(0, getWindowHeight() - WWindow.this.height));
+          WWindow.this.move(snappedX - x, snappedY - y);
+          movedX = WWindow.this.x;
+          movedY = WWindow.this.y;
+
+          if (id != null) {
+            WindowConfig config = theme.getWindowConfig(id);
+            config.x = movedX;
+            config.y = movedY;
+          }
+        }
       }
 
       return false;
@@ -216,7 +266,7 @@ public abstract class WWindow extends WVerticalList {
 
     @Override
     public void onMouseMoved(double mouseX, double mouseY, double lastMouseX, double lastMouseY) {
-      if (dragging) {
+      if (dragging && (mouseX != lastMouseX || mouseY != lastMouseY)) {
         WWindow.this.move(mouseX - lastMouseX, mouseY - lastMouseY);
 
         moved = true;
@@ -236,12 +286,15 @@ public abstract class WWindow extends WVerticalList {
 
     @Override
     public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
-      animProgress += (expanded ? 1 : -1) * delta * 14;
-      animProgress = Mth.clamp(animProgress, 0, 1);
-
       triangle.rotation = (1 - animProgress) * -90;
 
       return super.render(renderer, mouseX, mouseY, delta);
+    }
+
+    @Override
+    public void cancelPointer() {
+      dragging = false;
+      super.cancelPointer();
     }
   }
 }

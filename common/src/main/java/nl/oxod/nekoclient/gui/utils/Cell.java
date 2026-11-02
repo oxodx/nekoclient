@@ -172,6 +172,9 @@ public class Cell<T extends WWidget> {
   }
 
   public void alignWidget() {
+    width = Math.max(0, width);
+    height = Math.max(0, height);
+    widget.width = Math.min(widget.width, width);
     if (expandWidgetX) {
       widget.x = x;
       widget.width = width;

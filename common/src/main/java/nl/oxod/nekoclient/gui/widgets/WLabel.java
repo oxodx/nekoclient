@@ -14,6 +14,9 @@ public abstract class WLabel extends WPressable {
 
   protected String text;
   protected boolean title;
+  private String fitted;
+  private String fittedSource;
+  private double fittedWidth = -1;
 
   public WLabel(String text, boolean title) {
     this.text = text;
@@ -46,6 +49,24 @@ public abstract class WLabel extends WPressable {
 
   public String get() {
     return text;
+  }
+
+  protected String fittedText() {
+    if (text.equals(fittedSource) && fittedWidth == width) return fitted;
+    fittedSource = text;
+    fittedWidth = width;
+    if (theme.textWidth(text, text.length(), title) <= width) return fitted = text;
+    String suffix = "...";
+    double remaining = width - theme.textWidth(suffix, suffix.length(), title);
+    if (remaining <= 0) return fitted = "";
+    int low = 0, high = text.codePointCount(0, text.length());
+    while (low < high) {
+      int middle = (low + high + 1) / 2;
+      int end = text.offsetByCodePoints(0, middle);
+      if (theme.textWidth(text, end, title) <= remaining) low = middle;
+      else high = middle - 1;
+    }
+    return fitted = text.substring(0, text.offsetByCodePoints(0, low)) + suffix;
   }
 
   public WLabel color(Color color) {

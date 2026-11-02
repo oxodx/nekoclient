@@ -8,16 +8,15 @@ package nl.oxod.nekoclient.gui.widgets.containers;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.utils.Cell;
 import nl.oxod.nekoclient.gui.widgets.WWidget;
-import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import nl.oxod.nekoclient.gui.engine.UiCompositor;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-import static nl.oxod.nekoclient.NekoClient.mc;
 import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
 
 public abstract class WContainer extends WWidget {
@@ -47,6 +46,17 @@ public abstract class WContainer extends WWidget {
     if (cells.remove(cell)) invalidate();
   }
 
+  /** Moves a child to the visual and input front, matching desktop-style panels. */
+  public void bringToFront(WWidget widget) {
+    for (int i = 0; i < cells.size(); i++) {
+      Cell<?> cell = cells.get(i);
+      if (cell.widget() != widget) continue;
+      cells.remove(i);
+      cells.add(cell);
+      return;
+    }
+  }
+
   @Override
   public void move(double deltaX, double deltaY) {
     super.move(deltaX, deltaY);
@@ -56,9 +66,6 @@ public abstract class WContainer extends WWidget {
   public void moveCells(double deltaX, double deltaY) {
     for (Cell<?> cell : cells) {
       cell.move(deltaX, deltaY);
-
-      MouseHandler mouse = mc.mouseHandler;
-      cell.widget().mouseMoved(mouse.xpos(), mouse.ypos(), mouse.xpos(), mouse.ypos());
     }
   }
 
@@ -77,12 +84,6 @@ public abstract class WContainer extends WWidget {
   // Layout
 
   @Override
-  public void calculateSize() {
-    for (Cell<?> cell : cells) cell.widget().calculateSize();
-    super.calculateSize();
-  }
-
-  @Override
   protected void onCalculateSize() {
     width = 0;
     height = 0;
@@ -91,12 +92,6 @@ public abstract class WContainer extends WWidget {
       width = Math.max(width, cell.padLeft() + cell.widget().width + cell.padRight());
       height = Math.max(height, cell.padTop() + cell.widget().height + cell.padBottom());
     }
-  }
-
-  @Override
-  public void calculateWidgetPositions() {
-    super.calculateWidgetPositions();
-    for (Cell<?> cell : cells) cell.widget().calculateWidgetPositions();
   }
 
   @Override
@@ -121,14 +116,11 @@ public abstract class WContainer extends WWidget {
     WView view = getView();
     double windowHeight = getWindowHeight();
 
-    for (Cell<?> cell : cells) {
-      WWidget widget = cell.widget();
-
-      if (widget.y > windowHeight) break;
-      if (widget.y + widget.height <= 0) continue;
-
-      if (shouldRenderWidget(widget, view)) renderWidget(widget, renderer, mouseX, mouseY, delta);
-    }
+    UiCompositor.paint(cells,
+      cell -> cell.widget().visible && cell.widget().y <= windowHeight
+        && cell.widget().y + cell.widget().height > 0 && shouldRenderWidget(cell.widget(), view),
+      cell -> renderWidget(cell.widget(), renderer, mouseX, mouseY, delta),
+      cell -> cell.widget().isStackingContext(), renderer::flush);
 
     return false;
   }
@@ -154,10 +146,17 @@ public abstract class WContainer extends WWidget {
     return true;
   }
 
+  public final boolean acceptsInput(WWidget widget) {
+    return widget.visible && propagateEvents(widget);
+  }
+
+  public boolean isChildActive(WWidget widget) { return widget.visible; }
+
   @Override
   public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
     try {
-      for (Cell<?> cell : cells) {
+      for (int i = cells.size() - 1; i >= 0; i--) {
+        Cell<?> cell = cells.get(i);
         if (propagateEvents(cell.widget()) && cell.widget().mouseClicked(click, doubled)) return true;
       }
     } catch (ConcurrentModificationException _) {
@@ -169,7 +168,8 @@ public abstract class WContainer extends WWidget {
   @Override
   public boolean mouseReleased(MouseButtonEvent click) {
     try {
-      for (Cell<?> cell : cells) {
+      for (int i = cells.size() - 1; i >= 0; i--) {
+        Cell<?> cell = cells.get(i);
         if (propagateEvents(cell.widget()) && cell.widget().mouseReleased(click)) return true;
       }
     } catch (ConcurrentModificationException _) {

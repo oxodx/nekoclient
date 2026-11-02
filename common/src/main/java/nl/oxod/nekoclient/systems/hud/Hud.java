@@ -118,6 +118,8 @@ public class Hud extends System<Hud> implements Iterable<HudElement> {
     settings.registerColorSettings(null);
 
     register(NekoTextHud.INFO);
+    register(LiquidWatermarkHud.INFO);
+    register(BindsHud.INFO);
     register(ItemHud.INFO);
     register(InventoryHud.INFO);
     register(CompassHud.INFO);
@@ -193,11 +195,11 @@ public class Hud extends System<Hud> implements Iterable<HudElement> {
     int h = (int) Math.ceil(HudRenderer.INSTANCE.textHeight(true));
 
     // Top Left
-    add(NekoTextHud.WATERMARK, 4, 4, XAnchor.Left, YAnchor.Top);
-    add(NekoTextHud.FPS, 4, 4 + h, XAnchor.Left, YAnchor.Top);
-    add(NekoTextHud.TPS, 4, 4 + h * 2, XAnchor.Left, YAnchor.Top);
-    add(NekoTextHud.PING, 4, 4 + h * 3, XAnchor.Left, YAnchor.Top);
-    add(NekoTextHud.SPEED, 4, 4 + h * 4, XAnchor.Left, YAnchor.Top);
+    add(LiquidWatermarkHud.INFO, 4, 4, XAnchor.Left, YAnchor.Top);
+    add(NekoTextHud.FPS, 4, 28, XAnchor.Left, YAnchor.Top);
+    add(NekoTextHud.TPS, 4, 28 + h, XAnchor.Left, YAnchor.Top);
+    add(NekoTextHud.PING, 4, 28 + h * 2, XAnchor.Left, YAnchor.Top);
+    add(NekoTextHud.SPEED, 4, 28 + h * 3, XAnchor.Left, YAnchor.Top);
 
     // Top Right
     add(ActiveModulesHud.INFO, -4, 4, XAnchor.Right, YAnchor.Top);
@@ -236,15 +238,23 @@ public class Hud extends System<Hud> implements Iterable<HudElement> {
 
     HudRenderer.INSTANCE.begin(event.graphics);
 
-    for (HudElement element : elements) {
-      element.updatePos();
-
-      if (element.isActive() || element.isInEditor()) {
+    nl.oxod.nekoclient.gui.engine.UiCompositor.paint(elements,
+      element -> element.isActive() || element.isInEditor(),
+      element -> {
+        element.updatePos();
         element.render(HudRenderer.INSTANCE);
-      }
-    }
+      }, element -> true, HudRenderer.INSTANCE::flush);
 
     HudRenderer.INSTANCE.end();
+  }
+
+  public HudElement pick(double x, double y) {
+    return nl.oxod.nekoclient.gui.engine.UiCompositor.pick(elements, element ->
+      new nl.oxod.nekoclient.gui.engine.UiRect(element.x, element.y, element.getWidth(), element.getHeight()), x, y);
+  }
+
+  public void bringToFront(HudElement element) {
+    if (elements.remove(element)) elements.add(element);
   }
 
   private boolean shouldHideHud() {

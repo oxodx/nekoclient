@@ -60,6 +60,15 @@ public abstract class GuiTheme implements ISerializable<GuiTheme> {
   /** Renders the theme's full-screen shell below every widget. */
   public void renderScreenBackground(GuiRenderer renderer, double width, double height) {}
 
+  /** Allows themes with positioning grids to snap a released window. */
+  public double snapWindowPosition(double value) {
+    return value;
+  }
+
+  public double topBarInset() {
+    return 0;
+  }
+
   // Widgets
 
   public abstract WWindow window(WWidget icon, String title);

@@ -16,7 +16,7 @@ public class WCatppuccinLabel extends WLabel implements CatppuccinWidget {
   @Override
   protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     if (!text.isEmpty()) {
-      renderer.text(text, x, y, color != null ? color : theme().textColor(), title);
+      renderer.text(fittedText(), x, y, color != null ? color : theme().textColor(), title);
     }
   }
 }

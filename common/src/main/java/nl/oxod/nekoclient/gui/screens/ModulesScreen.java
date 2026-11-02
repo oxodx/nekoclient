@@ -6,8 +6,6 @@
 package nl.oxod.nekoclient.gui.screens;
 
 import static com.mojang.blaze3d.platform.InputConstants.*;
-import static nl.oxod.nekoclient.utils.Utils.getWindowHeight;
-import static nl.oxod.nekoclient.utils.Utils.getWindowWidth;
 
 import com.mojang.datafixers.util.Pair;
 import java.util.ArrayList;
@@ -23,6 +21,7 @@ import nl.oxod.nekoclient.gui.widgets.containers.WContainer;
 import nl.oxod.nekoclient.gui.widgets.containers.WSection;
 import nl.oxod.nekoclient.gui.widgets.containers.WVerticalList;
 import nl.oxod.nekoclient.gui.widgets.containers.WWindow;
+import nl.oxod.nekoclient.gui.widgets.containers.WPanelWorkspace;
 import nl.oxod.nekoclient.gui.widgets.input.WTextBox;
 import nl.oxod.nekoclient.systems.config.Config;
 import nl.oxod.nekoclient.systems.modules.Category;
@@ -37,7 +36,7 @@ import org.jspecify.annotations.NonNull;
 public class ModulesScreen extends TabScreen {
 
   private WCategoryController controller;
-  private WWindow searchWindow;
+  private WVerticalList searchWindow;
   private WTextBox searchTextBox;
 
   public ModulesScreen(GuiTheme theme) {
@@ -46,7 +45,7 @@ public class ModulesScreen extends TabScreen {
 
   @Override
   public void initWidgets() {
-    controller = add(new WCategoryController()).widget();
+    controller = add(new WCategoryController()).top().expandX().expandWidgetY().widget();
 
     // Help
     if (theme.modulesHelpText()) {
@@ -66,19 +65,30 @@ public class ModulesScreen extends TabScreen {
   protected WWindow createCategory(
     WContainer c,
     Category category,
-    List<Module> moduleList
+    List<Module> moduleList,
+    int panelIndex
   ) {
     WWindow w = theme.window(category.name);
-    w.id = category.name;
+    w.id = "liquid-panel-v2-" + category.name;
     w.padding = 0;
     w.spacing = 0;
+    w.panelWidth = theme.scale(250);
+    w.maxViewHeight = theme.scale(545);
+
+    var config = theme.getWindowConfig(w.id);
+    if (config.x == -1 && config.y == -1) {
+      config.x = theme.scale(20);
+      config.y = theme.scale(panelIndex * 50 + 20);
+      config.expanded = false;
+    }
 
     if (theme.categoryIcons()) {
       w.beforeHeaderInit = wContainer ->
         wContainer.add(theme.item(category.icon.get())).pad(2);
     }
 
-    c.add(w);
+    if (c instanceof WPanelWorkspace workspace) workspace.addPanel(w);
+    else c.add(w);
     w.view.scrollOnlyWhenMouseOver = true;
     w.view.hasScrollBar = false;
     w.view.spacing = 0;
@@ -131,26 +141,33 @@ public class ModulesScreen extends TabScreen {
     }
   }
 
-  protected WWindow createSearch(WContainer c) {
-    WWindow w = theme.window("Search");
-    w.id = "search";
+  protected WVerticalList createSearch(WContainer c) {
+    WVerticalList w = new WVerticalList() {
+      @Override
+      public double contentWidth(double available) {
+        return Math.min(available, theme.scale(600));
+      }
+
+      @Override
+      protected void onCalculateSize() {
+        super.onCalculateSize();
+        width = contentWidth(availableWidth);
+      }
+
+      @Override
+      public boolean isStackingContext() { return true; }
+    };
+    w.spacing = 0;
     searchWindow = w;
 
-    if (theme.categoryIcons()) {
-      w.beforeHeaderInit = wContainer ->
-        wContainer
-          .add(theme.item(DisplayItemUtils.toStack(Items.COMPASS)))
-          .pad(2);
-    }
+    if (c instanceof WPanelWorkspace workspace) {
+      workspace.addOverlay(w, WPanelWorkspace.Anchor.TOP_CENTER, theme.scale(70));
+    } else c.add(w);
 
-    c.add(w);
-    w.view.scrollOnlyWhenMouseOver = true;
-    w.view.hasScrollBar = false;
-    w.view.maxHeight -= 20;
+    var l = theme.view();
+    l.spacing = 0;
 
-    WVerticalList l = theme.verticalList();
-
-    WTextBox text = w.add(theme.textBox("")).minWidth(140).expandX().widget();
+    WTextBox text = w.add(theme.textBox("", "Search")).minWidth(600).expandX().widget();
     text.setFocused(true);
     searchTextBox = text;
     text.action = () -> {
@@ -159,6 +176,7 @@ public class ModulesScreen extends TabScreen {
     };
 
     w.add(l).expandX();
+    l.maxHeight = Math.max(0, nl.oxod.nekoclient.utils.Utils.getWindowHeight() - theme.scale(150));
     createSearchW(l, text.get());
 
     return w;
@@ -173,7 +191,6 @@ public class ModulesScreen extends TabScreen {
       : Input.modsMatch(input.modifiers(), MOD_CONTROL);
 
     if (ctrl && input.key() == KEY_F) {
-      if (searchWindow != null) searchWindow.setExpanded(true);
       if (searchTextBox != null) {
         searchTextBox.setFocused(true);
         searchTextBox.setCursorMax();
@@ -197,6 +214,8 @@ public class ModulesScreen extends TabScreen {
     w.id = "favorites";
     w.padding = 0;
     w.spacing = 0;
+    w.panelWidth = theme.scale(250);
+    w.maxViewHeight = theme.scale(545);
 
     if (theme.categoryIcons()) {
       w.beforeHeaderInit = wContainer ->
@@ -249,14 +268,14 @@ public class ModulesScreen extends TabScreen {
 
   // Stuff
 
-  protected class WCategoryController extends WContainer {
+  protected class WCategoryController extends WPanelWorkspace {
 
-    public final List<WWindow> windows = new ArrayList<>();
     private Cell<WWindow> favorites;
 
     @Override
     public void init() {
       List<Module> moduleList = new ArrayList<>();
+      int panelIndex = 0;
       for (Category category : Modules.loopCategories()) {
         for (Module module : Modules.get().getGroup(category)) {
           if (!Config.get().hiddenModules.get().contains(module)) {
@@ -266,12 +285,12 @@ public class ModulesScreen extends TabScreen {
 
         // Ensure empty categories are not shown
         if (!moduleList.isEmpty()) {
-          windows.add(createCategory(this, category, moduleList));
+          createCategory(this, category, moduleList, panelIndex++);
           moduleList.clear();
         }
       }
 
-      windows.add(createSearch(this));
+      createSearch(this);
 
       refresh();
     }
@@ -279,54 +298,17 @@ public class ModulesScreen extends TabScreen {
     protected void refresh() {
       if (favorites == null) {
         favorites = createFavorites(this);
-        if (favorites != null) windows.add(favorites.widget());
+        if (favorites != null && !panels.contains(favorites.widget())) panels.add(favorites.widget());
       } else {
         favorites.widget().clear();
 
         if (!createFavoritesW(favorites.widget())) {
           remove(favorites);
-          windows.remove(favorites.widget());
+          panels.remove(favorites.widget());
           favorites = null;
         }
       }
     }
 
-    @Override
-    protected void onCalculateWidgetPositions() {
-      double gap = theme.scale(10);
-      double margin = theme.scale(18);
-      double contentWidth = Math.max(0, getWindowWidth() - margin * 2);
-      double y = this.y + theme.scale(44);
-      int rowStart = 0;
-
-      while (rowStart < cells.size()) {
-        int rowEnd = rowStart;
-        double rowWidth = 0;
-        double rowHeight = 0;
-
-        while (rowEnd < cells.size()) {
-          Cell<?> candidate = cells.get(rowEnd);
-          double nextWidth = rowWidth + (rowEnd > rowStart ? gap : 0) + candidate.widget().width;
-          if (rowEnd > rowStart && nextWidth > contentWidth) break;
-          rowWidth = nextWidth;
-          rowHeight = Math.max(rowHeight, candidate.widget().height);
-          rowEnd++;
-        }
-
-        double x = Math.max(margin, (getWindowWidth() - rowWidth) / 2);
-        for (int i = rowStart; i < rowEnd; i++) {
-          Cell<?> cell = cells.get(i);
-          cell.x = x;
-          cell.y = y;
-          cell.width = cell.widget().width;
-          cell.height = cell.widget().height;
-          cell.alignWidget();
-          x += cell.width + gap;
-        }
-
-        y += rowHeight + gap;
-        rowStart = rowEnd;
-      }
-    }
   }
 }

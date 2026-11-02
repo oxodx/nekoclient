@@ -10,6 +10,7 @@ import nl.oxod.nekoclient.gui.widgets.WWidget;
 import nl.oxod.nekoclient.utils.Utils;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.util.Mth;
+import nl.oxod.nekoclient.gui.engine.UiMotion;
 
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT;
 
@@ -17,6 +18,8 @@ public abstract class WView extends WVerticalList {
   public double maxHeight = Double.MAX_VALUE;
   public boolean scrollOnlyWhenMouseOver = true;
   public boolean hasScrollBar = true;
+  public java.util.function.DoubleConsumer onScroll;
+  private double restoredScroll = -1;
 
   protected boolean canScroll;
   private double actualHeight;
@@ -61,6 +64,12 @@ public abstract class WView extends WVerticalList {
   @Override
   protected void onCalculateWidgetPositions() {
     super.onCalculateWidgetPositions();
+
+    if (restoredScroll >= 0) {
+      scroll = targetScroll = Mth.clamp(restoredScroll, 0, Math.max(0, actualHeight - height));
+      restoredScroll = -1;
+      moveAfterPositionWidgets = true;
+    }
 
     if (moveAfterPositionWidgets) {
       scroll = Mth.clamp(scroll, 0, actualHeight - height);
@@ -136,32 +145,32 @@ public abstract class WView extends WVerticalList {
   @Override
   public boolean render(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
     updateScroll(delta);
-
-    if (canScroll) renderer.scissorStart(x, y, width, height);
+    renderer.scissorStart(x, y, width, height);
     boolean render = super.render(renderer, mouseX, mouseY, delta);
-    if (canScroll) renderer.scissorEnd();
+    renderer.scissorEnd();
 
     return render;
   }
 
   private void updateScroll(double delta) {
-    double preScroll = scroll;
+    double preScroll = Math.round(scroll);
     double max = actualHeight - height;
 
-    if (Math.abs(targetScroll - scroll) < 1) scroll = targetScroll;
-    else if (targetScroll > scroll) {
-      scroll += Math.round(theme.scale(delta * 300 + delta * 100 * (Math.abs(targetScroll - scroll) / 10)));
-      if (scroll > targetScroll) scroll = targetScroll;
-    } else if (targetScroll < scroll) {
-      scroll -= Math.round(theme.scale(delta * 300 + delta * 100 * (Math.abs(targetScroll - scroll) / 10)));
-      if (scroll < targetScroll) scroll = targetScroll;
-    }
+    scroll = UiMotion.approach(scroll, targetScroll, 18, delta);
 
     scroll = Mth.clamp(scroll, 0, max);
 
-    double change = scroll - preScroll;
-    if (change != 0) moveCells(0, -change);
+    double change = Math.round(scroll) - preScroll;
+    if (change != 0) {
+      moveCells(0, -change);
+      if (onScroll != null) onScroll.accept(scroll);
+    }
   }
+
+  public void restoreScroll(double scroll) { restoredScroll = Math.max(0, scroll); }
+
+  @Override
+  public boolean clipsChildren() { return true; }
 
   @Override
   protected boolean propagateEvents(WWidget widget) {

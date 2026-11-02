@@ -22,6 +22,7 @@ import nl.oxod.nekoclient.utils.render.color.Color;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import nl.oxod.nekoclient.gui.engine.UiRect;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -61,6 +62,8 @@ public class GuiRenderer {
   private double tooltipAnimProgress;
 
   private GuiGraphicsExtractor graphics;
+  private double frameAlpha = 1;
+  private double currentAlpha = 1;
 
   public static GuiTexture addTexture(Identifier id) {
     return TEXTURE_PACKER.add(id);
@@ -135,25 +138,21 @@ public class GuiRenderer {
     theme.textRenderer().end();
 
     texts.clear();
+    theme.textRenderer().setAlpha(currentAlpha);
 
     if (scissor != null) scissor.pop();
   }
 
   public void scissorStart(double x, double y, double width, double height) {
+    UiRect bounds = new UiRect(x, y, width, height);
     if (!scissorStack.isEmpty()) {
       Scissor parent = scissorStack.top();
-
-      if (x < parent.x) x = parent.x;
-      else if (x + width > parent.x + parent.width) width -= (x + width) - (parent.x + parent.width);
-
-      if (y < parent.y) y = parent.y;
-      else if (y + height > parent.y + parent.height) height -= (y + height) - (parent.y + parent.height);
-
+      bounds = bounds.intersect(new UiRect(parent.x, parent.y, parent.width, parent.height));
       endRender(parent);
     }
-
-    scissorStack.push(scissorPool.get().set(x, y, width, height));
-    graphics.enableScissor((int) x, (int) y, (int) (x + width), (int) (y + height));
+    scissorStack.push(scissorPool.get().set(bounds.x(), bounds.y(), bounds.width(), bounds.height()));
+    graphics.enableScissor((int) bounds.x(), (int) bounds.y(),
+      (int) (bounds.x() + bounds.width()), (int) (bounds.y() + bounds.height()));
 
     beginRender();
   }
@@ -212,10 +211,30 @@ public class GuiRenderer {
   }
 
   public void setAlpha(double a) {
+    a *= frameAlpha;
+    currentAlpha = a;
     r.setAlpha(a);
     rTex.setAlpha(a);
 
     theme.textRenderer().setAlpha(a);
+  }
+
+  public void setFrameAlpha(double alpha) {
+    frameAlpha = alpha;
+    setAlpha(1);
+  }
+
+  /** Commit a stacking context before a later panel can cover its geometry or text. */
+  public void flush() {
+    if (scissorStack.isEmpty()) return;
+    Scissor scissor = scissorStack.top();
+    endRender(scissor);
+    scissor.push();
+    for (Runnable task : scissor.postTasks) task.run();
+    scissor.postTasks.clear();
+    scissor.pop();
+    graphics.nextStratum();
+    beginRender();
   }
 
   public void tooltip(String text) {
@@ -284,7 +303,7 @@ public class GuiRenderer {
   }
 
   public void text(String text, double x, double y, Color color, boolean title) {
-    texts.add(getOp(textPool, x, y, color).set(text, theme.textRenderer(), title));
+    texts.add(getOp(textPool, x, y, color).set(text, theme.textRenderer(), title, currentAlpha));
   }
 
   public void texture(double x, double y, double width, double height, double rotation, Texture texture) {

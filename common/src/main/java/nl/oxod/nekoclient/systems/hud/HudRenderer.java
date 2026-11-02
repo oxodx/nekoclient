@@ -79,21 +79,14 @@ public class HudRenderer {
   }
 
   public void end() {
-    Renderer2D.COLOR.render();
+    flushBatches();
 
     if (hud.hasCustomFont()) {
       // Render fonts that were visited this frame and move to cache which weren't visited
       for (Iterator<FontHolder> it = fontsInUse.values().iterator(); it.hasNext(); ) {
         FontHolder fontHolder = it.next();
 
-        if (fontHolder.visited) {
-          MeshRenderer.begin()
-            .attachments(mc.gameRenderer.mainRenderTarget())
-            .pipeline(NekoRenderPipelines.UI_TEXT)
-            .mesh(fontHolder.getMesh())
-            .sampler("u_Texture", fontHolder.font.texture.getTextureView(), fontHolder.font.texture.getSampler())
-            .end();
-        } else {
+        if (!fontHolder.visited) {
           it.remove();
           fontCache.put(fontHolder.font.getHeight(), fontHolder);
         }
@@ -101,12 +94,8 @@ public class HudRenderer {
         fontHolder.visited = false;
       }
     } else {
-      VanillaTextRenderer.INSTANCE.end();
       VanillaTextRenderer.INSTANCE.scaleIndividually = false;
     }
-
-    for (Runnable task : postTasks) task.run();
-    postTasks.clear();
 
     graphics.pose().popMatrix();
 
@@ -115,12 +104,42 @@ public class HudRenderer {
     graphics = null;
   }
 
+  /** Finish one HUD stacking context without evicting this frame's font cache. */
+  public void flush() {
+    flushBatches();
+    graphics.nextStratum();
+    Renderer2D.COLOR.begin();
+    if (!hud.hasCustomFont()) VanillaTextRenderer.INSTANCE.begin(graphics);
+  }
+
+  private void flushBatches() {
+    Renderer2D.COLOR.render();
+    if (hud.hasCustomFont()) {
+      for (FontHolder holder : fontsInUse.values()) {
+        if (!holder.pending) continue;
+        MeshRenderer.begin()
+          .attachments(mc.gameRenderer.mainRenderTarget())
+          .pipeline(NekoRenderPipelines.UI_TEXT)
+          .mesh(holder.getMesh())
+          .sampler("u_Texture", holder.font.texture.getTextureView(), holder.font.texture.getSampler())
+          .end();
+        holder.pending = false;
+      }
+    } else VanillaTextRenderer.INSTANCE.end();
+    for (Runnable task : postTasks) task.run();
+    postTasks.clear();
+  }
+
   public void line(double x1, double y1, double x2, double y2, Color color) {
     Renderer2D.COLOR.line(x1, y1, x2, y2, color);
   }
 
   public void quad(double x, double y, double width, double height, Color color) {
     Renderer2D.COLOR.quad(x, y, width, height, color);
+  }
+
+  public void roundedQuad(double x, double y, double width, double height, double radius, Color color) {
+    Renderer2D.COLOR.roundedQuad(x, y, width, height, radius, color);
   }
 
   public void quad(double x, double y, double width, double height, Color cTopLeft, Color cTopRight, Color cBottomRight, Color cBottomLeft) {
@@ -269,7 +288,7 @@ public class HudRenderer {
     // Check fonts in use
     FontHolder fontHolder = fontsInUse.get(height);
     if (fontHolder != null) {
-      if (render) fontHolder.visited = true;
+      if (render) fontHolder.visited = fontHolder.pending = true;
       return fontHolder;
     }
 
@@ -280,7 +299,7 @@ public class HudRenderer {
       else fontCache.invalidate(height);
 
       fontsInUse.put(height, fontHolder);
-      fontHolder.visited = true;
+      fontHolder.visited = fontHolder.pending = true;
 
       return fontHolder;
     }
@@ -316,6 +335,7 @@ public class HudRenderer {
   private static class FontHolder {
     public final Font font;
     public boolean visited;
+    public boolean pending;
 
     private MeshBuilder mesh;
 

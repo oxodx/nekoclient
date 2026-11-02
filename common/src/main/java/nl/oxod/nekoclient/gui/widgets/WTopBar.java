@@ -33,6 +33,12 @@ public abstract class WTopBar extends WHorizontalList {
   }
 
   @Override
+  public boolean isStackingContext() { return true; }
+
+  @Override
+  public int layer() { return 100; }
+
+  @Override
   public void init() {
     for (Tab tab : Tabs.get()) {
       add(new WTopBarButton(tab));

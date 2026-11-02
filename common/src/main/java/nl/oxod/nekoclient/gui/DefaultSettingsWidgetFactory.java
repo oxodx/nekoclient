@@ -99,10 +99,6 @@ public class DefaultSettingsWidgetFactory extends SettingsWidgetFactory {
       group(list, group, filter, removeInfoList);
     }
 
-    // Calculate width and set it as minimum width
-    list.calculateSize();
-    list.minWidth = list.width;
-
     // Remove hidden settings
     for (RemoveInfo removeInfo : removeInfoList) {
       removeInfo.remove(list);

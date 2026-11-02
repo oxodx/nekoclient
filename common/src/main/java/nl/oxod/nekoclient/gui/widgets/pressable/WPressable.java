@@ -26,13 +26,20 @@ public abstract class WPressable extends WWidget {
   @Override
   public boolean onMouseReleased(MouseButtonEvent click) {
     if (pressed) {
-      onPressed(click.button());
-      if (action != null) action.run();
-
       pressed = false;
+      if (mouseOver) {
+        onPressed(click.button());
+        if (action != null) action.run();
+      }
     }
 
     return false;
+  }
+
+  @Override
+  public void cancelPointer() {
+    pressed = false;
+    super.cancelPointer();
   }
 
   protected void onPressed(int button) {

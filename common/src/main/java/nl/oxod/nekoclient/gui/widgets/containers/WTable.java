@@ -20,6 +20,7 @@ public class WTable extends WContainer {
 
   private final List<List<Cell<?>>> rows = new ArrayList<>();
   private int rowI;
+  private boolean stacked;
 
   private final DoubleList rowHeights = new DoubleArrayList();
   private final DoubleList columnWidths = new DoubleArrayList();
@@ -112,10 +113,68 @@ public class WTable extends WContainer {
       if (rowI > 0) height += verticalSpacing();
       height += rowHeights.getDouble(rowI);
     }
+
+    stacked = width > availableWidth;
+    if (stacked) {
+      width = availableWidth;
+      height = 0;
+      for (List<Cell<?>> row : rows) {
+        if (row.isEmpty()) continue;
+        if (height > 0) height += verticalSpacing() * 2;
+        Cell<?> label = row.getFirst();
+        height += label.padTop() + label.widget().height + label.padBottom();
+        double controlsHeight = 0;
+        for (int i = 1; i < row.size(); i++) {
+          Cell<?> cell = row.get(i);
+          controlsHeight = Math.max(controlsHeight, cell.padTop() + cell.widget().height + cell.padBottom());
+        }
+        if (row.size() > 1) height += verticalSpacing() + controlsHeight;
+      }
+    }
   }
 
   @Override
   protected void onCalculateWidgetPositions() {
+    if (stacked) {
+      double nextY = y;
+      for (List<Cell<?>> row : rows) {
+        if (row.isEmpty()) continue;
+        if (nextY > y) nextY += verticalSpacing() * 2;
+        Cell<?> label = row.getFirst();
+        label.x = x + label.padLeft();
+        label.y = nextY + label.padTop();
+        label.width = Math.max(0, width - label.padLeft() - label.padRight());
+        label.height = label.widget().height;
+        label.alignWidget();
+        nextY += label.padTop() + label.height + label.padBottom();
+        if (row.size() <= 1) continue;
+        nextY += verticalSpacing();
+
+        double fixed = horizontalSpacing() * Math.max(0, row.size() - 2);
+        int flexible = 0;
+        for (int i = 1; i < row.size(); i++) {
+          Cell<?> cell = row.get(i);
+          fixed += cell.padLeft() + cell.padRight();
+          if (cell.expandCellX) flexible++;
+          else fixed += cell.widget().width;
+        }
+        double flexWidth = flexible > 0 ? Math.max(0, width - fixed) / flexible : 0;
+        double nextX = x;
+        double controlsHeight = 0;
+        for (int i = 1; i < row.size(); i++) {
+          Cell<?> cell = row.get(i);
+          cell.x = nextX + cell.padLeft();
+          cell.y = nextY + cell.padTop();
+          cell.width = Math.max(0, Math.min(cell.expandCellX ? flexWidth : cell.widget().width, x + width - cell.x));
+          cell.height = cell.widget().height;
+          cell.alignWidget();
+          nextX += cell.padLeft() + cell.width + cell.padRight() + horizontalSpacing();
+          controlsHeight = Math.max(controlsHeight, cell.padTop() + cell.height + cell.padBottom());
+        }
+        nextY += controlsHeight;
+      }
+      return;
+    }
     double y = this.y;
 
     // Loop over rows

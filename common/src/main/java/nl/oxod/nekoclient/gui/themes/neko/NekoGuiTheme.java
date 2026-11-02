@@ -86,6 +86,23 @@ public class NekoGuiTheme extends GuiTheme {
     .build()
   );
 
+  public final Setting<Boolean> showGrid = sgGeneral.add(new BoolSetting.Builder()
+    .name("show-grid")
+    .description("Shows the LiquidBounce-style positioning grid behind panels.")
+    .defaultValue(true)
+    .build()
+  );
+
+  public final Setting<Double> gridSize = sgGeneral.add(new DoubleSetting.Builder()
+    .name("grid-size")
+    .description("Spacing of the positioning grid.")
+    .defaultValue(10)
+    .min(5)
+    .sliderRange(5, 30)
+    .visible(showGrid::get)
+    .build()
+  );
+
   public final Setting<AlignmentX> moduleAlignment = sgGeneral.add(new EnumSetting.Builder<AlignmentX>()
     .name("module-alignment")
     .description("How module titles are aligned.")
@@ -145,8 +162,9 @@ public class NekoGuiTheme extends GuiTheme {
   public final Setting<SettingColor> surfaceHighColor = color(sgBackgroundColors, "surface-high", "Raised and hovered surface color.", new SettingColor(46, 43, 52, 248));
   public final Setting<SettingColor> activeSurfaceColor = color(sgBackgroundColors, "active-surface", "Surface used by enabled modules.", new SettingColor(72, 55, 112, 246));
   public final Setting<SettingColor> shadowColor = color(sgBackgroundColors, "shadow", "Color of soft window shadows.", new SettingColor(0, 0, 0, 150));
-  public final Setting<SettingColor> backdropColor = color(sgBackgroundColors, "backdrop", "Color behind the dashboard.", new SettingColor(7, 9, 14, 220));
-  public final Setting<SettingColor> glowColor = color(sgBackgroundColors, "glow", "Subtle accent glow at the top of the dashboard.", new SettingColor(112, 76, 255, 38));
+  public final Setting<SettingColor> backdropColor = color(sgBackgroundColors, "backdrop", "Color behind the dashboard.", new SettingColor(0, 0, 0, 90));
+  public final Setting<SettingColor> glowColor = color(sgBackgroundColors, "glow", "Subtle accent glow at the top of the dashboard.", new SettingColor(70, 119, 255, 18));
+  public final Setting<SettingColor> gridColor = color(sgBackgroundColors, "grid", "Color of the panel positioning grid.", new SettingColor(128, 128, 128, 38));
   public final Setting<SettingColor> moduleBackground = color(sgBackgroundColors, "module-background", "Legacy active module color.", new SettingColor(72, 55, 112, 246));
 
   // Outline
@@ -217,8 +235,28 @@ public class NekoGuiTheme extends GuiTheme {
     renderer.quad(0, 0, width, glowHeight,
       glowColor.get(), glowColor.get(), transparent, transparent);
 
+    if (showGrid.get() && nl.oxod.nekoclient.NekoClient.mc.gui.screen()
+        instanceof nl.oxod.nekoclient.gui.WidgetScreen screen && screen.isDraggingPanel()) {
+      double step = scale(gridSize.get());
+      double line = Math.max(1, scale(0.5));
+      for (double x = 0; x < width; x += step) renderer.quad(x, 0, line, height, gridColor.get());
+      for (double y = 0; y < height; y += step) renderer.quad(0, y, width, line, gridColor.get());
+    }
+
     double rail = scale(1);
     renderer.quad(0, 0, width, rail, accentColor.get().copy().a(150));
+  }
+
+  @Override
+  public double snapWindowPosition(double value) {
+    if (!showGrid.get()) return value;
+    double step = scale(gridSize.get());
+    return Math.round(value / step) * step;
+  }
+
+  @Override
+  public double topBarInset() {
+    return 15;
   }
 
   private Setting<SettingColor> color(SettingGroup group, String name, String description, SettingColor color) {

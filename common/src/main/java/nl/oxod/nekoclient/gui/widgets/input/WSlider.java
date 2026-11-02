@@ -49,7 +49,7 @@ public abstract class WSlider extends WWidget {
       double handleSize = handleSize();
 
       double valueWidth = click.x() - (x + handleSize / 2);
-      set((valueWidth / (width - handleSize)) * (max - min) + min);
+      set((valueWidth / Math.max(1, width - handleSize)) * (max - min) + min);
       if (action != null) action.run();
 
       dragging = true;
@@ -86,12 +86,12 @@ public abstract class WSlider extends WWidget {
     boolean mouseOverX = mouseX >= this.x + s2 && mouseX <= this.x + s2 + width - s;
     mouseOver = mouseOverX && mouseY >= this.y && mouseY <= this.y + height;
 
-    if (dragging) {
+    if (dragging && mouseX != lastMouseX) {
       if (mouseOverX) {
         valueWidth += mouseX - lastMouseX;
         valueWidth = Mth.clamp(valueWidth, 0, width - s);
 
-        set((valueWidth / (width - s)) * (max - min) + min);
+        set((valueWidth / Math.max(1, width - s)) * (max - min) + min);
         if (action != null) action.run();
       } else {
         if (value > min && mouseX < this.x + s2) {
@@ -118,6 +118,12 @@ public abstract class WSlider extends WWidget {
     }
 
     return false;
+  }
+
+  @Override
+  public void cancelPointer() {
+    dragging = false;
+    super.cancelPointer();
   }
 
   @Override
@@ -155,7 +161,7 @@ public abstract class WSlider extends WWidget {
   }
 
   protected double valueWidth() {
-    double valuePercentage = (value - min) / (max - min);
+    double valuePercentage = max == min ? 0 : (value - min) / (max - min);
     return valuePercentage * (width - handleSize());
   }
 }

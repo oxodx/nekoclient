@@ -8,6 +8,7 @@ package nl.oxod.nekoclient.gui.widgets.input;
 import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.utils.Cell;
 import nl.oxod.nekoclient.gui.widgets.WRoot;
+import nl.oxod.nekoclient.gui.widgets.WWidget;
 import nl.oxod.nekoclient.gui.widgets.containers.WVerticalList;
 import nl.oxod.nekoclient.gui.widgets.containers.WView;
 import nl.oxod.nekoclient.gui.widgets.pressable.WPressable;
@@ -95,6 +96,9 @@ public abstract class WDropdown<T> extends WPressable {
     return value;
   }
 
+  @Override
+  public WWidget popup() { return expanded ? root : null; }
+
   public void set(T value) {
     this.value = value;
   }
@@ -137,26 +141,26 @@ public abstract class WDropdown<T> extends WPressable {
   @Override
   public boolean onMouseClicked(MouseButtonEvent click, boolean doubled) {
     boolean used = false;
-    if (!mouseOver && !root.mouseOver) expanded = false;
+    if (!mouseOver && !root.mouseOver) {
+      expanded = false;
+      root.setFocused(false);
+      setFocused(false);
+    }
 
     if (super.onMouseClicked(click, doubled)) used = true;
-    if (expanded && root.mouseClicked(click, doubled)) used = true;
 
     return used;
   }
 
   @Override
   public boolean onMouseReleased(MouseButtonEvent click) {
-    if (super.onMouseReleased(click)) return true;
-
-    return expanded && root.mouseReleased(click);
+    return super.onMouseReleased(click);
   }
 
   @Override
   public void onMouseMoved(double mouseX, double mouseY, double lastMouseX, double lastMouseY) {
     super.onMouseMoved(mouseX, mouseY, lastMouseX, lastMouseY);
 
-    if (expanded) root.mouseMoved(mouseX, mouseY, lastMouseX, lastMouseY);
   }
 
   @Override
@@ -208,6 +212,8 @@ public abstract class WDropdown<T> extends WPressable {
 
       WDropdown.this.value = value;
       expanded = false;
+      WDropdown.this.setFocused(false);
+      root.setFocused(false);
 
       if (isNew && WDropdown.this.action != null) WDropdown.this.action.run();
     }

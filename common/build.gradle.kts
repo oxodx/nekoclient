@@ -45,3 +45,18 @@ dependencies {
 loom {
   accessWidenerPath = file("src/main/resources/nekoclient.classtweaker")
 }
+
+val uiTests = sourceSets.create("uiTest") {
+  compileClasspath += sourceSets.main.get().output
+  runtimeClasspath += sourceSets.main.get().output
+}
+
+val uiEngineTest = tasks.register<JavaExec>("uiEngineTest") {
+  group = "verification"
+  description = "Checks UI clipping, hit testing, pointer capture, stacking and motion without a game window."
+  dependsOn(tasks.named(uiTests.classesTaskName))
+  classpath = uiTests.runtimeClasspath
+  mainClass.set("nl.oxod.nekoclient.gui.engine.UiEngineTest")
+}
+
+tasks.check { dependsOn(uiEngineTest) }

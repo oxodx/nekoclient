@@ -9,7 +9,7 @@ import nl.oxod.nekoclient.gui.renderer.GuiRenderer;
 import nl.oxod.nekoclient.gui.utils.Cell;
 import nl.oxod.nekoclient.gui.widgets.WWidget;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.util.Mth;
+import nl.oxod.nekoclient.gui.engine.UiMotion;
 
 import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT;
 
@@ -24,9 +24,7 @@ public abstract class WSection extends WVerticalList {
   private WHeader header;
   protected final WWidget headerWidget;
 
-  private double actualWidth, actualHeight;
-  private double forcedHeight = -1;
-  private boolean firstTime = true;
+  private double actualHeight;
 
   public WSection(String title, boolean expanded, WWidget headerWidget) {
     this.title = title;
@@ -53,6 +51,7 @@ public abstract class WSection extends WVerticalList {
 
   public void setExpanded(boolean expanded) {
     this.expanded = expanded;
+    invalidate();
   }
 
   public boolean isExpanded() {
@@ -61,24 +60,9 @@ public abstract class WSection extends WVerticalList {
 
   @Override
   protected void onCalculateSize() {
-    if (forcedHeight == -1) {
-      super.onCalculateSize();
-
-      actualWidth = width;
-      actualHeight = height;
-    } else {
-      width = actualWidth;
-      height = forcedHeight;
-
-      if (animProgress == 1) forcedHeight = -1;
-    }
-
-    if (firstTime) {
-      firstTime = false;
-
-      forcedHeight = (actualHeight - header.height) * animProgress + header.height;
-      onCalculateSize();
-    }
+    super.onCalculateSize();
+    actualHeight = height;
+    height = header.height + (actualHeight - header.height) * animProgress;
   }
 
   @Override
@@ -87,21 +71,21 @@ public abstract class WSection extends WVerticalList {
 
     double preProgress = animProgress;
 
-    animProgress += (expanded ? 1 : -1) * delta * 14;
-    animProgress = Mth.clamp(animProgress, 0, 1);
+    animProgress = UiMotion.approach(animProgress, expanded ? 1 : 0, 20, delta);
 
     if (animProgress != preProgress) {
-      forcedHeight = (actualHeight - header.height) * animProgress + header.height;
       invalidate();
     }
 
-    boolean scissor = (animProgress != 0 && animProgress != 1) || (expanded && animProgress != 1);
-    if (scissor) renderer.scissorStart(x, y, width, (height - header.height) * animProgress + header.height);
+    renderer.scissorStart(x, y, width, height);
     boolean toReturn = super.render(renderer, mouseX, mouseY, delta);
-    if (scissor) renderer.scissorEnd();
+    renderer.scissorEnd();
 
     return toReturn;
   }
+
+  @Override
+  public boolean clipsChildren() { return true; }
 
   @Override
   protected void renderWidget(WWidget widget, GuiRenderer renderer, double mouseX, double mouseY, double delta) {
@@ -113,6 +97,11 @@ public abstract class WSection extends WVerticalList {
   @Override
   protected boolean propagateEvents(WWidget widget) {
     return expanded || widget instanceof WHeader;
+  }
+
+  @Override
+  public boolean isChildActive(WWidget widget) {
+    return widget.visible && (expanded || widget instanceof WHeader);
   }
 
   protected abstract class WHeader extends WHorizontalList {

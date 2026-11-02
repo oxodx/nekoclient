@@ -38,10 +38,7 @@ public class WNekoWindow extends WWindow implements NekoWidget {
     @Override
     protected void onRender(GuiRenderer renderer, double mouseX, double mouseY, double delta) {
       renderer.roundedQuad(this, theme().scale(theme().cornerRadius.get() + 2), theme().surfaceHighColor.get());
-      double accentWidth = theme().scale(3);
-      renderer.roundedQuad(x + theme().scale(2), y + theme().scale(3), accentWidth,
-        height - theme().scale(6), accentWidth / 2, theme().accentColor.get());
-      renderer.quad(x, y + height - theme().scale(1), width, theme().scale(1), theme().outlineColor.get());
+      renderer.quad(x, y + height - theme().scale(2), width, theme().scale(2), theme().accentColor.get());
     }
   }
 }
